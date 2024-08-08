@@ -1,4 +1,4 @@
-package backend
+package core
 
 // GetOldEntryData decrypts and returns old entry data (with all required lines present)
 func GetOldEntryData(targetLocation string, field int) []string {

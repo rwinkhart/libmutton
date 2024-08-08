@@ -1,10 +1,8 @@
-//go:build windows
+//go:build !windows
 
-package backend
-
-import "strings"
+package core
 
 // TargetLocationFormat returns the full location of an entry (given the name) formatted for the current platform
 func TargetLocationFormat(targetLocationIncomplete string) string {
-	return EntryRoot + strings.ReplaceAll(targetLocationIncomplete, "/", PathSeparator)
+	return EntryRoot + targetLocationIncomplete
 }

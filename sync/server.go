@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rwinkhart/MUTN/src/backend"
+	"github.com/rwinkhart/libmutton/core"
 )
 
 // GetRemoteDataFromServer prints to stdout the remote entries, mod times, folders, and deletions
@@ -15,9 +15,9 @@ import (
 func GetRemoteDataFromServer(clientDeviceID string) {
 	entryList, dirList := WalkEntryDir()
 	modList := getModTimes(entryList)
-	deletionsList, err := os.ReadDir(backend.ConfigDir + backend.PathSeparator + "deletions")
+	deletionsList, err := os.ReadDir(core.ConfigDir + core.PathSeparator + "deletions")
 	if err != nil {
-		fmt.Println(backend.AnsiError + "Failed to read the deletions directory: " + err.Error() + backend.AnsiReset)
+		fmt.Println(core.AnsiError + "Failed to read the deletions directory: " + err.Error() + core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -53,7 +53,7 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 			fmt.Print(FSMisc + strings.ReplaceAll(affectedIDTargetLocationIncomplete[1], FSPath, "/"))
 
 			// assume successful client deletion and remove deletions file (if assumption is somehow false, worst case scenario is that the client will re-upload the deleted entry)
-			_ = os.Remove(backend.ConfigDir + backend.PathSeparator + "deletions" + backend.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
+			_ = os.Remove(core.ConfigDir + core.PathSeparator + "deletions" + core.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
 		}
 	}
 }

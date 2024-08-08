@@ -8,20 +8,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rwinkhart/MUTN/src/backend"
+	"github.com/rwinkhart/libmutton/core"
 )
 
 // DeviceIDGen generates a new client device ID and registers it with the server
 // device IDs are only needed for online synchronization
 // device IDs are guaranteed unique as the current UNIX time is appended to them
-// returns the remote EntryRoot and OS type (OS type is a bool: backend.IsWindows)
+// returns the remote EntryRoot and OS type (OS type is a bool: core.IsWindows)
 func DeviceIDGen() (string, string) {
 	deviceIDPrefix, _ := os.Hostname()
-	deviceIDSuffix := backend.StringGen(rand.Intn(32)+48, true, 0.2, true) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+	deviceIDSuffix := core.StringGen(rand.Intn(32)+48, true, 0.2, true) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 	deviceID := deviceIDPrefix + "-" + deviceIDSuffix
-	_, err := os.Create(backend.ConfigDir + backend.PathSeparator + "devices" + backend.PathSeparator + deviceID) // TODO remove existing device ID file if it exists (from both client and server)
+	_, err := os.Create(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + deviceID) // TODO remove existing device ID file if it exists (from both client and server)
 	if err != nil {
-		fmt.Println(backend.AnsiError + "Failed to create local device ID file: " + err.Error() + backend.AnsiReset)
+		fmt.Println(core.AnsiError + "Failed to create local device ID file: " + err.Error() + core.AnsiReset)
 	}
 
 	// register device ID with server and fetch remote EntryRoot and OS type

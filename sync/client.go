@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/sftp"
-	"github.com/rwinkhart/MUTN/src/backend"
+	"github.com/rwinkhart/libmutton/core"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
 )
@@ -31,7 +31,7 @@ func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	} else {
 		missingValueError = "0"
 	}
-	sshUserConfig = backend.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
+	sshUserConfig = core.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
 	var isWindows bool
@@ -57,7 +57,7 @@ func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// read private key
 	key, err := os.ReadFile(keyFile)
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - unable to read private key file:", keyFile+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - unable to read private key file:", keyFile+core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -69,14 +69,14 @@ func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, inputKeyFilePassphrase())
 	}
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - Unable to parse private key:", keyFile+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to parse private key:", keyFile+core.AnsiReset)
 		os.Exit(1)
 	}
 
 	// read known hosts file
-	hostKeyCallback, err := knownhosts.New(backend.Home + backend.PathSeparator + ".ssh" + backend.PathSeparator + "known_hosts")
+	hostKeyCallback, err := knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
-		fmt.Println(backend.AnsiError + "Sync failed - Unable to read known hosts file:" + err.Error() + backend.AnsiReset)
+		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file:" + err.Error() + core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -92,7 +92,7 @@ func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// connect to SSH server
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - Unable to connect to remote server:", err.Error()+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to connect to remote server:", err.Error()+core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -108,7 +108,7 @@ func GetSSHOutput(cmd, stdin string, manualSync bool) string {
 	// create a session
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - Unable to establish SSH session:", err.Error()+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SSH session:", err.Error()+core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -119,7 +119,7 @@ func GetSSHOutput(cmd, stdin string, manualSync bool) string {
 	var output []byte
 	output, err = sshSession.CombinedOutput(cmd)
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - Unable to run SSH command:", err.Error()+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to run SSH command:", err.Error()+core.AnsiReset)
 		os.Exit(1)
 	}
 
@@ -133,13 +133,13 @@ func GetSSHOutput(cmd, stdin string, manualSync bool) string {
 // getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server+client times as UNIX timestamps
 func getRemoteDataFromClient(manualSync bool) (map[string]int64, []string, []string, int64, int64) {
 	// get remote output over SSH
-	clientDeviceID, _ := os.ReadDir(backend.ConfigDir + backend.PathSeparator + "devices")
+	clientDeviceID, _ := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
 	if len(clientDeviceID) == 0 {
 		if manualSync {
 			fmt.Println(joinErrorWithEXE("Sync failed - No device ID found; run \"", " init\" to generate a device ID"))
 			os.Exit(1)
 		} else {
-			backend.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
+			core.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
 		}
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
@@ -150,7 +150,7 @@ func getRemoteDataFromClient(manualSync bool) (map[string]int64, []string, []str
 
 	// parse output/re-form lists
 	if len(outputSlice) != 5 { // ensure information from server is complete
-		fmt.Println(backend.AnsiError + "Sync failed - Unable to fetch remote data; server returned an unexpected response" + backend.AnsiReset)
+		fmt.Println(core.AnsiError + "Sync failed - Unable to fetch remote data; server returned an unexpected response" + core.AnsiReset)
 		os.Exit(1)
 	}
 	serverTime, _ := strconv.ParseInt(outputSlice[0], 10, 64)
@@ -211,7 +211,7 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 	// create an SFTP client
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
-		fmt.Println(backend.AnsiError+"Sync failed - Unable to establish SFTP session:", err.Error()+backend.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SFTP session:", err.Error()+core.AnsiReset)
 		os.Exit(1)
 	}
 	defer sftpClient.Close()
@@ -221,7 +221,7 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 	for _, entryName := range downloadList {
 		filesTransferred = true // set a flag to indicate that files have been downloaded (used to determine whether to print a gap between download and upload messages)
 
-		fmt.Println("Downloading " + ansiDownload + entryName + backend.AnsiReset)
+		fmt.Println("Downloading " + ansiDownload + entryName + core.AnsiReset)
 
 		// store path to remote entry
 		remoteEntryFullPath := targetLocationFormatSFTP(entryName, sshEntryRoot, sshIsWindows)
@@ -230,7 +230,7 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 		var fileInfo os.FileInfo
 		fileInfo, err = sftpClient.Stat(remoteEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to get remote file info (mod time):", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to get remote file info (mod time):", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 		modTime := fileInfo.ModTime()
@@ -239,25 +239,25 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.Open(remoteEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to open remote file:", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to open remote file:", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
 		// store path to local entry
-		localEntryFullPath := backend.TargetLocationFormat(entryName)
+		localEntryFullPath := core.TargetLocationFormat(entryName)
 
 		// create local file
 		var localFile *os.File
 		localFile, err = os.Create(localEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to create local file:", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to create local file:", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
 		// download the file
 		_, err = remoteFile.WriteTo(localFile)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to download remote file:", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to download remote file:", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
@@ -278,16 +278,16 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 	for _, entryName := range uploadList {
 		filesTransferred = true // set a flag to indicate that files have been uploaded (used to determine whether to print a gap between upload and sync complete messages)
 
-		fmt.Println("Uploading " + ansiUpload + entryName + backend.AnsiReset)
+		fmt.Println("Uploading " + ansiUpload + entryName + core.AnsiReset)
 
 		// store path to local entry
-		localEntryFullPath := backend.TargetLocationFormat(entryName)
+		localEntryFullPath := core.TargetLocationFormat(entryName)
 
 		// save modification time of local file
 		var fileInfo os.FileInfo
 		fileInfo, err = os.Stat(localEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to get local file info (mod time):", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to get local file info (mod time):", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 		modTime := fileInfo.ModTime()
@@ -296,7 +296,7 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 		var localFile *os.File
 		localFile, err = os.Open(localEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to open local file:", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to open local file:", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
@@ -307,14 +307,14 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.Create(remoteEntryFullPath)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to create remote file ("+remoteEntryFullPath+"):", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to create remote file ("+remoteEntryFullPath+"):", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
 		// upload the file
 		_, err = localFile.WriteTo(remoteFile)
 		if err != nil {
-			fmt.Println(backend.AnsiError+"Sync failed - Unable to upload local file:", err.Error()+backend.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to upload local file:", err.Error()+core.AnsiReset)
 			os.Exit(1)
 		}
 
@@ -342,7 +342,7 @@ func syncLists(localEntryModMap, remoteEntryModMap map[string]int64, manualSync 
 	timeDiff := serverTime - clientTime
 	if timeDiff < -45 || timeDiff > 45 {
 		timeSynced = false
-		fmt.Print(backend.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + backend.AnsiReset)
+		fmt.Print(core.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + core.AnsiReset)
 	}
 
 	// iterate over client entries
@@ -351,23 +351,23 @@ func syncLists(localEntryModMap, remoteEntryModMap map[string]int64, manualSync 
 		if remoteModTime, present := remoteEntryModMap[entry]; present {
 			// entry exists on both client and server, compare mod times
 			if remoteModTime > localModTime {
-				fmt.Println(ansiDownload+entry+backend.AnsiReset, "is newer on server, adding to download list")
+				fmt.Println(ansiDownload+entry+core.AnsiReset, "is newer on server, adding to download list")
 				downloadList = append(downloadList, entry)
 			} else if remoteModTime < localModTime {
-				fmt.Println(ansiUpload+entry+backend.AnsiReset, "is newer on client, adding to upload list")
+				fmt.Println(ansiUpload+entry+core.AnsiReset, "is newer on client, adding to upload list")
 				uploadList = append(uploadList, entry)
 			}
 			// remove entry from remoteEntryModMap (process of elimination)
 			delete(remoteEntryModMap, entry)
 		} else {
-			fmt.Println(ansiUpload+entry+backend.AnsiReset, "does not exist on server, adding to upload list")
+			fmt.Println(ansiUpload+entry+core.AnsiReset, "does not exist on server, adding to upload list")
 			uploadList = append(uploadList, entry)
 		}
 	}
 
 	// iterate over remaining entries in remoteEntryModMap
 	for entry := range remoteEntryModMap {
-		fmt.Println(ansiDownload+entry+backend.AnsiReset, "does not exist on client, adding to download list")
+		fmt.Println(ansiDownload+entry+core.AnsiReset, "does not exist on client, adding to download list")
 		downloadList = append(downloadList, entry)
 	}
 
@@ -377,7 +377,7 @@ func syncLists(localEntryModMap, remoteEntryModMap map[string]int64, manualSync 
 		sftpSync(downloadList, uploadList, manualSync)
 	} else if !timeSynced {
 		// do not call sftpSync if the client and server times are out of sync
-		backend.Exit(1)
+		core.Exit(1)
 	}
 
 	fmt.Println("Client is synchronized with server")
@@ -388,8 +388,8 @@ func deletionSync(deletions []string) {
 	var filesDeleted bool
 	for _, deletion := range deletions {
 		filesDeleted = true // set a flag to indicate that files have been deleted (used to determine whether to print a gap between deletion and other messages)
-		fmt.Println(ansiDelete+deletion+backend.AnsiReset, "has been sheared, removing locally (if it exists)")
-		os.RemoveAll(backend.TargetLocationFormat(deletion))
+		fmt.Println(ansiDelete+deletion+core.AnsiReset, "has been sheared, removing locally (if it exists)")
+		os.RemoveAll(core.TargetLocationFormat(deletion))
 	}
 
 	if filesDeleted {
@@ -405,10 +405,10 @@ func ShearRemoteFromClient(targetLocationIncomplete string) {
 	if deviceID != "" { // ensure a device ID exists (online mode)
 		// call the server to remotely shear the target and add it to the deletions list
 		GetSSHOutput("libmuttonserver shear", deviceID+"\n"+
-			strings.ReplaceAll(targetLocationIncomplete, backend.PathSeparator, FSPath), false)
+			strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath), false)
 	}
 
-	backend.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
+	core.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
 }
 
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list
@@ -421,35 +421,35 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string)
 		// call the server to move the target on the remote system and add the old target to the deletions list
 		GetSSHOutput("libmuttonserver rename",
 			(*deviceIDList)[0].Name()+"\n"+
-				strings.ReplaceAll(oldLocationIncomplete, backend.PathSeparator, FSPath)+"\n"+
-				strings.ReplaceAll(newLocationIncomplete, backend.PathSeparator, FSPath), false)
+				strings.ReplaceAll(oldLocationIncomplete, core.PathSeparator, FSPath)+"\n"+
+				strings.ReplaceAll(newLocationIncomplete, core.PathSeparator, FSPath), false)
 	}
 
-	backend.Exit(0)
+	core.Exit(0)
 }
 
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely
 // can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary)
 func AddFolderRemoteFromClient(targetLocationIncomplete string) {
-	AddFolderLocal(targetLocationIncomplete)                                                                                      // add the folder on the local system
-	GetSSHOutput("libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, backend.PathSeparator, FSPath), false) // call the server to create the folder remotely
+	AddFolderLocal(targetLocationIncomplete)                                                                                   // add the folder on the local system
+	GetSSHOutput("libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath), false) // call the server to create the folder remotely
 
-	backend.Exit(0)
+	core.Exit(0)
 }
 
 // folderSync creates folders on the client (from the given list of folder names)
 func folderSync(folders []string) {
 	for _, folder := range folders {
 		// store the full local path of the folder
-		folderFullPath := backend.TargetLocationFormat(folder)
+		folderFullPath := core.TargetLocationFormat(folder)
 
 		// check if folder already exists
-		isFile, isAccessible := backend.TargetIsFile(folderFullPath, false, 1)
+		isFile, isAccessible := core.TargetIsFile(folderFullPath, false, 1)
 
 		if !isFile && !isAccessible {
 			os.MkdirAll(folderFullPath, 0700)
 		} else if isFile {
-			fmt.Println(backend.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\" - a file with the same name already exists" + backend.AnsiReset)
+			fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\" - a file with the same name already exists" + core.AnsiReset)
 			os.Exit(1)
 		}
 	}
@@ -473,5 +473,5 @@ func RunJob(manualSync bool) {
 	syncLists(localEntryModMap, remoteEntryModMap, manualSync, serverTime, clientTime)
 
 	// exit program after successful sync
-	backend.Exit(0)
+	core.Exit(0)
 }

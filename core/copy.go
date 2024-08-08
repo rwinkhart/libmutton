@@ -1,4 +1,4 @@
-package backend
+package core
 
 import (
 	"bufio"
@@ -67,7 +67,7 @@ func ClipClearArgument() {
 		oldContents := clipScanner.Text()
 		clipClear(oldContents)
 	} else {
-		os.Exit(0) // use os.Exit instead of backend.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
+		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
 }
 

@@ -1,6 +1,6 @@
 package sync
 
-import "github.com/rwinkhart/MUTN/src/backend"
+import "github.com/rwinkhart/libmutton/core"
 
 // define field separator constants
 const (
@@ -9,5 +9,5 @@ const (
 	FSMisc  = "\u259f" // ▟ misc. field separator (if \u259d is already used)
 )
 
-// rootLength stores length of backend.EntryRoot string
-var rootLength = len(backend.EntryRoot)
+// rootLength stores length of core.EntryRoot string
+var rootLength = len(core.EntryRoot)

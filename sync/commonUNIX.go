@@ -4,10 +4,11 @@ package sync
 
 import (
 	"fmt"
-	"github.com/rwinkhart/MUTN/src/backend"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/rwinkhart/libmutton/core"
 )
 
 // WalkEntryDir walks the entry directory and returns lists of all files and directories found (two separate lists)
@@ -18,16 +19,16 @@ func WalkEntryDir() ([]string, []string) {
 	var dirList []string
 
 	// walk entry directory
-	_ = filepath.WalkDir(backend.EntryRoot,
+	_ = filepath.WalkDir(core.EntryRoot,
 		func(fullPath string, entry fs.DirEntry, err error) error {
 
 			// check for errors encountered while walking directory
 			if err != nil {
 				if os.IsNotExist(err) {
-					fmt.Println(backend.AnsiError+"The entry directory does not exist - run \""+os.Args[0], "init"+"\" to create it"+backend.AnsiReset)
+					fmt.Println(core.AnsiError+"The entry directory does not exist - run \""+os.Args[0], "init"+"\" to create it"+core.AnsiReset)
 				} else {
 					// otherwise, print the source of the error
-					fmt.Println(backend.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + backend.AnsiReset)
+					fmt.Println(core.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + core.AnsiReset)
 				}
 				os.Exit(1)
 			}
@@ -50,5 +51,5 @@ func WalkEntryDir() ([]string, []string) {
 
 // joinErrorWithEXE joins and returns the two strings it is provided (in error format) with the executable name inserted between them
 func joinErrorWithEXE(firstHalf, secondHalf string) string {
-	return backend.AnsiError + firstHalf + os.Args[0] + secondHalf + backend.AnsiReset
+	return core.AnsiError + firstHalf + os.Args[0] + secondHalf + core.AnsiReset
 }

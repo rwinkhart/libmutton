@@ -1,6 +1,6 @@
 //go:build returnOnExit
 
-package backend
+package core
 
 func Exit(code int) {
 	return code

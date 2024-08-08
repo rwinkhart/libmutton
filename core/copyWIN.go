@@ -1,6 +1,6 @@
 //go:build windows || (linux && wsl)
 
-package backend
+package core
 
 import (
 	"fmt"
@@ -51,5 +51,5 @@ func clipClear(oldContents string) {
 			os.Exit(1)
 		}
 	}
-	os.Exit(0) // use os.Exit instead of backend.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
+	os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 }

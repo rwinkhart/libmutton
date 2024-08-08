@@ -3,7 +3,7 @@
 
 libmutton was designed to be usable as a library for building other compatible password managers off of. [MUTN](https://github.com/rwinkhart/MUTN) is the official reference CLI password manager, however libmutton can be implemented in many other unique ways.
 
-All functionality in the `backend` and `sync` packages are designed to be used in other implementations.
+All functionality in the `core` and `sync` packages are designed to be used in other implementations.
 
 If any functionality in these two packages proves to be difficult to implement in a third-party client, please open an issue so that it can be addressed.
 
@@ -17,7 +17,7 @@ These are as follows:
 
 ## Required Arguments
 libmutton-based password manager clients should accept at least one specific required argument, as well as another recommended one:
-- `clipclear`: This argument is required for correct functionality. In order to clear the clipboard on a timer, libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that is processed before the launch of any interactive interface. All this argument needs to do is call `backend.ClipClearArgument()`.
+- `clipclear`: This argument is required for correct functionality. In order to clear the clipboard on a timer, libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that is processed before the launch of any interactive interface. All this argument needs to do is call `core.ClipClearArgument()`.
 - `init`: This argument is optional, but recommended for CLI interfaces. Some error messages request the user to use the `init` argument to fix configuration issues. If the argument does not exist, this may confuse the user.
 
 ## Configuration

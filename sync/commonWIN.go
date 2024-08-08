@@ -4,11 +4,12 @@ package sync
 
 import (
 	"fmt"
-	"github.com/rwinkhart/MUTN/src/backend"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/rwinkhart/libmutton/core"
 )
 
 // WalkEntryDir walks the entry directory and returns lists of all files and directories found (two separate lists)
@@ -19,7 +20,7 @@ func WalkEntryDir() ([]string, []string) {
 	var dirList []string
 
 	// walk entry directory
-	_ = filepath.WalkDir(backend.EntryRoot,
+	_ = filepath.WalkDir(core.EntryRoot,
 		func(fullPath string, entry fs.DirEntry, err error) error {
 
 			// check for errors encountered while walking directory
@@ -28,7 +29,7 @@ func WalkEntryDir() ([]string, []string) {
 					fmt.Println(joinErrorWithEXE("The entry directory does not exist - run \"", " init"+"\" to create it"))
 				} else {
 					// otherwise, print the source of the error
-					fmt.Println(backend.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + backend.AnsiReset)
+					fmt.Println(core.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + core.AnsiReset)
 				}
 				os.Exit(1)
 			}
@@ -51,5 +52,5 @@ func WalkEntryDir() ([]string, []string) {
 
 // joinErrorWithEXE joins and returns the two strings it is provided (in error format) with the executable name inserted between them
 func joinErrorWithEXE(firstHalf, secondHalf string) string {
-	return backend.AnsiError + firstHalf + os.Args[0][strings.LastIndex(os.Args[0], "\\")+1:] + secondHalf + backend.AnsiReset
+	return core.AnsiError + firstHalf + os.Args[0][strings.LastIndex(os.Args[0], "\\")+1:] + secondHalf + core.AnsiReset
 }
