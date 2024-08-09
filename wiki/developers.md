@@ -45,5 +45,5 @@ configKey = <value>
 ```
 This ensures that a user can use multiple client applications with the same configuration while avoiding conflicts.
 
-# Relevant Bugs Affecting Third-Party Implementations
+# Relevant Bugs Affecting Third-Party Client Implementations
 - Password-protected SSH identity files currently only prompt for password entry in the CLI, and thus they are not yet supported in GUI/TUI implementations

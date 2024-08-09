@@ -5,3 +5,4 @@
     - **This will be addressed** in v0.2.1
 - Using a password-protected SSH identity file will prompt for the key's password multiple times when syncing
     - **This will be addressed** in v0.2.1
+- Password-protected SSH identity files currently only prompt for password entry in the CLI, and thus they are not yet supported in GUI/TUI implementations
