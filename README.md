@@ -1,6 +1,8 @@
 # libmutton
 libmutton is a library for building simple, SSH-synchronized password managers in Go.
 
+[MUTN](https://github.com/rwinkhart/MUTN) is its reference implementation (in the CLI).
+
 > [!WARNING]
 >It is your responsibility to assess the security and stability of libmutton and to ensure it meets your needs before using it.
 >I am not responsible for any data loss or breaches of your information resulting from the use of libmutton.
