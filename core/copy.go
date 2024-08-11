@@ -11,7 +11,7 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
-// CopyArgument copies a field from an entry to the clipboard
+// CopyArgument copies a field from an entry to the clipboard.
 func CopyArgument(executableName, targetLocation string, field int) {
 	if isFile, _ := TargetIsFile(targetLocation, true, 2); isFile {
 
@@ -59,7 +59,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 	}
 }
 
-// ClipClearArgument is called to clear the clipboard after 30 seconds if the contents have not been modified
+// ClipClearArgument is called to clear the clipboard after 30 seconds if the contents have not been modified.
 func ClipClearArgument() {
 	// read previous clipboard contents from stdin
 	clipScanner := bufio.NewScanner(os.Stdin)
@@ -71,7 +71,7 @@ func ClipClearArgument() {
 	}
 }
 
-// GenTOTP generates a TOTP token from a secret (supports standard and Steam TOTP)
+// GenTOTP generates a TOTP token from a secret (supports standard and Steam TOTP).
 func GenTOTP(secret string, time time.Time, forSteam bool) string {
 	var totpToken string
 	var err error

@@ -11,9 +11,9 @@ import (
 	"strings"
 )
 
-// TargetIsFile TargetStatusCheck checks if the targetLocation is a file, directory, or is inaccessible
-// failCondition: 0 = fail on inaccessible, 1 = fail on inaccessible/file, 2 = fail on inaccessible/directory
-// returns: isFile, isAccessible
+// TargetIsFile checks if the targetLocation is a file, directory, or is inaccessible.
+// Requires: failCondition (0 = fail on inaccessible, 1 = fail on inaccessible&file, 2 = fail on inaccessible&directory).
+// Returns: isFile, isAccessible.
 func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) (bool, bool) {
 	targetInfo, err := os.Stat(targetLocation)
 	if err != nil {
@@ -39,7 +39,7 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 	}
 }
 
-// WriteEntry writes entryData to an encrypted file at targetLocation
+// WriteEntry writes entryData to an encrypted file at targetLocation.
 func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExist bool) {
 	if verifyEntryDoesNotExist {
 		_, isAccessible := TargetIsFile(targetLocation, false, 0)
@@ -57,7 +57,7 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 	}
 }
 
-// writeToStdin writes a string to a command's stdin
+// writeToStdin is a utility function that writes a string to a command's stdin.
 func writeToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -73,7 +73,7 @@ func writeToStdin(cmd *exec.Cmd, input string) {
 	}()
 }
 
-// CreateTempFile creates a temporary file and returns a pointer to it
+// CreateTempFile creates a temporary file and returns a pointer to it.
 func CreateTempFile() *os.File {
 	tempFile, err := os.CreateTemp("", "*.markdown")
 	if err != nil {
@@ -83,7 +83,7 @@ func CreateTempFile() *os.File {
 	return tempFile
 }
 
-// RemoveTrailingEmptyStrings removes empty strings from the end of a slice
+// RemoveTrailingEmptyStrings removes empty strings from the end of a slice.
 func RemoveTrailingEmptyStrings(slice []string) []string {
 	for i := len(slice) - 1; i >= 0; i-- {
 		if slice[i] != "" {
@@ -93,9 +93,9 @@ func RemoveTrailingEmptyStrings(slice []string) []string {
 	return []string{}
 }
 
-// StringGen generates a random string of a specified length and complexity
-// safeForFileName: if true, the generated string will only contain special characters that are safe for file names (only impacts complex strings)
-// complexity: minimum percentage of special characters to be returned in the generated string (only impacts complex strings)
+// StringGen generates a random string of a specified length and complexity.
+// Requires: complexity (minimum percentage of special characters to be returned in the generated string; only impacts complex strings),
+// safeForFileName: (if true, the generated string will only contain special characters that are safe for file names; only impacts complex strings).
 func StringGen(length int, complex bool, complexity float64, safeForFileName bool) string {
 	var actualSpecialChars int // track the number of special characters in the generated string
 	var minSpecialChars int    // track the minimum number of special characters to accept
@@ -146,7 +146,7 @@ func StringGen(length int, complex bool, complexity float64, safeForFileName boo
 	}
 }
 
-// EntryIsNotEmpty iterates through entryData and returns true if any line is not empty
+// EntryIsNotEmpty iterates through entryData and returns true if any line is not empty.
 func EntryIsNotEmpty(entryData []string) bool {
 	for _, line := range entryData {
 		if line != "" {

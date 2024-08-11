@@ -9,7 +9,7 @@ import (
 	"github.com/rwinkhart/libmutton/core"
 )
 
-// getModTimes returns a list of all entry modification times
+// getModTimes returns a list of all entry modification times.
 func getModTimes(entryList []string) []int64 {
 	var modList []int64
 	for _, file := range entryList {
@@ -20,7 +20,7 @@ func getModTimes(entryList []string) []int64 {
 	return modList
 }
 
-// genDeviceIDList returns a pointer to a slice of all registered device IDs
+// genDeviceIDList returns a pointer to a slice of all registered device IDs.
 func genDeviceIDList() *[]fs.DirEntry {
 	// create a slice of all registered devices
 	deviceIDList, err := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
@@ -31,10 +31,10 @@ func genDeviceIDList() *[]fs.DirEntry {
 	return &deviceIDList
 }
 
-// ShearLocal removes the target file or directory from the local system
-// returns: deviceID (on client), for use in ShearRemoteFromClient
-// if the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client)
-// this function should only be used directly by the server binary
+// ShearLocal removes the target file or directory from the local system.
+// Returns: deviceID (only on client; for use in ShearRemoteFromClient).
+// If the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client).
+// This function should only be used directly by the server binary.
 func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 	// determine if running on a server
 	var onServer bool
@@ -77,8 +77,8 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 	// do not exit program, as this function is used as part of ShearRemoteFromClient
 }
 
-// RenameLocal renames oldLocationIncomplete to newLocationIncomplete on the local system
-// this function should only be used directly by the server binary
+// RenameLocal renames oldLocationIncomplete to newLocationIncomplete on the local system.
+// This function should only be used directly by the server binary.
 func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldLocationExists bool) {
 	// get full paths for both locations
 	oldLocation := core.TargetLocationFormat(oldLocationIncomplete)
@@ -104,8 +104,8 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	// do not exit program, as this function is used as part of RenameRemoteFromClient
 }
 
-// AddFolderLocal creates a new entry-containing directory on the local system
-// this function should only be used directly by the server binary
+// AddFolderLocal creates a new entry-containing directory on the local system.
+// This function should only be used directly by the server binary.
 func AddFolderLocal(targetLocationIncomplete string) {
 	// get the full targetLocation path and create the target
 	targetLocationComplete := core.TargetLocationFormat(targetLocationIncomplete)

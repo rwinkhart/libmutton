@@ -1,6 +1,6 @@
 package core
 
-// GetOldEntryData decrypts and returns old entry data (with all required lines present)
+// GetOldEntryData decrypts and returns old entry data (with all required lines present).
 func GetOldEntryData(targetLocation string, field int) []string {
 	// ensure targetLocation exists
 	TargetIsFile(targetLocation, true, 2)
@@ -10,14 +10,14 @@ func GetOldEntryData(targetLocation string, field int) []string {
 
 	// return the old entry data with all required lines present
 	if field > 0 {
-		return EnsureSliceLength(unencryptedEntry, field)
+		return ensureSliceLength(unencryptedEntry, field)
 	} else {
 		return unencryptedEntry
 	}
 }
 
-// EnsureSliceLength ensures slice is long enough to contain the specified index
-func EnsureSliceLength(slice []string, index int) []string {
+// ensureSliceLength is a utility function that ensures a slice is long enough to contain the specified index.
+func ensureSliceLength(slice []string, index int) []string {
 	for len(slice) <= index {
 		slice = append(slice, "")
 	}

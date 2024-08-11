@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// copyField copies a field from an entry to the clipboard
+// copyField copies a field from an entry to the clipboard.
 func copyField(executableName, copySubject string) {
 	cmd := exec.Command("termux-clipboard-set")
 	writeToStdin(cmd, copySubject)
@@ -33,7 +33,7 @@ func copyField(executableName, copySubject string) {
 	}
 }
 
-// clipClear is called in a separate process to clear the clipboard after 30 seconds
+// clipClear is called in a separate process to clear the clipboard after 30 seconds.
 func clipClear(oldContents string) {
 	time.Sleep(30 * time.Second)
 

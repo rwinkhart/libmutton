@@ -11,10 +11,10 @@ import (
 	"github.com/rwinkhart/libmutton/core"
 )
 
-// DeviceIDGen generates a new client device ID and registers it with the server
-// device IDs are only needed for online synchronization
-// device IDs are guaranteed unique as the current UNIX time is appended to them
-// returns the remote EntryRoot and OS type (OS type is a bool: core.IsWindows)
+// DeviceIDGen generates a new client device ID and registers it with the server.
+// Device IDs are only needed for online synchronization.
+// Device IDs are guaranteed unique as the current UNIX time is appended to them.
+// Returns: the remote EntryRoot and OS type indicator.
 func DeviceIDGen() (string, string) {
 	deviceIDPrefix, _ := os.Hostname()
 	deviceIDSuffix := core.StringGen(rand.Intn(32)+48, true, 0.2, true) + "-" + strconv.FormatInt(time.Now().Unix(), 10)

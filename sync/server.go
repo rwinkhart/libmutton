@@ -9,9 +9,9 @@ import (
 	"github.com/rwinkhart/libmutton/core"
 )
 
-// GetRemoteDataFromServer prints to stdout the remote entries, mod times, folders, and deletions
-// lists in output are separated by FSSpace
-// output is meant to be captured over SSH for interpretation by the client
+// GetRemoteDataFromServer prints to stdout the remote entries, mod times, folders, and deletions.
+// Lists in output are separated by FSSpace.
+// Output is meant to be captured over SSH for interpretation by the client.
 func GetRemoteDataFromServer(clientDeviceID string) {
 	entryList, dirList := WalkEntryDir()
 	modList := getModTimes(entryList)

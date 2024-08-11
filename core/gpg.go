@@ -9,7 +9,7 @@ import (
 
 // TODO GPG support is a temporary feature - it will be replaced with a different encryption scheme in the future
 
-// DecryptGPG decrypts a GPG-encrypted file and returns the contents as a slice of (trimmed) strings
+// DecryptGPG decrypts a GPG-encrypted file and returns the contents as a slice of (trimmed) strings.
 func DecryptGPG(targetLocation string) []string {
 	cmd := exec.Command("gpg", "--pinentry-mode", "loopback", "-q", "-d", targetLocation)
 	output, err := cmd.Output()
@@ -26,7 +26,7 @@ func DecryptGPG(targetLocation string) []string {
 	return outputSlice
 }
 
-// EncryptGPG encrypts a slice of strings using GPG and returns the encrypted data as a byte slice
+// EncryptGPG encrypts a slice of strings using GPG and returns the encrypted data as a byte slice.
 func EncryptGPG(input []string) []byte {
 	cmd := exec.Command("gpg", "-q", "-r", ParseConfig([][2]string{{"LIBMUTTON", "gpgID"}}, "")[0], "-e")
 	writeToStdin(cmd, strings.Join(input, "\n"))

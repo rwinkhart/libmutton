@@ -7,8 +7,8 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// loadConfig loads the libmutton.ini file and returns the configuration
-// utility function for ParseConfig and WriteConfig, do not call directly
+// loadConfig loads the libmutton.ini file and returns the configuration.
+// It is a utility function for ParseConfig and WriteConfig; do not call directly.
 func loadConfig() *ini.File {
 	cfg, err := ini.Load(ConfigPath)
 	if err != nil {
@@ -18,10 +18,10 @@ func loadConfig() *ini.File {
 	return cfg
 }
 
-// ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys
-// requires requestedValues: a slice of arrays (length 2) each containing a section and a key name
-// requires missingValueError: an error message to display if a key is missing a value, set to "" for auto-generated or "0" to exit/return silently with code 0
-// returns config: a slice of values for the specified keys
+// ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys.
+// Requires: requestedValues (a slice of length 2 arrays each containing a section and a key name),
+// missingValueError (an error message to display if a key is missing a value, set to "" for auto-generated or "0" to exit/return silently with code 0).
+// Returns: config (slice of values for the specified keys).
 func ParseConfig(valuesRequested [][2]string, missingValueError string) []string {
 	cfg := loadConfig()
 
@@ -49,8 +49,8 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) []string
 	return config
 }
 
-// WriteConfig writes the provided key-value pairs under the specified section headers in the libmutton.ini file
-// requires valuesToWrite: a slice of arrays (length 3) each containing a section, a key name, and a value
+// WriteConfig writes the provided key-value pairs under the specified section headers in the libmutton.ini file.
+// Requires: valuesToWrite (a slice of length 3 arrays each containing a section, a key name, and a value).
 func WriteConfig(valuesToWrite [][3]string, append bool) {
 	var cfg *ini.File
 

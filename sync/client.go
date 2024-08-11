@@ -13,15 +13,15 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-// global constants used only in this file
+// ANSI color constants used only in this file
 const (
 	ansiDelete   = "\033[38;5;1m"
 	ansiDownload = "\033[38;5;2m"
 	ansiUpload   = "\033[38;5;4m"
 )
 
-// GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot as a string and the server's OS as a bool - IsWindows)
-// only supports key-based authentication (passphrases are supported for CLI-based implementations)
+// GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot and an indicator of the server's OS).
+// Only supports key-based authentication (passphrases are supported for CLI-based implementations).
 func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// get SSH config info, exit if not configured (displaying an error if the sync job was called manually)
 	var sshUserConfig []string
@@ -99,7 +99,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	return sshClient, entryRoot, isWindows
 }
 
-// GetSSHOutput runs a command over SSH and returns the output as a string
+// GetSSHOutput runs a command over SSH and returns the output as a string.
 func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	// create a session
 	sshSession, err := sshClient.NewSession()
@@ -126,7 +126,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	return outputString
 }
 
-// getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server+client times as UNIX timestamps
+// getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server&client times as UNIX timestamps.
 func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64) {
 	// get remote output over SSH
 	clientDeviceID, _ := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
@@ -171,7 +171,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	return entryModMap, folders, deletions, serverTime, clientTime
 }
 
-// getLocalData returns a map of local entries to their modification times
+// getLocalData returns a map of local entries to their modification times.
 func getLocalData() map[string]int64 {
 	// get a list of all entries
 	entries, _ := WalkEntryDir()
@@ -189,7 +189,7 @@ func getLocalData() map[string]int64 {
 	return entryModMap
 }
 
-// targetLocationFormatSFTP formats the target location to match the remote server's entry directory and path separator
+// targetLocationFormatSFTP formats the target location to match the remote server's entry directory and path separator.
 func targetLocationFormatSFTP(targetName, serverEntryRoot string, serverIsWindows bool) string {
 	if !serverIsWindows {
 		return serverEntryRoot + targetName
@@ -198,7 +198,7 @@ func targetLocationFormatSFTP(targetName, serverEntryRoot string, serverIsWindow
 	}
 }
 
-// sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP
+// sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP.
 func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, downloadList, uploadList []string) {
 	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
@@ -323,8 +323,8 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	}
 }
 
-// syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information
-// using maps means that syncing will be done in an arbitrary order, but it is a worthy tradeoff for speed and simplicity
+// syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information.
+// Using maps means that syncing will be done in an arbitrary order, but it is a worthy tradeoff for speed and simplicity.
 func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced bool, localEntryModMap, remoteEntryModMap map[string]int64) {
 	// initialize slices to store entries that need to be downloaded or uploaded
 	var downloadList, uploadList []string
@@ -367,7 +367,7 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 	fmt.Println("Client is synchronized with server")
 }
 
-// deletionSync removes entries from the client that have been deleted on the server (multi-client deletion)
+// deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
 func deletionSync(deletions []string) {
 	var filesDeleted bool
 	for _, deletion := range deletions {
@@ -381,8 +381,8 @@ func deletionSync(deletions []string) {
 	}
 }
 
-// ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list
-// can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary)
+// ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list.
+// It can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary).
 func ShearRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete string) {
 	deviceID := ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
 
@@ -394,8 +394,8 @@ func ShearRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete strin
 	core.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
 }
 
-// RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list
-// can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary)
+// RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list.
+// It can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary).
 func RenameRemoteFromClient(sshClient *ssh.Client, oldLocationIncomplete, newLocationIncomplete string) {
 	RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
 
@@ -411,8 +411,8 @@ func RenameRemoteFromClient(sshClient *ssh.Client, oldLocationIncomplete, newLoc
 	core.Exit(0)
 }
 
-// AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely
-// can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary)
+// AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely.
+// It can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary).
 func AddFolderRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete string) {
 	AddFolderLocal(targetLocationIncomplete)                                                                                       // add the folder on the local system
 	GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath)) // call the server to create the folder remotely
@@ -420,7 +420,7 @@ func AddFolderRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete s
 	core.Exit(0)
 }
 
-// folderSync creates folders on the client (from the given list of folder names)
+// folderSync creates folders on the client (from the given list of folder names).
 func folderSync(folders []string) {
 	for _, folder := range folders {
 		// store the full local path of the folder
@@ -438,8 +438,8 @@ func folderSync(folders []string) {
 	}
 }
 
-// RunJob runs the SSH sync job
-// setting manualSync to true will throw errors if sync is not configured, as online mode is assumed
+// RunJob runs the SSH sync job.
+// Setting manualSync to true will throw errors if sync is not configured (online mode is assumed).
 func RunJob(manualSync bool) {
 	// get SSH client to re-use throughout the sync process
 	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)

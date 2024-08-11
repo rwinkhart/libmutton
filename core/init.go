@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// GpgUIDListGen generates a list of all GPG key IDs on the system and returns them as a slice of strings
+// GpgUIDListGen generates a list of all GPG key IDs on the system and returns them as a slice of strings.
 func GpgUIDListGen() []string {
 	cmd := exec.Command("gpg", "-k", "--with-colons")
 	gpgOutputBytes, _ := cmd.Output()
@@ -24,7 +24,7 @@ func GpgUIDListGen() []string {
 	return uidSlice
 }
 
-// GpgKeyGen generates a new GPG key and returns the key ID
+// GpgKeyGen generates a new GPG key and returns the key ID.
 func GpgKeyGen() string {
 	gpgGenTempFile := CreateTempFile()
 	defer func(name string) {
@@ -52,7 +52,7 @@ func GpgKeyGen() string {
 	return "libmutton-" + unixTime + " (gpg-libmutton) <github.com/rwinkhart/libmutton>"
 }
 
-// DirInit creates the libmutton directories
+// DirInit creates the libmutton directories.
 func DirInit(preserveOldConfigDir bool) {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
