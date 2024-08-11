@@ -13,7 +13,7 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v0.2.1
-- [ ] Only run getSSHClient once to prevent being asked for keyfile password multiple times
+- [x] Only run getSSHClient once to prevent being asked for keyfile password multiple times
     - [ ] After this, handle all errors in sync/client.go
 - [ ] Ensure all config files and entry files are created with 0600 permissions
 - [ ] Add fail-specific error codes

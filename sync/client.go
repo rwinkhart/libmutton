@@ -20,9 +20,9 @@ const (
 	ansiUpload   = "\033[38;5;4m"
 )
 
-// getSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot as a string and the server's OS as a bool - IsWindows)
+// GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot as a string and the server's OS as a bool - IsWindows)
 // only supports key-based authentication (passphrases are supported for CLI-based implementations)
-func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
+func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// get SSH config info, exit if not configured (displaying an error if the sync job was called manually)
 	var sshUserConfig []string
 	var missingValueError string
@@ -100,11 +100,7 @@ func getSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string
-// TODO run getSSHClient() only ONCE (from RunJob) - this saves re-creating the client AND prevents prompting for keyfile passphrase multiple times
-func GetSSHOutput(cmd, stdin string, manualSync bool) string {
-	sshClient, _, _ := getSSHClient(manualSync)
-	defer sshClient.Close()
-
+func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	// create a session
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
@@ -131,7 +127,7 @@ func GetSSHOutput(cmd, stdin string, manualSync bool) string {
 }
 
 // getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server+client times as UNIX timestamps
-func getRemoteDataFromClient(manualSync bool) (map[string]int64, []string, []string, int64, int64) {
+func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64) {
 	// get remote output over SSH
 	clientDeviceID, _ := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
 	if len(clientDeviceID) == 0 {
@@ -143,7 +139,7 @@ func getRemoteDataFromClient(manualSync bool) (map[string]int64, []string, []str
 		}
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
-	output := GetSSHOutput("libmuttonserver fetch", clientDeviceID[0].Name(), manualSync)
+	output := GetSSHOutput(sshClient, "libmuttonserver fetch", clientDeviceID[0].Name())
 
 	// split output into slice based on occurrences of FSSpace
 	outputSlice := strings.Split(output, FSSpace)
@@ -203,12 +199,8 @@ func targetLocationFormatSFTP(targetName, serverEntryRoot string, serverIsWindow
 }
 
 // sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP
-func sftpSync(downloadList, uploadList []string, manualSync bool) {
-	// establish an SSH connection for transfers
-	sshClient, sshEntryRoot, sshIsWindows := getSSHClient(manualSync)
-	defer sshClient.Close()
-
-	// create an SFTP client
+func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, downloadList, uploadList []string) {
+	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SFTP session:", err.Error()+core.AnsiReset)
@@ -333,17 +325,9 @@ func sftpSync(downloadList, uploadList []string, manualSync bool) {
 
 // syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information
 // using maps means that syncing will be done in an arbitrary order, but it is a worthy tradeoff for speed and simplicity
-func syncLists(localEntryModMap, remoteEntryModMap map[string]int64, manualSync bool, serverTime int64, clientTime int64) {
+func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced bool, localEntryModMap, remoteEntryModMap map[string]int64) {
 	// initialize slices to store entries that need to be downloaded or uploaded
 	var downloadList, uploadList []string
-
-	// ensure client and server times are synchronized
-	var timeSynced = true
-	timeDiff := serverTime - clientTime
-	if timeDiff < -45 || timeDiff > 45 {
-		timeSynced = false
-		fmt.Print(core.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + core.AnsiReset)
-	}
 
 	// iterate over client entries
 	for entry, localModTime := range localEntryModMap {
@@ -374,7 +358,7 @@ func syncLists(localEntryModMap, remoteEntryModMap map[string]int64, manualSync 
 	// call sftpSync with the download and upload lists
 	if timeSynced && (max(len(downloadList), len(uploadList)) > 0) { // only call sftpSync if there are entries to download or upload
 		fmt.Println() // add a gap between list-add messages and the actual sync messages from sftpSync
-		sftpSync(downloadList, uploadList, manualSync)
+		sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList)
 	} else if !timeSynced {
 		// do not call sftpSync if the client and server times are out of sync
 		core.Exit(1)
@@ -399,13 +383,12 @@ func deletionSync(deletions []string) {
 
 // ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list
 // can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary)
-func ShearRemoteFromClient(targetLocationIncomplete string) {
+func ShearRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete string) {
 	deviceID := ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
 
 	if deviceID != "" { // ensure a device ID exists (online mode)
 		// call the server to remotely shear the target and add it to the deletions list
-		GetSSHOutput("libmuttonserver shear", deviceID+"\n"+
-			strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath), false)
+		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath))
 	}
 
 	core.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
@@ -413,16 +396,16 @@ func ShearRemoteFromClient(targetLocationIncomplete string) {
 
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list
 // can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary)
-func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string) {
+func RenameRemoteFromClient(sshClient *ssh.Client, oldLocationIncomplete, newLocationIncomplete string) {
 	RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
 
 	deviceIDList := genDeviceIDList()
 	if len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// call the server to move the target on the remote system and add the old target to the deletions list
-		GetSSHOutput("libmuttonserver rename",
+		GetSSHOutput(sshClient, "libmuttonserver rename",
 			(*deviceIDList)[0].Name()+"\n"+
 				strings.ReplaceAll(oldLocationIncomplete, core.PathSeparator, FSPath)+"\n"+
-				strings.ReplaceAll(newLocationIncomplete, core.PathSeparator, FSPath), false)
+				strings.ReplaceAll(newLocationIncomplete, core.PathSeparator, FSPath))
 	}
 
 	core.Exit(0)
@@ -430,9 +413,9 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string)
 
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely
 // can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary)
-func AddFolderRemoteFromClient(targetLocationIncomplete string) {
-	AddFolderLocal(targetLocationIncomplete)                                                                                   // add the folder on the local system
-	GetSSHOutput("libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath), false) // call the server to create the folder remotely
+func AddFolderRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete string) {
+	AddFolderLocal(targetLocationIncomplete)                                                                                       // add the folder on the local system
+	GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath)) // call the server to create the folder remotely
 
 	core.Exit(0)
 }
@@ -456,9 +439,13 @@ func folderSync(folders []string) {
 }
 
 // RunJob runs the SSH sync job
+// setting manualSync to true will throw errors if sync is not configured, as online mode is assumed
 func RunJob(manualSync bool) {
+	// get SSH client to re-use throughout the sync process
+	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)
+
 	// fetch remote lists
-	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime := getRemoteDataFromClient(manualSync)
+	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime := getRemoteDataFromClient(sshClient, manualSync)
 
 	// sync folders
 	folderSync(remoteFolders)
@@ -469,8 +456,16 @@ func RunJob(manualSync bool) {
 	// fetch local lists
 	localEntryModMap := getLocalData()
 
+	// prior to syncing lists, ensure the client and server clocks are synced within 45 seconds
+	var timeSynced = true
+	timeDiff := serverTime - clientTime
+	if timeDiff < -45 || timeDiff > 45 {
+		timeSynced = false
+		fmt.Print(core.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + core.AnsiReset)
+	}
+
 	// sync new and updated entries
-	syncLists(localEntryModMap, remoteEntryModMap, manualSync, serverTime, clientTime)
+	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, localEntryModMap, remoteEntryModMap)
 
 	// exit program after successful sync
 	core.Exit(0)
