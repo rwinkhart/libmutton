@@ -207,7 +207,11 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		os.Exit(104)
 	}
 	defer func(sftpClient *sftp.Client) {
-		_ = sftpClient.Close() // error ignored; failure to close the client is not critical
+		err = sftpClient.Close()
+		if err != nil {
+			fmt.Println(core.AnsiError+"Sync failed - Unable to close SFTP client: ", err.Error()+core.AnsiReset)
+			os.Exit(104)
+		}
 	}(sftpClient)
 
 	// iterate over the download list
@@ -453,6 +457,13 @@ func folderSync(folders []string) {
 func RunJob(manualSync bool) {
 	// get SSH client to re-use throughout the sync process
 	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)
+	defer func(sshClient *ssh.Client) {
+		err := sshClient.Close()
+		if err != nil {
+			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client: ", err.Error()+core.AnsiReset)
+			os.Exit(104)
+		}
+	}(sshClient)
 
 	// fetch remote lists
 	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime := getRemoteDataFromClient(sshClient, manualSync)
