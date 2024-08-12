@@ -57,7 +57,7 @@ func DirInit(preserveOldConfigDir bool) {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to create \"" + EntryRoot + "\":" + err.Error() + AnsiReset)
+		fmt.Println(AnsiError + "Failed to create \"" + EntryRoot + "\": " + err.Error() + AnsiReset)
 		os.Exit(102)
 	}
 
@@ -76,7 +76,7 @@ func DirInit(preserveOldConfigDir bool) {
 	// create config directory w/devices subdirectory
 	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to create \"" + ConfigDir + "\":" + err.Error() + AnsiReset)
+		fmt.Println(AnsiError + "Failed to create \"" + ConfigDir + "\": " + err.Error() + AnsiReset)
 		os.Exit(102)
 	}
 }

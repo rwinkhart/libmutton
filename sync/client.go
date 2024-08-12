@@ -76,7 +76,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// read known hosts file
 	hostKeyCallback, err := knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
-		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file:" + err.Error() + core.AnsiReset)
+		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file: " + err.Error() + core.AnsiReset)
 		os.Exit(101)
 	}
 
@@ -206,7 +206,9 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SFTP session:", err.Error()+core.AnsiReset)
 		os.Exit(104)
 	}
-	defer sftpClient.Close()
+	defer func(sftpClient *sftp.Client) {
+		_ = sftpClient.Close() // error ignored; failure to close the client is not critical
+	}(sftpClient)
 
 	// iterate over the download list
 	var filesTransferred bool
@@ -254,8 +256,8 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		}
 
 		// close the files
-		remoteFile.Close()
-		localFile.Close()
+		_ = remoteFile.Close() // errors ignored; if the files could be opened/created, it can probably be closed
+		_ = localFile.Close()
 
 		// set the modification time of the local file to match the value saved from the remote file (from before the download)
 		err = os.Chtimes(localEntryFullPath, time.Now(), modTime)
@@ -311,8 +313,8 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		}
 
 		// close the files
-		localFile.Close()
-		remoteFile.Close()
+		_ = localFile.Close() // errors ignored; if the files could be opened/created, it can probably be closed
+		_ = remoteFile.Close()
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
 		err = sftpClient.Chtimes(remoteEntryFullPath, time.Now(), modTime)
@@ -373,7 +375,11 @@ func deletionSync(deletions []string) {
 	for _, deletion := range deletions {
 		filesDeleted = true // set a flag to indicate that files have been deleted (used to determine whether to print a gap between deletion and other messages)
 		fmt.Println(ansiDelete+deletion+core.AnsiReset, "has been sheared, removing locally (if it exists)")
-		os.RemoveAll(core.TargetLocationFormat(deletion))
+		err := os.RemoveAll(core.TargetLocationFormat(deletion))
+		if err != nil {
+			fmt.Println(core.AnsiError + "Sync failed - Failed to shear " + deletion + " locally: " + err.Error() + core.AnsiReset)
+			os.Exit(102)
+		}
 	}
 
 	if filesDeleted {
@@ -430,7 +436,11 @@ func folderSync(folders []string) {
 		isFile, isAccessible := core.TargetIsFile(folderFullPath, false, 1)
 
 		if !isFile && !isAccessible {
-			os.MkdirAll(folderFullPath, 0700)
+			err := os.MkdirAll(folderFullPath, 0700)
+			if err != nil {
+				fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\": " + err.Error() + core.AnsiReset)
+				os.Exit(102)
+			}
 		} else if isFile {
 			fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\" - A file with the same name already exists" + core.AnsiReset)
 			os.Exit(106)
