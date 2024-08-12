@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"strings"
 
@@ -20,17 +19,6 @@ func getModTimes(entryList []string) []int64 {
 	return modList
 }
 
-// genDeviceIDList returns a pointer to a slice of all registered device IDs.
-func genDeviceIDList() *[]fs.DirEntry {
-	// create a slice of all registered devices
-	deviceIDList, err := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
-	if err != nil {
-		fmt.Println(core.AnsiError + "Failed to read the devices directory: " + err.Error() + core.AnsiReset)
-		os.Exit(101)
-	}
-	return &deviceIDList
-}
-
 // ShearLocal removes the target file or directory from the local system.
 // Returns: deviceID (only on client; for use in ShearRemoteFromClient).
 // If the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client).
@@ -42,7 +30,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 		onServer = true
 	}
 
-	deviceIDList := genDeviceIDList()
+	deviceIDList := core.GenDeviceIDList(true)
 
 	// add the sheared target (incomplete, vanity) to the deletions list (if running on a server)
 	if onServer {

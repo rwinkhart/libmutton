@@ -53,13 +53,17 @@ func GpgKeyGen() string {
 }
 
 // DirInit creates the libmutton directories.
-func DirInit(preserveOldConfigDir bool) {
+// Returns: oldDeviceID (before from before the directory reset).
+func DirInit(preserveOldConfigDir bool) string {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to create \"" + EntryRoot + "\": " + err.Error() + AnsiReset)
 		os.Exit(102)
 	}
+
+	// get old device ID before its potential removal
+	oldDeviceID := (*GenDeviceIDList(false))[0].Name() // errorOnFail set to false to ignore error if device ID directory does not exist (error non-critical for this function)
 
 	// remove existing config directory (if it exists and not in append mode)
 	if !preserveOldConfigDir {
@@ -79,4 +83,6 @@ func DirInit(preserveOldConfigDir bool) {
 		fmt.Println(AnsiError + "Failed to create \"" + ConfigDir + "\": " + err.Error() + AnsiReset)
 		os.Exit(102)
 	}
+
+	return oldDeviceID
 }

@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 
 	"gopkg.in/ini.v1"
@@ -47,6 +48,18 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) []string
 	}
 
 	return config
+}
+
+// GenDeviceIDList returns a pointer to a slice of all registered device IDs.
+// Requires: errorOnFail (set to true to throw an error if the device ID list cannot be generated)
+func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
+	// create a slice of all registered devices
+	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
+	if err != nil && errorOnFail {
+		fmt.Println(AnsiError + "Failed to read the devices directory: " + err.Error() + AnsiReset)
+		os.Exit(101)
+	}
+	return &deviceIDList
 }
 
 // WriteConfig writes the provided key-value pairs under the specified section headers in the libmutton.ini file.

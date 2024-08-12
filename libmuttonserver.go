@@ -56,7 +56,9 @@ func main() {
 	case "register":
 		// register a new device ID
 		// stdin[0] is expected to be the device ID
-		_, _ = os.Create(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[0]) // error ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
+		// stdin[1] is expected to be the old device ID (for removal)
+		_, _ = os.Create(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[0]) // errors ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
+		_ = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[1])
 		// print EntryRoot and bool indicating OS type to stdout for client to store in config
 		fmt.Print(core.EntryRoot + sync.FSSpace + strconv.FormatBool(core.IsWindows))
 	case "init":

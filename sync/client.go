@@ -129,8 +129,8 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 // getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server&client times as UNIX timestamps.
 func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64) {
 	// get remote output over SSH
-	clientDeviceID, _ := os.ReadDir(core.ConfigDir + core.PathSeparator + "devices")
-	if len(clientDeviceID) == 0 {
+	deviceIDList := core.GenDeviceIDList(true)
+	if len(*deviceIDList) == 0 {
 		if manualSync {
 			fmt.Println(joinErrorWithEXE("Sync failed - No device ID found; run \"", " init\" to generate a device ID"))
 			os.Exit(105)
@@ -139,7 +139,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 		}
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
-	output := GetSSHOutput(sshClient, "libmuttonserver fetch", clientDeviceID[0].Name())
+	output := GetSSHOutput(sshClient, "libmuttonserver fetch", (*deviceIDList)[0].Name())
 
 	// split output into slice based on occurrences of FSSpace
 	outputSlice := strings.Split(output, FSSpace)
@@ -409,7 +409,7 @@ func ShearRemoteFromClient(sshClient *ssh.Client, targetLocationIncomplete strin
 func RenameRemoteFromClient(sshClient *ssh.Client, oldLocationIncomplete, newLocationIncomplete string) {
 	RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
 
-	deviceIDList := genDeviceIDList()
+	deviceIDList := core.GenDeviceIDList(true)
 	if len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// call the server to move the target on the remote system and add the old target to the deletions list
 		GetSSHOutput(sshClient, "libmuttonserver rename",
