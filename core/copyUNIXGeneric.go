@@ -20,15 +20,15 @@ func copyField(executableName, copySubject string) {
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		cmd = exec.Command("xclip", "-sel", "c")
 	} else {
-		fmt.Println(AnsiError + "Clipboard platform could not be determined - note that the clipboard does not function in a raw TTY" + AnsiReset)
-		os.Exit(1)
+		fmt.Println(AnsiError + "Clipboard platform could not be determined - Note that the clipboard does not function in a raw TTY" + AnsiReset)
+		os.Exit(110)
 	}
 
 	writeToStdin(cmd, copySubject)
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to copy to clipboard: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(110)
 	}
 
 	// launch clipboard clearing process if executableName is provided
@@ -37,8 +37,8 @@ func copyField(executableName, copySubject string) {
 		writeToStdin(cmd, copySubject)
 		err = cmd.Start()
 		if err != nil {
-			fmt.Println(AnsiError + "Failed to launch automated clipboard clearing process - does this libmutton implementation support the \"clipclear\" argument?" + AnsiReset)
-			os.Exit(1)
+			fmt.Println(AnsiError + "Failed to launch automated clipboard clearing process - Does this libmutton implementation support the \"clipclear\" argument?" + AnsiReset)
+			os.Exit(110)
 		}
 		Exit(0) // only exit if clipboard clearing process is launched, otherwise assume continuous clipboard refresh
 	}
@@ -58,15 +58,15 @@ func clipClear(oldContents string) {
 		cmdClear = exec.Command("xclip", "-i", "/dev/null", "-sel", "c")
 		cmdPaste = exec.Command("xclip", "-o", "-sel", "c")
 	} else {
-		fmt.Println(AnsiError + "Clipboard platform could not be determined - neither $WAYLAND_DISPLAY nor $DISPLAY are set" + AnsiReset)
-		os.Exit(1)
+		fmt.Println(AnsiError + "Clipboard platform could not be determined - Neither $WAYLAND_DISPLAY nor $DISPLAY are set" + AnsiReset)
+		os.Exit(110)
 	}
 
 	// read current clipboard contents
 	newContents, err := cmdPaste.Output()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to read clipboard contents: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(110)
 	}
 
 	// clear clipboard if contents have not been modified
@@ -74,7 +74,7 @@ func clipClear(oldContents string) {
 		err = cmdClear.Run()
 		if err != nil {
 			fmt.Println(AnsiError + "Failed to clear clipboard: " + err.Error() + AnsiReset)
-			os.Exit(1)
+			os.Exit(110)
 		}
 	}
 	os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)

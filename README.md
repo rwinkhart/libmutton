@@ -16,10 +16,10 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 - [x] Only run getSSHClient once to prevent being asked for keyfile password multiple times
     - [ ] After this, handle all errors in sync/client.go
 - [ ] Ensure all config files and entry files are created with 0600 permissions
-- [ ] Add fail-specific error codes
+- [x] Add error-specific exit codes
 - [x] Split into separate repos
     1. libmutton: backend package (rename to core), sync package, libmuttonserver
-    3. MUTN: cli package
+    2. MUTN: cli package
 #### Release v0.3.0
 - [ ] Swap to native (cascade) encryption (custom)
 - [ ] Implement "netpin" (quick-unlock) with new encryption

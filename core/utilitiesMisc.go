@@ -18,8 +18,8 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 	targetInfo, err := os.Stat(targetLocation)
 	if err != nil {
 		if errorOnFail {
-			fmt.Println(AnsiError + "Failed to access \"" + targetLocation + "\" - ensure it exists and has the correct permissions" + AnsiReset)
-			os.Exit(1)
+			fmt.Println(AnsiError + "Failed to access \"" + targetLocation + "\" - Ensure it exists and has the correct permissions" + AnsiReset)
+			os.Exit(105)
 		} else {
 			return false, false
 		}
@@ -27,13 +27,13 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 	if targetInfo.IsDir() {
 		if errorOnFail && failCondition == 2 {
 			fmt.Println(AnsiError + "\"" + targetLocation + "\" is a directory" + AnsiReset)
-			os.Exit(1)
+			os.Exit(107)
 		}
 		return false, true
 	} else {
 		if errorOnFail && failCondition == 1 {
 			fmt.Println(AnsiError + "\"" + targetLocation + "\" is a file" + AnsiReset)
-			os.Exit(1)
+			os.Exit(107)
 		}
 		return true, true
 	}
@@ -45,7 +45,7 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 		_, isAccessible := TargetIsFile(targetLocation, false, 0)
 		if isAccessible {
 			fmt.Println(AnsiError + "Target location already exists" + AnsiReset)
-			os.Exit(1)
+			os.Exit(106)
 		}
 	}
 
@@ -53,7 +53,7 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to write to file: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(102)
 	}
 }
 
@@ -62,7 +62,7 @@ func writeToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to access stdin for system command: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(111)
 	}
 
 	go func() {
@@ -78,7 +78,7 @@ func CreateTempFile() *os.File {
 	tempFile, err := os.CreateTemp("", "*.markdown")
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to create temporary file: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(102)
 	}
 	return tempFile
 }

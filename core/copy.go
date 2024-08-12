@@ -24,7 +24,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 			// ensure field is not empty
 			if decryptedEntry[field] == "" {
 				fmt.Println(AnsiError + "Field is empty" + AnsiReset)
-				os.Exit(1)
+				os.Exit(105)
 			}
 
 			if field != 2 {
@@ -40,7 +40,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 					secret = decryptedEntry[2]
 				}
 
-				fmt.Println("TOTP code has been copied to the clipboard - your clipboard will be kept up to date with the current code until this process is closed")
+				fmt.Println("TOTP code has been copied to the clipboard - Your clipboard will be kept up to date with the current code until this process is closed")
 
 				for { // keep field copied to clipboard, refresh on 30-second intervals
 					currentTime := time.Now()
@@ -51,7 +51,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 			}
 		} else {
 			fmt.Println(AnsiError + "Field does not exist in entry" + AnsiReset)
-			os.Exit(1)
+			os.Exit(105)
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
@@ -84,7 +84,7 @@ func GenTOTP(secret string, time time.Time, forSteam bool) string {
 
 	if err != nil {
 		fmt.Println(AnsiError + "Error generating TOTP code" + AnsiReset)
-		os.Exit(1)
+		os.Exit(111)
 	}
 
 	return totpToken

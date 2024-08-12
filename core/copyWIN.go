@@ -16,7 +16,7 @@ func copyField(executableName, copySubject string) {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to copy to clipboard: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(110)
 	}
 
 	// launch clipboard clearing process if executableName is provided
@@ -25,8 +25,8 @@ func copyField(executableName, copySubject string) {
 		writeToStdin(cmd, copySubject)
 		err = cmd.Start()
 		if err != nil {
-			fmt.Println(AnsiError + "Failed to launch automated clipboard clearing process - does this libmutton implementation support the \"clipclear\" argument?" + AnsiReset)
-			os.Exit(1)
+			fmt.Println(AnsiError + "Failed to launch automated clipboard clearing process - Does this libmutton implementation support the \"clipclear\" argument?" + AnsiReset)
+			os.Exit(110)
 		}
 		Exit(0) // only exit if clipboard clearing process is launched, otherwise assume continuous clipboard refresh
 	}
@@ -40,7 +40,7 @@ func clipClear(oldContents string) {
 	newContents, err := cmd.Output()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to read clipboard contents: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(110)
 	}
 
 	if oldContents == strings.TrimRight(string(newContents), "\r\n") {
@@ -48,7 +48,7 @@ func clipClear(oldContents string) {
 		err = cmd.Run()
 		if err != nil {
 			fmt.Println(AnsiError + "Failed to clear clipboard: " + err.Error() + AnsiReset)
-			os.Exit(1)
+			os.Exit(110)
 		}
 	}
 	os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)

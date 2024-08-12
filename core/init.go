@@ -46,7 +46,7 @@ func GpgKeyGen() string {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to generate GPG key: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(111)
 	}
 
 	return "libmutton-" + unixTime + " (gpg-libmutton) <github.com/rwinkhart/libmutton>"
@@ -58,7 +58,7 @@ func DirInit(preserveOldConfigDir bool) {
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to create \"" + EntryRoot + "\":" + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(102)
 	}
 
 	// remove existing config directory (if it exists and not in append mode)
@@ -68,7 +68,7 @@ func DirInit(preserveOldConfigDir bool) {
 			err = os.RemoveAll(ConfigDir)
 			if err != nil {
 				fmt.Println(AnsiError + "Failed to remove existing config directory: " + err.Error() + AnsiReset)
-				os.Exit(1)
+				os.Exit(102)
 			}
 		}
 	}
@@ -77,6 +77,6 @@ func DirInit(preserveOldConfigDir bool) {
 	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to create \"" + ConfigDir + "\":" + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(102)
 	}
 }

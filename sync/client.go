@@ -27,7 +27,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	var sshUserConfig []string
 	var missingValueError string
 	if manualSync {
-		missingValueError = joinErrorWithEXE("SSH settings not configured - run \"", " init\" to configure")
+		missingValueError = joinErrorWithEXE("SSH settings not configured - Run \"", " init\" to configure")
 	} else {
 		missingValueError = "0"
 	}
@@ -57,8 +57,8 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// read private key
 	key, err := os.ReadFile(keyFile)
 	if err != nil {
-		fmt.Println(core.AnsiError+"Sync failed - unable to read private key file:", keyFile+core.AnsiReset)
-		os.Exit(1)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to read private key file:", keyFile+core.AnsiReset)
+		os.Exit(101)
 	}
 
 	// parse private key
@@ -70,14 +70,14 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	}
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to parse private key:", keyFile+core.AnsiReset)
-		os.Exit(1)
+		os.Exit(101)
 	}
 
 	// read known hosts file
 	hostKeyCallback, err := knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
 		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file:" + err.Error() + core.AnsiReset)
-		os.Exit(1)
+		os.Exit(101)
 	}
 
 	// configure SSH client
@@ -93,7 +93,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to connect to remote server:", err.Error()+core.AnsiReset)
-		os.Exit(1)
+		os.Exit(104)
 	}
 
 	return sshClient, entryRoot, isWindows
@@ -105,7 +105,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SSH session:", err.Error()+core.AnsiReset)
-		os.Exit(1)
+		os.Exit(104)
 	}
 
 	// provide stdin data for session
@@ -116,7 +116,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	output, err = sshSession.CombinedOutput(cmd)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to run SSH command:", err.Error()+core.AnsiReset)
-		os.Exit(1)
+		os.Exit(103)
 	}
 
 	// convert the output to a string and remove leading/trailing whitespace
@@ -133,7 +133,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	if len(clientDeviceID) == 0 {
 		if manualSync {
 			fmt.Println(joinErrorWithEXE("Sync failed - No device ID found; run \"", " init\" to generate a device ID"))
-			os.Exit(1)
+			os.Exit(105)
 		} else {
 			core.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
 		}
@@ -147,7 +147,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	// parse output/re-form lists
 	if len(outputSlice) != 5 { // ensure information from server is complete
 		fmt.Println(core.AnsiError + "Sync failed - Unable to fetch remote data; server returned an unexpected response" + core.AnsiReset)
-		os.Exit(1)
+		os.Exit(103)
 	}
 	serverTime, _ := strconv.ParseInt(outputSlice[0], 10, 64)
 	entries := strings.Split(outputSlice[1], FSMisc)[1:]
@@ -204,7 +204,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to establish SFTP session:", err.Error()+core.AnsiReset)
-		os.Exit(1)
+		os.Exit(104)
 	}
 	defer sftpClient.Close()
 
@@ -223,7 +223,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		fileInfo, err = sftpClient.Stat(remoteEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to get remote file info (mod time):", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(101)
 		}
 		modTime := fileInfo.ModTime()
 
@@ -232,7 +232,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		remoteFile, err = sftpClient.Open(remoteEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to open remote file:", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(101)
 		}
 
 		// store path to local entry
@@ -243,14 +243,14 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		localFile, err = os.Create(localEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create local file:", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(102)
 		}
 
 		// download the file
 		_, err = remoteFile.WriteTo(localFile)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to download remote file:", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(103)
 		}
 
 		// close the files
@@ -280,7 +280,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		fileInfo, err = os.Stat(localEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to get local file info (mod time):", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(101)
 		}
 		modTime := fileInfo.ModTime()
 
@@ -289,7 +289,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		localFile, err = os.Open(localEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to open local file:", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(101)
 		}
 
 		// store path to remote entry
@@ -300,14 +300,14 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		remoteFile, err = sftpClient.Create(remoteEntryFullPath)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create remote file ("+remoteEntryFullPath+"):", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(102)
 		}
 
 		// upload the file
 		_, err = localFile.WriteTo(remoteFile)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to upload local file:", err.Error()+core.AnsiReset)
-			os.Exit(1)
+			os.Exit(103)
 		}
 
 		// close the files
@@ -432,8 +432,8 @@ func folderSync(folders []string) {
 		if !isFile && !isAccessible {
 			os.MkdirAll(folderFullPath, 0700)
 		} else if isFile {
-			fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\" - a file with the same name already exists" + core.AnsiReset)
-			os.Exit(1)
+			fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\" - A file with the same name already exists" + core.AnsiReset)
+			os.Exit(106)
 		}
 	}
 }

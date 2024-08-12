@@ -13,7 +13,7 @@ func loadConfig() *ini.File {
 	cfg, err := ini.Load(ConfigPath)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to load libmutton.ini: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(101)
 	}
 	return cfg
 }
@@ -40,7 +40,7 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) []string
 			default:
 				fmt.Println(AnsiError + missingValueError + AnsiReset)
 			}
-			os.Exit(1)
+			os.Exit(101)
 		}
 
 		config = append(config, value)
@@ -81,6 +81,6 @@ func WriteConfig(valuesToWrite [][3]string, append bool) {
 	err := cfg.SaveTo(ConfigPath)
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to save libmutton.ini: " + err.Error() + AnsiReset)
-		os.Exit(1)
+		os.Exit(102)
 	}
 }

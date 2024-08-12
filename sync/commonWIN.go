@@ -26,12 +26,12 @@ func WalkEntryDir() ([]string, []string) {
 			// check for errors encountered while walking directory
 			if err != nil {
 				if os.IsNotExist(err) {
-					fmt.Println(joinErrorWithEXE("The entry directory does not exist - run \"", " init"+"\" to create it"))
+					fmt.Println(joinErrorWithEXE("The entry directory does not exist - Run \"", " init"+"\" to create it"))
 				} else {
 					// otherwise, print the source of the error
 					fmt.Println(core.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + core.AnsiReset)
 				}
-				os.Exit(1)
+				os.Exit(111)
 			}
 
 			// trim root path from each path before storing and replace backslashes with forward slashes
