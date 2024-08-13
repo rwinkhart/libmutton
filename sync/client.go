@@ -53,7 +53,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		case 6:
 			isWindows, err = strconv.ParseBool(key)
 			if err != nil {
-				fmt.Println(core.AnsiError + "Sync failed - Unable to parse server OS type: " + err.Error() + core.AnsiReset)
+				fmt.Println(core.AnsiError+"Sync failed - Unable to parse server OS type:", err.Error()+core.AnsiReset)
 				os.Exit(101)
 			}
 		}
@@ -82,7 +82,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	var hostKeyCallback ssh.HostKeyCallback
 	hostKeyCallback, err = knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
-		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file: " + err.Error() + core.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to read known hosts file:", err.Error()+core.AnsiReset)
 		os.Exit(101)
 	}
 
@@ -157,7 +157,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	}
 	serverTime, err := strconv.ParseInt(outputSlice[0], 10, 64)
 	if err != nil {
-		fmt.Println(core.AnsiError+"Sync failed - Unable to parse server time: ", err.Error()+core.AnsiReset)
+		fmt.Println(core.AnsiError+"Sync failed - Unable to parse server time:", err.Error()+core.AnsiReset)
 		os.Exit(101)
 	}
 	entries := strings.Split(outputSlice[1], FSMisc)[1:]
@@ -171,7 +171,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	for _, modString := range modsStrings {
 		mod, err = strconv.ParseInt(modString, 10, 64)
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to parse mod time: ", err.Error()+core.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to parse mod time:", err.Error()+core.AnsiReset)
 			os.Exit(101)
 		}
 		mods = append(mods, mod)
@@ -224,7 +224,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	defer func(sftpClient *sftp.Client) {
 		err = sftpClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to close SFTP client: ", err.Error()+core.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to close SFTP client:", err.Error()+core.AnsiReset)
 			os.Exit(104)
 		}
 	}(sftpClient)
@@ -261,7 +261,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// create local file
 		var localFile *os.File
-		localFile, err = os.Create(localEntryFullPath)
+		localFile, err = os.OpenFile(localEntryFullPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create local file:", err.Error()+core.AnsiReset)
 			os.Exit(102)
@@ -318,7 +318,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// create remote file
 		var remoteFile *sftp.File
-		remoteFile, err = sftpClient.Create(remoteEntryFullPath)
+		remoteFile, err = sftpClient.OpenFile(remoteEntryFullPath, os.O_CREATE|os.O_WRONLY)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create remote file ("+remoteEntryFullPath+"):", err.Error()+core.AnsiReset)
 			os.Exit(102)
@@ -334,6 +334,13 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		// close the files
 		_ = localFile.Close() // errors ignored; if the files could be opened/created, it can probably be closed
 		_ = remoteFile.Close()
+
+		// set permissions on remote file
+		err = sftpClient.Chmod(remoteEntryFullPath, 0600)
+		if err != nil {
+			fmt.Println(core.AnsiError+"Sync failed - Unable to set permissions on remote file:", err.Error()+core.AnsiReset)
+			os.Exit(103)
+		}
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
 		err = sftpClient.Chtimes(remoteEntryFullPath, time.Now(), modTime)
@@ -396,7 +403,7 @@ func deletionSync(deletions []string) {
 		fmt.Println(ansiDelete+deletion+core.AnsiReset, "has been sheared, removing locally (if it exists)")
 		err := os.RemoveAll(core.TargetLocationFormat(deletion))
 		if err != nil {
-			fmt.Println(core.AnsiError + "Sync failed - Failed to shear " + deletion + " locally: " + err.Error() + core.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Failed to shear "+deletion+" locally:", err.Error()+core.AnsiReset)
 			os.Exit(102)
 		}
 	}
@@ -457,7 +464,7 @@ func folderSync(folders []string) {
 		if !isFile && !isAccessible {
 			err := os.MkdirAll(folderFullPath, 0700)
 			if err != nil {
-				fmt.Println(core.AnsiError + "Sync failed - Failed to create folder \"" + folder + "\": " + err.Error() + core.AnsiReset)
+				fmt.Println(core.AnsiError+"Sync failed - Failed to create folder \""+folder+"\":", err.Error()+core.AnsiReset)
 				os.Exit(102)
 			}
 		} else if isFile {
@@ -475,7 +482,7 @@ func RunJob(manualSync bool) {
 	defer func(sshClient *ssh.Client) {
 		err := sshClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client: ", err.Error()+core.AnsiReset)
+			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
 			os.Exit(104)
 		}
 	}(sshClient)

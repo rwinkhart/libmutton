@@ -15,7 +15,7 @@ func copyField(executableName, copySubject string) {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to copy to clipboard: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
 		os.Exit(110)
 	}
 
@@ -39,7 +39,7 @@ func clipClear(oldContents string) {
 	cmd := exec.Command("powershell.exe", "-c", "Get-Clipboard")
 	newContents, err := cmd.Output()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to read clipboard contents: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to read clipboard contents:", err.Error()+AnsiReset)
 		os.Exit(110)
 	}
 
@@ -47,7 +47,7 @@ func clipClear(oldContents string) {
 		cmd = exec.Command("powershell.exe", "-c", "Set-Clipboard")
 		err = cmd.Run()
 		if err != nil {
-			fmt.Println(AnsiError + "Failed to clear clipboard: " + err.Error() + AnsiReset)
+			fmt.Println(AnsiError+"Failed to clear clipboard:", err.Error()+AnsiReset)
 			os.Exit(110)
 		}
 	}

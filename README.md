@@ -15,7 +15,7 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 #### Release v0.2.1
 - [x] Only run getSSHClient once to prevent being asked for keyfile password multiple times
     - [x] After this, handle all errors in sync/client.go
-- [ ] Ensure all config files and entry files are created with 0600 permissions
+- [x] Ensure all config files and entry files are created with 0600 permissions
 - [x] Add error-specific exit codes
 - [x] Split into separate repos
     1. libmutton: backend package (rename to core), sync package, libmuttonserver

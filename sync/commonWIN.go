@@ -29,7 +29,7 @@ func WalkEntryDir() ([]string, []string) {
 					fmt.Println(joinErrorWithEXE("The entry directory does not exist - Run \"", " init"+"\" to create it"))
 				} else {
 					// otherwise, print the source of the error
-					fmt.Println(core.AnsiError + "An unexpected error occurred while generating the entry list: " + err.Error() + core.AnsiReset)
+					fmt.Println(core.AnsiError+"An unexpected error occurred while generating the entry list:", err.Error()+core.AnsiReset)
 				}
 				os.Exit(111)
 			}

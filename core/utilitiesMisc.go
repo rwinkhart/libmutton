@@ -52,7 +52,7 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 	encryptedBytes := EncryptGPG(entryData)
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to write to file: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to write to file:", err.Error()+AnsiReset)
 		os.Exit(102)
 	}
 }
@@ -61,7 +61,7 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 func writeToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to access stdin for system command: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to access stdin for system command:", err.Error()+AnsiReset)
 		os.Exit(111)
 	}
 
@@ -77,7 +77,7 @@ func writeToStdin(cmd *exec.Cmd, input string) {
 func CreateTempFile() *os.File {
 	tempFile, err := os.CreateTemp("", "*.markdown")
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to create temporary file: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to create temporary file:", err.Error()+AnsiReset)
 		os.Exit(102)
 	}
 	return tempFile

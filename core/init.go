@@ -45,7 +45,7 @@ func GpgKeyGen() string {
 	cmd.Stdin = os.Stdin
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to generate GPG key: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to generate GPG key:", err.Error()+AnsiReset)
 		os.Exit(111)
 	}
 
@@ -58,7 +58,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to create \"" + EntryRoot + "\": " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to create \""+EntryRoot+"\":", err.Error()+AnsiReset)
 		os.Exit(102)
 	}
 
@@ -71,7 +71,7 @@ func DirInit(preserveOldConfigDir bool) string {
 		if isAccessible {
 			err = os.RemoveAll(ConfigDir)
 			if err != nil {
-				fmt.Println(AnsiError + "Failed to remove existing config directory: " + err.Error() + AnsiReset)
+				fmt.Println(AnsiError+"Failed to remove existing config directory:", err.Error()+AnsiReset)
 				os.Exit(102)
 			}
 		}
@@ -80,7 +80,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	// create config directory w/devices subdirectory
 	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to create \"" + ConfigDir + "\": " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to create \""+ConfigDir+"\":", err.Error()+AnsiReset)
 		os.Exit(102)
 	}
 

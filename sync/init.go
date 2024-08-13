@@ -23,11 +23,12 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	newDeviceID := deviceIDPrefix + "-" + deviceIDSuffix
 
 	// create new device ID file (locally)
-	_, err := os.Create(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + newDeviceID) // TODO remove existing device ID file if it exists (from both client and server)
+	fileToClose, err := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+newDeviceID, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		fmt.Println(core.AnsiError + "Failed to create local device ID file: " + err.Error() + core.AnsiReset)
+		fmt.Println(core.AnsiError+"Failed to create local device ID file:", err.Error()+core.AnsiReset)
 		os.Exit(102)
 	}
+	_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 
 	// register new device ID with server and fetch remote EntryRoot and OS type
 	// also removes the old device ID file (remotely)
@@ -36,11 +37,18 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	defer func(sshClient *ssh.Client) {
 		err = sshClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError + "Init failed - Unable to close SSH client: " + err.Error() + core.AnsiReset)
+			fmt.Println(core.AnsiError+"Init failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
 			os.Exit(104)
 		}
 	}(sshClient)
 	sshEntryRootSSHIsWindows := strings.Split(GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), FSSpace)
+
+	// remove old device ID file (locally; may not exist)
+	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)
+	if err != nil {
+		fmt.Println(core.AnsiError+"Failed to remove old device ID file (locally):", err.Error()+core.AnsiReset)
+		os.Exit(102)
+	}
 
 	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1]
 }

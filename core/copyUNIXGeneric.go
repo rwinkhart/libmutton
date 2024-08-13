@@ -27,7 +27,7 @@ func copyField(executableName, copySubject string) {
 	writeToStdin(cmd, copySubject)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to copy to clipboard: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
 		os.Exit(110)
 	}
 
@@ -65,7 +65,7 @@ func clipClear(oldContents string) {
 	// read current clipboard contents
 	newContents, err := cmdPaste.Output()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to read clipboard contents: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to read clipboard contents:", err.Error()+AnsiReset)
 		os.Exit(110)
 	}
 
@@ -73,7 +73,7 @@ func clipClear(oldContents string) {
 	if oldContents == strings.TrimRight(string(newContents), "\r\n") {
 		err = cmdClear.Run()
 		if err != nil {
-			fmt.Println(AnsiError + "Failed to clear clipboard: " + err.Error() + AnsiReset)
+			fmt.Println(AnsiError+"Failed to clear clipboard:", err.Error()+AnsiReset)
 			os.Exit(110)
 		}
 	}

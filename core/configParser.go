@@ -13,7 +13,7 @@ import (
 func loadConfig() *ini.File {
 	cfg, err := ini.Load(ConfigPath)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to load libmutton.ini: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to load libmutton.ini:", err.Error()+AnsiReset)
 		os.Exit(101)
 	}
 	return cfg
@@ -56,7 +56,7 @@ func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
 	// create a slice of all registered devices
 	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
 	if err != nil && errorOnFail {
-		fmt.Println(AnsiError + "Failed to read the devices directory: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to read the devices directory:", err.Error()+AnsiReset)
 		os.Exit(101)
 	}
 	return &deviceIDList
@@ -93,7 +93,7 @@ func WriteConfig(valuesToWrite [][3]string, append bool) {
 	// save to libmutton.ini
 	err := cfg.SaveTo(ConfigPath)
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to save libmutton.ini: " + err.Error() + AnsiReset)
+		fmt.Println(AnsiError+"Failed to save libmutton.ini:", err.Error()+AnsiReset)
 		os.Exit(102)
 	}
 }
