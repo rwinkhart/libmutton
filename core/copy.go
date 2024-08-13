@@ -40,7 +40,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 					secret = decryptedEntry[2]
 				}
 
-				fmt.Println("TOTP code has been copied to the clipboard - Your clipboard will be kept up to date with the current code until this process is closed")
+				fmt.Println("Clipboard will be kept up to date with the current TOTP code until this process is closed")
 
 				for { // keep field copied to clipboard, refresh on 30-second intervals
 					currentTime := time.Now()
