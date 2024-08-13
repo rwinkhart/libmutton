@@ -53,7 +53,7 @@ func GpgKeyGen() string {
 }
 
 // DirInit creates the libmutton directories.
-// Returns: oldDeviceID (before from before the directory reset).
+// Returns: oldDeviceID (from before the directory reset).
 func DirInit(preserveOldConfigDir bool) string {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
