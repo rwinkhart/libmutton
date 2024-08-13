@@ -35,6 +35,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
 	var isWindows bool
+	var err error
 	for i, key := range sshUserConfig {
 		switch i {
 		case 0:
@@ -50,7 +51,11 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		case 5:
 			entryRoot = key
 		case 6:
-			isWindows, _ = strconv.ParseBool(key)
+			isWindows, err = strconv.ParseBool(key)
+			if err != nil {
+				fmt.Println(core.AnsiError + "Sync failed - Unable to parse server OS type: " + err.Error() + core.AnsiReset)
+				os.Exit(101)
+			}
 		}
 	}
 
@@ -74,7 +79,8 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	}
 
 	// read known hosts file
-	hostKeyCallback, err := knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
+	var hostKeyCallback ssh.HostKeyCallback
+	hostKeyCallback, err = knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
 		fmt.Println(core.AnsiError + "Sync failed - Unable to read known hosts file: " + err.Error() + core.AnsiReset)
 		os.Exit(101)
@@ -149,7 +155,11 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 		fmt.Println(core.AnsiError + "Sync failed - Unable to fetch remote data; server returned an unexpected response" + core.AnsiReset)
 		os.Exit(103)
 	}
-	serverTime, _ := strconv.ParseInt(outputSlice[0], 10, 64)
+	serverTime, err := strconv.ParseInt(outputSlice[0], 10, 64)
+	if err != nil {
+		fmt.Println(core.AnsiError+"Sync failed - Unable to parse server time: ", err.Error()+core.AnsiReset)
+		os.Exit(101)
+	}
 	entries := strings.Split(outputSlice[1], FSMisc)[1:]
 	modsStrings := strings.Split(outputSlice[2], FSMisc)[1:]
 	folders := strings.Split(outputSlice[3], FSMisc)[1:]
@@ -157,8 +167,13 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 
 	// convert the mod times to int64
 	var mods []int64
+	var mod int64
 	for _, modString := range modsStrings {
-		mod, _ := strconv.ParseInt(modString, 10, 64)
+		mod, err = strconv.ParseInt(modString, 10, 64)
+		if err != nil {
+			fmt.Println(core.AnsiError+"Sync failed - Unable to parse mod time: ", err.Error()+core.AnsiReset)
+			os.Exit(101)
+		}
 		mods = append(mods, mod)
 	}
 
