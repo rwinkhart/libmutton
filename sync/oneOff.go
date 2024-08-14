@@ -24,7 +24,7 @@ func ShearRemoteFromClient(targetLocationIncomplete string) {
 		err := sshClient.Close()
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(104)
+			os.Exit(core.ErrorServerConnection)
 		}
 	}
 
@@ -51,7 +51,7 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string)
 		err := sshClient.Close()
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(104)
+			os.Exit(core.ErrorServerConnection)
 		}
 	}
 
@@ -75,7 +75,7 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string) {
 		err := sshClient.Close()
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(104)
+			os.Exit(core.ErrorServerConnection)
 		}
 	}
 

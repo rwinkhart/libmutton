@@ -25,7 +25,7 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	fileToClose, err := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+newDeviceID, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Failed to create local device ID file:", err.Error()+core.AnsiReset)
-		os.Exit(102)
+		os.Exit(core.ErrorWrite)
 	}
 	_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 
@@ -37,14 +37,14 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	err = sshClient.Close()
 	if err != nil {
 		fmt.Println(core.AnsiError+"Init failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-		os.Exit(104)
+		os.Exit(core.ErrorServerConnection)
 	}
 
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Failed to remove old device ID file (locally):", err.Error()+core.AnsiReset)
-		os.Exit(102)
+		os.Exit(core.ErrorWrite)
 	}
 
 	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1]

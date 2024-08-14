@@ -19,7 +19,7 @@ func DecryptGPG(targetLocation string) []string {
 
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to decrypt \"" + targetLocation + "\" - Ensure it is a valid GPG-encrypted file and that you entered your passphrase correctly" + AnsiReset)
-		os.Exit(108)
+		os.Exit(ErrorDecryption)
 	}
 	outputSlice := strings.Split(string(output), "\n")
 
@@ -33,7 +33,7 @@ func EncryptGPG(input []string) []byte {
 	encryptedBytes, err := cmd.Output()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to encrypt data - Ensure that your GPG key is valid and that you have a valid GPG ID set in libmutton.ini" + AnsiReset)
-		os.Exit(109)
+		os.Exit(ErrorEncryption)
 	}
 	return encryptedBytes
 }

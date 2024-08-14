@@ -40,7 +40,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 				if err != nil {
 					// do not print error as there is currently no way of seeing server-side errors
 					// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
-					os.Exit(102)
+					os.Exit(core.ErrorWrite)
 				}
 				_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 			}
@@ -55,7 +55,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 	err := os.RemoveAll(targetLocationComplete)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Failed to remove local target:", err.Error()+core.AnsiReset)
-		os.Exit(102)
+		os.Exit(core.ErrorWrite)
 	}
 
 	if !onServer && len(*deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
@@ -81,7 +81,7 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	_, isAccessible := core.TargetIsFile(newLocation, false, 0)
 	if isAccessible {
 		fmt.Println(core.AnsiError + "\"" + newLocation + "\" already exists" + core.AnsiReset)
-		os.Exit(106)
+		os.Exit(core.ErrorTargetExists)
 	}
 
 	// rename oldLocation to newLocation
@@ -102,10 +102,10 @@ func AddFolderLocal(targetLocationIncomplete string) {
 	if err != nil {
 		if os.IsExist(err) {
 			fmt.Println(core.AnsiError + "Directory already exists" + core.AnsiReset)
-			os.Exit(106)
+			os.Exit(core.ErrorTargetExists)
 		} else {
 			fmt.Println(core.AnsiError+"Failed to create directory:", err.Error()+core.AnsiReset)
-			os.Exit(102)
+			os.Exit(core.ErrorWrite)
 		}
 	}
 

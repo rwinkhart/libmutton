@@ -46,7 +46,7 @@ func GpgKeyGen() string {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(AnsiError+"Failed to generate GPG key:", err.Error()+AnsiReset)
-		os.Exit(111)
+		os.Exit(ErrorOther)
 	}
 
 	return "libmutton-" + unixTime + " (gpg-libmutton) <github.com/rwinkhart/libmutton>"
@@ -59,7 +59,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
 		fmt.Println(AnsiError+"Failed to create \""+EntryRoot+"\":", err.Error()+AnsiReset)
-		os.Exit(102)
+		os.Exit(ErrorWrite)
 	}
 
 	// get old device ID before its potential removal
@@ -78,7 +78,7 @@ func DirInit(preserveOldConfigDir bool) string {
 			err = os.RemoveAll(ConfigDir)
 			if err != nil {
 				fmt.Println(AnsiError+"Failed to remove existing config directory:", err.Error()+AnsiReset)
-				os.Exit(102)
+				os.Exit(ErrorWrite)
 			}
 		}
 	}
@@ -87,7 +87,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
 	if err != nil {
 		fmt.Println(AnsiError+"Failed to create \""+ConfigDir+"\":", err.Error()+AnsiReset)
-		os.Exit(102)
+		os.Exit(ErrorWrite)
 	}
 
 	return oldDeviceID

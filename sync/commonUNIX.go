@@ -30,7 +30,7 @@ func WalkEntryDir() ([]string, []string) {
 					// otherwise, print the source of the error
 					fmt.Println(core.AnsiError+"An unexpected error occurred while generating the entry list:", err.Error()+core.AnsiReset)
 				}
-				os.Exit(111)
+				os.Exit(core.ErrorOther)
 			}
 
 			// trim root path from each path before storing
