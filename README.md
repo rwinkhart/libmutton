@@ -12,14 +12,6 @@ libmutton is a library for building simple, SSH-synchronized password managers i
 See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/developers.md).
 
 # Roadmap
-#### Release v0.2.1
-- [x] Only run getSSHClient once to prevent being asked for keyfile password multiple times
-    - [x] After this, handle all errors in sync/client.go
-- [x] Ensure all config files and entry files are created with 0600 permissions
-- [x] Add error-specific exit codes
-- [x] Split into separate repos
-    1. libmutton: backend package (rename to core), sync package, libmuttonserver
-    2. MUTN: cli package
 #### Release v0.3.0
 - [ ] Swap to native (cascade) encryption (custom)
 - [ ] Implement "netpin" (quick-unlock) with new encryption
