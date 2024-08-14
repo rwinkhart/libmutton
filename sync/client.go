@@ -148,7 +148,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	output := GetSSHOutput(sshClient, "libmuttonserver fetch", (*deviceIDList)[0].Name())
 
 	// split output into slice based on occurrences of FSSpace
-	outputSlice := strings.Split(output, FSSpace)
+	outputSlice := strings.Split(output, core.FSSpace)
 
 	// parse output/re-form lists
 	if len(outputSlice) != 5 { // ensure information from server is complete
@@ -160,10 +160,10 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 		fmt.Println(core.AnsiError+"Sync failed - Unable to parse server time:", err.Error()+core.AnsiReset)
 		os.Exit(101)
 	}
-	entries := strings.Split(outputSlice[1], FSMisc)[1:]
-	modsStrings := strings.Split(outputSlice[2], FSMisc)[1:]
-	folders := strings.Split(outputSlice[3], FSMisc)[1:]
-	deletions := strings.Split(outputSlice[4], FSMisc)[1:]
+	entries := strings.Split(outputSlice[1], core.FSMisc)[1:]
+	modsStrings := strings.Split(outputSlice[2], core.FSMisc)[1:]
+	folders := strings.Split(outputSlice[3], core.FSMisc)[1:]
+	deletions := strings.Split(outputSlice[4], core.FSMisc)[1:]
 
 	// convert the mod times to int64
 	var mods []int64

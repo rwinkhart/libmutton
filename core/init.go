@@ -53,7 +53,7 @@ func GpgKeyGen() string {
 }
 
 // DirInit creates the libmutton directories.
-// Returns: oldDeviceID (from before the directory reset; will be sync.FSMisc if there is no pre-existing ID).
+// Returns: oldDeviceID (from before the directory reset; will be FSMisc if there is no pre-existing ID).
 func DirInit(preserveOldConfigDir bool) string {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
@@ -68,7 +68,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	if oldDeviceIDList != nil && len(*oldDeviceIDList) > 0 { // ensure not derferencing nil, which occurs when the devices directory does not exist
 		oldDeviceID = (*oldDeviceIDList)[0].Name()
 	} else {
-		oldDeviceID = "\u259f" // sync.FSMisc cannot be used directly due to import cycle; indicates to server that no device ID is being replaced
+		oldDeviceID = FSMisc // indicates to server that no device ID is being replaced
 	}
 
 	// remove existing config directory (if it exists and not in append mode)

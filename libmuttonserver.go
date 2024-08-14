@@ -42,28 +42,28 @@ func main() {
 		// stdin[0] is evaluated after fallthrough
 		// stdin[1] is expected to be the OLD incomplete target location with FSPath representing path separators - Always pass in UNIX format
 		// stdin[2] is expected to be the NEW incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.RenameLocal(strings.ReplaceAll(stdin[1], sync.FSPath, "/"), strings.ReplaceAll(stdin[2], sync.FSPath, "/"), true)
+		sync.RenameLocal(strings.ReplaceAll(stdin[1], core.FSPath, "/"), strings.ReplaceAll(stdin[2], core.FSPath, "/"), true)
 		fallthrough // fallthrough to add the old entry to the deletions directory
 	case "shear":
 		// shear an entry from the server and add it to the deletions directory
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.ShearLocal(strings.ReplaceAll(stdin[1], sync.FSPath, "/"), stdin[0])
+		sync.ShearLocal(strings.ReplaceAll(stdin[1], core.FSPath, "/"), stdin[0])
 	case "addfolder":
 		// add a new folder to the server
 		// stdin[0] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.AddFolderLocal(strings.ReplaceAll(stdin[0], sync.FSPath, "/"))
+		sync.AddFolderLocal(strings.ReplaceAll(stdin[0], core.FSPath, "/"))
 	case "register":
 		// register a new device ID
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the old device ID (for removal)
 		fileToClose, _ := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600) // errors ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
 		_ = fileToClose.Close()
-		if stdin[1] != sync.FSMisc { // sync.FSMisc is used to indicate that no device ID is being replaced
+		if stdin[1] != core.FSMisc { // sync.FSMisc is used to indicate that no device ID is being replaced
 			_ = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[1])
 		}
 		// print EntryRoot and bool indicating OS type to stdout for client to store in config
-		fmt.Print(core.EntryRoot + sync.FSSpace + strconv.FormatBool(core.IsWindows))
+		fmt.Print(core.EntryRoot + core.FSSpace + strconv.FormatBool(core.IsWindows))
 	case "init":
 		// create the necessary directories for libmuttonserver to function
 		core.DirInit(false)

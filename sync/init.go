@@ -33,7 +33,7 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	// also removes the old device ID file (remotely)
 	// manualSync is true so the user is alerted if device ID registration fails
 	sshClient, _, _ := GetSSHClient(true)
-	sshEntryRootSSHIsWindows := strings.Split(GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), FSSpace)
+	sshEntryRootSSHIsWindows := strings.Split(GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), core.FSSpace)
 	err = sshClient.Close()
 	if err != nil {
 		fmt.Println(core.AnsiError+"Init failed - Unable to close SSH client:", err.Error()+core.AnsiReset)

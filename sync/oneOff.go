@@ -18,7 +18,7 @@ func ShearRemoteFromClient(targetLocationIncomplete string) {
 		sshClient, _, _ := GetSSHClient(false)
 
 		// call the server to remotely shear the target and add it to the deletions list
-		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath))
+		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, core.FSPath))
 
 		// close the SSH client
 		err := sshClient.Close()
@@ -44,8 +44,8 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string)
 		// call the server to move the target on the remote system and add the old target to the deletions list
 		GetSSHOutput(sshClient, "libmuttonserver rename",
 			(*deviceIDList)[0].Name()+"\n"+
-				strings.ReplaceAll(oldLocationIncomplete, core.PathSeparator, FSPath)+"\n"+
-				strings.ReplaceAll(newLocationIncomplete, core.PathSeparator, FSPath))
+				strings.ReplaceAll(oldLocationIncomplete, core.PathSeparator, core.FSPath)+"\n"+
+				strings.ReplaceAll(newLocationIncomplete, core.PathSeparator, core.FSPath))
 
 		// close the SSH client
 		err := sshClient.Close()
@@ -69,7 +69,7 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string) {
 		sshClient, _, _ := GetSSHClient(false)
 
 		// call the server to create the folder remotely
-		GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, FSPath)) // call the server to create the folder remotely
+		GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, core.FSPath)) // call the server to create the folder remotely
 
 		// close the SSH client
 		err := sshClient.Close()

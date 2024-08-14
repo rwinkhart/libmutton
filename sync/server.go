@@ -26,31 +26,31 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 
 	// print the lists to stdout
 	// entry list
-	fmt.Print(FSSpace)
+	fmt.Print(core.FSSpace)
 	for _, entry := range entryList {
-		fmt.Print(FSMisc + entry)
+		fmt.Print(core.FSMisc + entry)
 	}
 
 	// modification time list
-	fmt.Print(FSSpace)
+	fmt.Print(core.FSSpace)
 	for _, mod := range modList {
-		fmt.Print(FSMisc)
+		fmt.Print(core.FSMisc)
 		fmt.Print(mod)
 	}
 
 	// directory/folder list
-	fmt.Print(FSSpace)
+	fmt.Print(core.FSSpace)
 	for _, dir := range dirList {
-		fmt.Print(FSMisc + dir)
+		fmt.Print(core.FSMisc + dir)
 	}
 
 	// deletions list
-	fmt.Print(FSSpace)
+	fmt.Print(core.FSSpace)
 	for _, deletion := range deletionsList {
 		// print deletion if it is relevant to the current client device
-		affectedIDTargetLocationIncomplete := strings.Split(deletion.Name(), FSSpace)
+		affectedIDTargetLocationIncomplete := strings.Split(deletion.Name(), core.FSSpace)
 		if affectedIDTargetLocationIncomplete[0] == clientDeviceID {
-			fmt.Print(FSMisc + strings.ReplaceAll(affectedIDTargetLocationIncomplete[1], FSPath, "/"))
+			fmt.Print(core.FSMisc + strings.ReplaceAll(affectedIDTargetLocationIncomplete[1], core.FSPath, "/"))
 
 			// assume successful client deletion and remove deletions file (if assumption is somehow false, worst case scenario is that the client will re-upload the deleted entry)
 			_ = os.Remove(core.ConfigDir + core.PathSeparator + "deletions" + core.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
