@@ -59,7 +59,9 @@ func main() {
 		// stdin[1] is expected to be the old device ID (for removal)
 		fileToClose, _ := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600) // errors ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
 		_ = fileToClose.Close()
-		_ = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[1])
+		if stdin[1] != sync.FSMisc { // sync.FSMisc is used to indicate that no device ID is being replaced
+			_ = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[1])
+		}
 		// print EntryRoot and bool indicating OS type to stdout for client to store in config
 		fmt.Print(core.EntryRoot + sync.FSSpace + strconv.FormatBool(core.IsWindows))
 	case "init":

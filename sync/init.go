@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/rwinkhart/libmutton/core"
-	"golang.org/x/crypto/ssh"
 )
 
 // DeviceIDGen generates a new client device ID and registers it with the server (will replace existing one).
@@ -34,14 +33,12 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	// also removes the old device ID file (remotely)
 	// manualSync is true so the user is alerted if device ID registration fails
 	sshClient, _, _ := GetSSHClient(true)
-	defer func(sshClient *ssh.Client) {
-		err = sshClient.Close()
-		if err != nil {
-			fmt.Println(core.AnsiError+"Init failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(104)
-		}
-	}(sshClient)
 	sshEntryRootSSHIsWindows := strings.Split(GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), FSSpace)
+	err = sshClient.Close()
+	if err != nil {
+		fmt.Println(core.AnsiError+"Init failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
+		os.Exit(104)
+	}
 
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)

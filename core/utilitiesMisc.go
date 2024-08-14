@@ -20,9 +20,8 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 		if errorOnFail {
 			fmt.Println(AnsiError + "Failed to access \"" + targetLocation + "\" - Ensure it exists and has the correct permissions" + AnsiReset)
 			os.Exit(105)
-		} else {
-			return false, false
 		}
+		return false, false
 	}
 	if targetInfo.IsDir() {
 		if errorOnFail && failCondition == 2 {

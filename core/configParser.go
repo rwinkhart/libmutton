@@ -51,13 +51,17 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) []string
 }
 
 // GenDeviceIDList returns a pointer to a slice of all registered device IDs.
-// Requires: errorOnFail (set to true to throw an error if the device ID list cannot be generated)
+// Requires: errorOnFail (set to true to throw an error if the devices directory cannot be read/does not exist)
 func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
 	// create a slice of all registered devices
 	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
-	if err != nil && errorOnFail {
-		fmt.Println(AnsiError+"Failed to read the devices directory:", err.Error()+AnsiReset)
-		os.Exit(101)
+	if err != nil {
+		if errorOnFail {
+			fmt.Println(AnsiError+"Failed to read the devices directory:", err.Error()+AnsiReset)
+			os.Exit(101)
+		} else {
+			return nil // a nil return value indicates that the devices directory could not be read/does not exist
+		}
 	}
 	return &deviceIDList
 }
