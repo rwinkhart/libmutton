@@ -261,7 +261,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// create local file
 		var localFile *os.File
-		localFile, err = os.OpenFile(localEntryFullPath, os.O_CREATE|os.O_WRONLY, 0600)
+		localFile, err = os.OpenFile(localEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create local file:", err.Error()+core.AnsiReset)
 			os.Exit(core.ErrorWrite)
@@ -318,7 +318,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// create remote file
 		var remoteFile *sftp.File
-		remoteFile, err = sftpClient.OpenFile(remoteEntryFullPath, os.O_CREATE|os.O_WRONLY)
+		remoteFile, err = sftpClient.OpenFile(remoteEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY)
 		if err != nil {
 			fmt.Println(core.AnsiError+"Sync failed - Unable to create remote file ("+remoteEntryFullPath+"):", err.Error()+core.AnsiReset)
 			os.Exit(core.ErrorWrite)
