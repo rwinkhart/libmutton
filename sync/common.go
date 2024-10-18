@@ -88,6 +88,7 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	err := os.Rename(oldLocation, newLocation)
 	if err != nil {
 		fmt.Println(core.AnsiError + "Failed to rename - Does the target containing directory exist?" + core.AnsiReset)
+		os.Exit(core.ErrorTargetNotFound)
 	}
 
 	// do not exit program, as this function is used as part of RenameRemoteFromClient
