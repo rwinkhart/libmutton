@@ -1,6 +1,6 @@
 module github.com/rwinkhart/libmutton
 
-go 1.22.6
+go 1.23.2
 
 require (
 	github.com/fortis/go-steam-totp v0.0.0-20171114202746-18e928674727
