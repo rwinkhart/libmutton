@@ -13,14 +13,13 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v0.3.0
-- [ ] Swap to native (cascade) encryption (custom)
-- [ ] Implement "netpin" (quick-unlock) with new encryption
+- [ ] Add refresh/re-encrypt functionality
 #### Release v0.4.0
 - [ ] Password aging support
     - [ ] Append UNIX timestamp to entry names
-        - [ ] Add yellow/red dot indicators to entry list readout for when passwords should be changed
 #### Release v0.5.0
-- [ ] Add refresh/re-encrypt functionality
+- [ ] Swap to native (cascade) encryption (custom)
+- [ ] Implement "netpin" (quick-unlock) with new encryption
 #### Release v1.0.0
 - [ ] Create packaging scripts (libmuttonserver)
     - [ ] Stable source PKGBUILD
@@ -29,4 +28,4 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
     - [ ] Fedora
     - [ ] FreeBSD
     - [ ] Windows installer
-- Hunt for polishing opportunities and bugs
+- Perform extensive testing
