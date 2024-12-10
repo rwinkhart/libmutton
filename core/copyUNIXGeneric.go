@@ -16,9 +16,9 @@ func copyField(executableName, copySubject string) {
 	var cmd *exec.Cmd
 	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	if _, envSet = os.LookupEnv("WAYLAND_DISPLAY"); envSet {
-		cmd = exec.Command("wl-copy")
+		cmd = exec.Command("wl-copy", "-t", "text/plain")
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
-		cmd = exec.Command("xclip", "-sel", "c")
+		cmd = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	} else {
 		fmt.Println(AnsiError + "Clipboard platform could not be determined - Note that the clipboard does not function in a raw TTY" + AnsiReset)
 		os.Exit(ErrorClipboard)
