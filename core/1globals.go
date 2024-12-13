@@ -9,7 +9,7 @@ var (
 )
 
 const (
-	LibmuttonVersion = "0.2.E" // untagged releases feature a letter suffix corresponding to the eventual release version, e.g "0.2.A" -> "0.2.0", "0.2.B" -> "0.2.1"
+	LibmuttonVersion = "0.2.4" // untagged releases feature a letter suffix corresponding to the eventual release version, e.g "0.2.A" -> "0.2.0", "0.2.B" -> "0.2.1"
 
 	FSSpace = "\u259d" // ▝ space/list separator
 	FSPath  = "\u259e" // ▞ path separator
