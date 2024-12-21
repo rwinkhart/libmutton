@@ -8,7 +8,7 @@ libmutton is a library for building simple, SSH-synchronized password managers i
 >I am not responsible for any data loss or breaches of your information resulting from the use of libmutton.
 >libmutton is a new project that is constantly being updated, and though safety and security are priorities, they cannot be guaranteed.
 
-# Developing Thid-Party Clients
+# Developing Third-Party Clients
 See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/developers.md).
 
 # Roadmap
