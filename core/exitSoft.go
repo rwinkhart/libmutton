@@ -1,4 +1,4 @@
-//go:build returnOnExit
+//go:build interactive
 
 package core
 
