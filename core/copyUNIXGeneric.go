@@ -31,7 +31,7 @@ func copyString(continuous bool, copySubject string) {
 	}
 
 	if !continuous {
-		launchClipClearProcess(copySubject, isWayland)
+		LaunchClipClearProcess(copySubject, isWayland)
 	}
 }
 
