@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// copyField copies a field from an entry to the clipboard.
-func copyField(executableName, copySubject string) {
+// copyString copies a string to the clipboard.
+func copyString(continuous bool, copySubject string) {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {
@@ -19,16 +19,8 @@ func copyField(executableName, copySubject string) {
 		os.Exit(ErrorClipboard)
 	}
 
-	// launch clipboard clearing process if executableName is provided
-	if executableName != "" {
-		cmd = exec.Command(executableName, "clipclear")
-		writeToStdin(cmd, copySubject)
-		err = cmd.Start()
-		if err != nil {
-			fmt.Println(AnsiError + "Failed to launch automated clipboard clearing process - Does this libmutton implementation support the \"clipclear\" argument?" + AnsiReset)
-			os.Exit(ErrorClipboard)
-		}
-		Exit(0) // only exit if clipboard clearing process is launched, otherwise assume continuous clipboard refresh
+	if !continuous {
+		launchClipClear(copySubject)
 	}
 }
 
@@ -51,5 +43,5 @@ func clipClear(oldContents string) {
 			os.Exit(ErrorClipboard)
 		}
 	}
-	os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
+	Exit(0)
 }

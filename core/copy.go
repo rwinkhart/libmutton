@@ -12,7 +12,7 @@ import (
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
-func CopyArgument(executableName, targetLocation string, field int) {
+func CopyArgument(targetLocation string, field int) {
 	if isFile, _ := TargetIsFile(targetLocation, true, 2); isFile {
 
 		decryptedEntry := DecryptGPG(targetLocation)
@@ -42,9 +42,9 @@ func CopyArgument(executableName, targetLocation string, field int) {
 
 				fmt.Println("Clipboard will be kept up to date with the current TOTP code until this process is closed")
 
-				for { // keep field copied to clipboard, refresh on 30-second intervals
+				for { // keep token copied to clipboard, refresh on 30-second intervals
 					currentTime := time.Now()
-					copyField("", GenTOTP(secret, currentTime, forSteam))
+					copyString(true, GenTOTP(secret, currentTime, forSteam))
 					// sleep until next 30-second interval
 					time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
 				}
@@ -55,7 +55,7 @@ func CopyArgument(executableName, targetLocation string, field int) {
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
-		copyField(executableName, copySubject)
+		copyString(false, copySubject)
 	}
 }
 
