@@ -21,9 +21,8 @@ func DecryptGPG(targetLocation string) []string {
 		fmt.Println(AnsiError + "Failed to decrypt \"" + targetLocation + "\" - Ensure it is a valid GPG-encrypted file and that you entered your passphrase correctly" + AnsiReset)
 		os.Exit(ErrorDecryption)
 	}
-	outputSlice := strings.Split(string(output), "\n")
 
-	return outputSlice
+	return strings.Split(string(output), "\n")
 }
 
 // EncryptGPG encrypts a slice of strings using GPG and returns the encrypted data as a byte slice.
