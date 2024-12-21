@@ -16,8 +16,8 @@ These are as follows:
 - `termux`: Allows creating a Linux binary that can interact with the Termux clipboard (for Android)
 
 ## Required Arguments
-libmutton-based password manager clients should accept at least one specific required argument, as well as another recommended one:
-- `clipclear`: This argument is required for correct functionality. In order to clear the clipboard on a timer, libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that is processed before the launch of any interactive interface. All this argument needs to do is call `core.ClipClearArgument()`.
+Some arguments should be accepted by all/most libmutton-based password managers. These are as follows:
+- `clipclear`: This argument is required for correct functionality of non-interactive CLI implementations (not needed for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `core.ClipClearArgument()`.
 - `init`: This argument is optional, but recommended for CLI interfaces. Some error messages request the user to use the `init` argument to fix configuration issues. If the argument does not exist, this may confuse the user.
 
 ## Configuration
