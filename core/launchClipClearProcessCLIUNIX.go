@@ -1,4 +1,4 @@
-//go:build !returnOnExit
+//go:build !windows && !darwin && !android && !termux && !wsl && !returnOnExit
 
 package core
 
@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
-// launchClipClear launches the automated clipboard clearing process.
+// launchClipClearProcess launches the automated clipboard clearing process.
 // For non-interactive CLI implementations, an entirely separate process is created for this purpose.
-func launchClipClear(copySubject string) {
+func launchClipClearProcess(copySubject string, isWayland bool) {
 	executableName := os.Args[0]
-	cmd := exec.Command(executableName, "clipclear")
+	cmd := exec.Command(executableName, "clipclear", strconv.FormatBool(isWayland))
 	writeToStdin(cmd, copySubject)
 	err := cmd.Start()
 	if err != nil {

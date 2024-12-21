@@ -59,15 +59,48 @@ func CopyArgument(targetLocation string, field int) {
 	}
 }
 
-// ClipClearArgument is called to clear the clipboard after 30 seconds if the contents have not been modified.
+// ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
 func ClipClearArgument() {
 	// read previous clipboard contents from stdin
 	clipScanner := bufio.NewScanner(os.Stdin)
 	if clipScanner.Scan() {
-		oldContents := clipScanner.Text()
-		clipClear(oldContents)
+		assignedContents := clipScanner.Text()
+		clipClearProcess(assignedContents)
 	} else {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
+	}
+}
+
+// clipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
+// assignedContents can be omitted to clear the clipboard immediately and unconditionally.
+func clipClearProcess(assignedContents string) {
+	cmdPaste, cmdClear := getClipCommands()
+
+	clearClipboard := func() {
+		err := cmdClear.Run()
+		if err != nil {
+			fmt.Println(AnsiError+"Failed to clear clipboard:", err.Error()+AnsiReset)
+			os.Exit(ErrorClipboard)
+		}
+		Exit(0)
+	}
+
+	// if assignedContents is empty, clear the clipboard immediately and unconditionally
+	if assignedContents == "" {
+		clearClipboard()
+	}
+
+	// wait 30 seconds before checking clipboard contents
+	time.Sleep(30 * time.Second)
+
+	newContents, err := cmdPaste.Output()
+	if err != nil {
+		fmt.Println(AnsiError+"Failed to read clipboard contents:", err.Error()+AnsiReset)
+		os.Exit(ErrorClipboard)
+	}
+
+	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {
+		clearClipboard()
 	}
 }
 
