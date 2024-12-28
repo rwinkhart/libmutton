@@ -4,16 +4,19 @@ import (
 	"os"
 )
 
+type ByteInputFetcher func(prompt string) []byte
+
 var (
-	Home, _ = os.UserHomeDir()
+	PassphraseInputFunction ByteInputFetcher // Clients should set this to a function that fetches hidden input from the user
+	Home, _                 = os.UserHomeDir()
 )
 
 const (
-	LibmuttonVersion = "0.2.F" // untagged releases feature a letter suffix corresponding to the eventual release version, e.g "0.2.A" -> "0.2.0", "0.2.B" -> "0.2.1"
+	LibmuttonVersion = "0.2.F" // Untagged releases feature a letter suffix corresponding to the eventual release version, e.g "0.2.A" -> "0.2.0", "0.2.B" -> "0.2.1"
 
-	FSSpace = "\u259d" // ▝ space/list separator
-	FSPath  = "\u259e" // ▞ path separator
-	FSMisc  = "\u259f" // ▟ misc. field separator (if \u259d is already used)
+	FSSpace = "\u259d" // ▝ Space/list separator
+	FSPath  = "\u259e" // ▞ Path separator
+	FSMisc  = "\u259f" // ▟ Misc. field separator (if \u259d is already used)
 
 	AnsiError = "\033[38;5;9m"
 	AnsiReset = "\033[0m"

@@ -2,13 +2,13 @@
 
 package core
 
-var EntryRoot = Home + "/.local/share/libmutton" // path to libmutton entry directory
-var ConfigDir = Home + "/.config/libmutton"      // path to libmutton configuration directory
-var ConfigPath = ConfigDir + "/libmutton.ini"    // path to libmutton configuration file
+var EntryRoot = Home + "/.local/share/libmutton" // Path to libmutton entry directory
+var ConfigDir = Home + "/.config/libmutton"      // Path to libmutton configuration directory
+var ConfigPath = ConfigDir + "/libmutton.ini"    // Path to libmutton configuration file
 
 const (
-	PathSeparator = "/"   // platform-specific path separator
-	IsWindows     = false // platform indicator
+	PathSeparator = "/"   // Platform-specific path separator
+	IsWindows     = false // Platform indicator
 )
 
 // enableVirtualTerminalProcessing is a dummy function on UNIX-like systems (only needed on Windows).

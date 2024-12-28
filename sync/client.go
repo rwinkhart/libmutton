@@ -71,7 +71,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	if keyFileProtected != "true" {
 		parsedKey, err = ssh.ParsePrivateKey(key)
 	} else {
-		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, inputKeyFilePassphrase())
+		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, core.PassphraseInputFunction("Enter passphrase for your SSH keyfile:"))
 	}
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to parse private key:", keyFile+core.AnsiReset)

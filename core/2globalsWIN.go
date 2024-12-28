@@ -7,13 +7,13 @@ import (
 	"syscall"
 )
 
-var EntryRoot = Home + "\\AppData\\Local\\libmutton\\entries" // path to libmutton entry directory
-var ConfigDir = Home + "\\AppData\\Local\\libmutton\\config"  // path to libmutton configuration directory
-var ConfigPath = ConfigDir + "\\libmutton.ini"                // path to libmutton configuration file
+var EntryRoot = Home + "\\AppData\\Local\\libmutton\\entries" // Path to libmutton entry directory
+var ConfigDir = Home + "\\AppData\\Local\\libmutton\\config"  // Path to libmutton configuration directory
+var ConfigPath = ConfigDir + "\\libmutton.ini"                // Path to libmutton configuration file
 
 const (
-	PathSeparator = "\\" // platform-specific path separator
-	IsWindows     = true // platform indicator
+	PathSeparator = "\\" // Platform-specific path separator
+	IsWindows     = true // Platform indicator
 )
 
 // enableVirtualTerminalProcessing ensures ANSI escape sequences are interpreted properly on Windows.
