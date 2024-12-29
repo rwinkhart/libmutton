@@ -29,9 +29,9 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	if manualSync {
 		missingValueError = joinErrorWithEXE("SSH settings not configured - Run \"", " init\" to configure")
 	} else {
-		missingValueError = "0"
+		missingValueError = "0" // allow silent exit at this point in offline mode
 	}
-	sshUserConfig = core.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
+	sshUserConfig, _ = core.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
 	var isWindows bool

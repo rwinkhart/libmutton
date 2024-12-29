@@ -11,7 +11,7 @@ If any functionality in these two packages proves to be difficult to implement i
 Custom build tags can (and sometimes must) be used to achieve desired results.
 
 These are as follows:
-- `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN. Currently, errors will result in the program exiting **even with this build tag**. This may be changed in the future (under evaluation).
+- `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN. Currently, most errors will result in the program exiting **even with this build tag**. Specific types of errors (such as config parsing errors) have been made exempt from this behavior.
 - `wsl`: Allows creating a Linux binary that can interact with the Windows clipboard (for WSL)
 - `termux`: Allows creating a Linux binary that can interact with the Termux clipboard (for Android)
 
