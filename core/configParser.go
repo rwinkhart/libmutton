@@ -20,7 +20,7 @@ func loadConfig() *ini.File {
 }
 
 // ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys.
-// Requires: requestedValues (a slice of length 2 arrays each containing a section and a key name),
+// Requires: valuesRequested (a slice of length 2 arrays each containing a section and a key name),
 // missingValueError (an error message to display if a key is missing a value, set to "" for auto-generated or "0" to exit/return silently with code 0).
 // Returns: config (slice of values for the specified keys).
 func ParseConfig(valuesRequested [][2]string, missingValueError string) []string {
