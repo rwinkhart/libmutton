@@ -10,10 +10,10 @@ import (
 
 // ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary).
-func ShearRemoteFromClient(targetLocationIncomplete string) {
+func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 	deviceID := ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
 
-	if deviceID != "" { // ensure a device ID exists (online mode)
+	if !forceOffline && deviceID != "" { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
 		sshClient, _, _ := GetSSHClient(false)
 
@@ -33,11 +33,11 @@ func ShearRemoteFromClient(targetLocationIncomplete string) {
 
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary).
-func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string) {
+func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string, forceOffline bool) {
 	RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
 
 	deviceIDList := core.GenDeviceIDList(true)
-	if len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
+	if !forceOffline && len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
 		sshClient, _, _ := GetSSHClient(false)
 
@@ -60,11 +60,11 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string)
 
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely.
 // It can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary).
-func AddFolderRemoteFromClient(targetLocationIncomplete string) {
+func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 	AddFolderLocal(targetLocationIncomplete) // add the folder on the local system
 
 	deviceIDList := core.GenDeviceIDList(true)
-	if len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
+	if !forceOffline && len(*deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
 		sshClient, _, _ := GetSSHClient(false)
 
