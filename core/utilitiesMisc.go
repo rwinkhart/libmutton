@@ -56,8 +56,9 @@ func WriteEntry(targetLocation string, entryData []string, verifyEntryDoesNotExi
 	}
 }
 
-// writeToStdin is a utility function that writes a string to a command's stdin.
-func writeToStdin(cmd *exec.Cmd, input string) {
+// WriteToStdin is a utility function that writes a string to a command's stdin.
+// TODO unexport (import?) after migration off of GPG
+func WriteToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Println(AnsiError+"Failed to access stdin for system command:", err.Error()+AnsiReset)

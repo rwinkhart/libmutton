@@ -29,7 +29,7 @@ func DecryptGPG(targetLocation string) []string {
 func EncryptGPG(input []string) []byte {
 	gpgCfg, _ := ParseConfig([][2]string{{"LIBMUTTON", "gpgID"}}, "")
 	cmd := exec.Command("gpg", "-q", "-r", gpgCfg[0], "-e")
-	writeToStdin(cmd, strings.Join(input, "\n"))
+	WriteToStdin(cmd, strings.Join(input, "\n"))
 	encryptedBytes, err := cmd.Output()
 	if err != nil {
 		fmt.Println(AnsiError + "Failed to encrypt data - Ensure that your GPG key is valid and that you have a valid GPG ID set in libmutton.ini" + AnsiReset)

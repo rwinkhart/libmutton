@@ -23,7 +23,7 @@ func copyString(continuous bool, copySubject string) {
 		os.Exit(ErrorClipboard)
 	}
 
-	writeToStdin(cmdCopy, copySubject)
+	WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
 		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
