@@ -13,7 +13,7 @@ Custom build tags can (and sometimes must) be used to achieve desired results.
 These are as follows:
 - `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN. Currently, most errors will result in the program exiting **even with this build tag**. Specific types of errors (such as config parsing errors) have been made exempt from this behavior.
 - `wsl`: Allows creating a Linux binary that can interact with the Windows clipboard (for WSL)
-- `termux`: Allows creating a Linux binary that can interact with the Termux clipboard (for Android)
+- `termux`: Allows creating an Android binary that can interact with the Termux clipboard (for Android)
 
 ## Required Global Variable Manipulation
 libmutton provides a `PassphraseInputFunction` global variable that all clients must set to support passphrase-protected SSH identity files. This approach allows for different types of clients (CLI, GUI, TUI) to prompt for the passphrase in the most appropriate way.
