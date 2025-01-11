@@ -353,7 +353,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 // syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information.
 // Using maps means that syncing will be done in an arbitrary order, but it is a worthy tradeoff for speed and simplicity.
-func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced bool, localEntryModMap, remoteEntryModMap map[string]int64) {
+func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced, returnLists bool, localEntryModMap, remoteEntryModMap map[string]int64) [3][]string {
 	// initialize slices to store entries that need to be downloaded or uploaded
 	var downloadList, uploadList []string
 
@@ -393,6 +393,11 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 	}
 
 	fmt.Println("Client is synchronized with server")
+
+	if returnLists {
+		return [3][]string{nil, downloadList, uploadList}
+	}
+	return [3][]string{nil, nil, nil}
 }
 
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
@@ -437,7 +442,8 @@ func folderSync(folders []string) {
 
 // RunJob runs the SSH sync job.
 // Setting manualSync to true will throw errors if sync is not configured (online mode is assumed).
-func RunJob(manualSync bool) {
+// Setting returnLists to true will return the deletions, downloads, and uploads lists for use by the client.
+func RunJob(manualSync, returnLists bool) [3][]string {
 	// get SSH client to re-use throughout the sync process
 	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)
 	defer func(sshClient *ssh.Client) {
@@ -469,8 +475,13 @@ func RunJob(manualSync bool) {
 	}
 
 	// sync new and updated entries
-	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, localEntryModMap, remoteEntryModMap)
-
-	// exit program after successful sync
-	core.Exit(0)
+	var lists [3][]string
+	if returnLists {
+		lists = syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap)
+		lists[0] = deletions
+		return lists
+	}
+	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap)
+	core.Exit(0) // exit program if running non-interactively
+	return lists // dummy return for when not returning lists
 }
