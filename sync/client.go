@@ -101,6 +101,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to connect to remote server:", err.Error()+core.AnsiReset)
 		core.Exit(core.ErrorServerConnection) // do not close/crash interactive clients
+		return nil, "", false
 	}
 
 	return sshClient, entryRoot, isWindows
@@ -447,6 +448,9 @@ func folderSync(folders []string) {
 func RunJob(manualSync, returnLists bool) [3][]string {
 	// get SSH client to re-use throughout the sync process
 	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)
+	if sshClient == nil { // indicate SSH dialing failure for interactive clients
+		return [3][]string{nil, nil, nil}
+	}
 	defer func(sshClient *ssh.Client) {
 		err := sshClient.Close()
 		if err != nil {
