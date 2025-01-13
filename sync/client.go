@@ -100,7 +100,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
 		fmt.Println(core.AnsiError+"Sync failed - Unable to connect to remote server:", err.Error()+core.AnsiReset)
-		os.Exit(core.ErrorServerConnection)
+		core.Exit(core.ErrorServerConnection) // do not close/crash interactive clients
 	}
 
 	return sshClient, entryRoot, isWindows
