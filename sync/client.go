@@ -93,6 +93,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 			ssh.PublicKeys(parsedKey),
 		},
 		HostKeyCallback: hostKeyCallback,
+		Timeout:         3 * time.Second,
 	}
 
 	// connect to SSH server
