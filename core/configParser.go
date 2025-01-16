@@ -74,8 +74,9 @@ func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
 
 // WriteConfig writes the provided key-value pairs under the specified section headers in the libmutton.ini file.
 // Requires: valuesToWrite (a slice of length 3 arrays each containing a section, a key name, and a value),
+// prune (a slice similar to valuesToWrite to allow removing the specified keys from an existing config)
 // append (set to true to append to the existing libmutton.ini file, false to overwrite it).
-func WriteConfig(valuesToWrite [][3]string, append bool) {
+func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool) {
 	var cfg *ini.File
 
 	if append {
@@ -99,6 +100,14 @@ func WriteConfig(valuesToWrite [][3]string, append bool) {
 
 		// set key-value pair
 		section.Key(trio[1]).SetValue(trio[2])
+	}
+
+	// prune specified keys from the existing config
+	if append && len(keysToPrune) > 0 {
+		// remove specified keys pairs from the existing config
+		for _, pair := range keysToPrune {
+			cfg.Section(pair[0]).DeleteKey(pair[1])
+		}
 	}
 
 	// save to libmutton.ini
