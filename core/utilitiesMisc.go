@@ -155,3 +155,8 @@ func EntryIsNotEmpty(entryData []string) bool {
 	}
 	return false
 }
+
+// ExpandPathWithHome, given a path (as a string) containing "~", returns the path with "~" expanded to the user's home directory.
+func ExpandPathWithHome(path string) string {
+	return strings.Replace(path, "~", Home, 1)
+}
