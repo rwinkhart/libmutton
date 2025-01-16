@@ -88,6 +88,7 @@ func clipClearProcess(assignedContents string) {
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
 	if assignedContents == "" {
 		clearClipboard()
+		return
 	}
 
 	// wait 30 seconds before checking clipboard contents
