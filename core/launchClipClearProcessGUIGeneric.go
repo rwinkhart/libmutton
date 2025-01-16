@@ -6,5 +6,5 @@ package core
 // For interactive GUI/TUI implementations, the clipboard clearing process is launched as a goroutine.
 // copySubject can be omitted to clear the clipboard immediately and unconditionally.
 func LaunchClipClearProcess(copySubject string) {
-	go ClipClearProcess(copySubject)
+	go clipClearProcess(copySubject)
 }
