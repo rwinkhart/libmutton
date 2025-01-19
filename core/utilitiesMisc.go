@@ -85,6 +85,36 @@ func RemoveTrailingEmptyStrings(slice []string) []string {
 	return []string{}
 }
 
+// ClampTrailingWhitespace strips trailing newlines, carriage returns, and tabs from each line in a note.
+// Additionally, it removes single trailing spaces and truncates multiple trailing spaces to two (for Markdown formatting).
+func ClampTrailingWhitespace(note []string) {
+	for i, line := range note {
+		// remove trailing tabs, carriage returns, and newlines
+		note[i] = strings.TrimRight(line, "\t\r\n")
+
+		// determine the number of trailing spaces
+		var endSpacesCount int
+		for j := len(line) - 1; j >= 0; j-- {
+			if line[j] != ' ' {
+				break
+			}
+			endSpacesCount++
+		}
+
+		// remove single spaces, truncate multiple spaces (leave two for Markdown formatting)
+		switch endSpacesCount {
+		case 0:
+			// do nothing
+		case 1:
+			// remove the trailing space
+			note[i] = strings.TrimRight(line, " ")
+		default:
+			// truncate the trailing spaces to two
+			note[i] = line[:len(line)-endSpacesCount+2]
+		}
+	}
+}
+
 // StringGen generates a random string of a specified length and complexity.
 // Requires: complexity (minimum percentage of special characters to be returned in the generated string; only impacts complex strings),
 // safeForFileName: (if true, the generated string will only contain special characters that are safe for file names; only impacts complex strings).
