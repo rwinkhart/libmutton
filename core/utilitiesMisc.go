@@ -82,7 +82,7 @@ func RemoveTrailingEmptyStrings(slice []string) []string {
 			return slice[:i+1]
 		}
 	}
-	return []string{}
+	return nil
 }
 
 // ClampTrailingWhitespace strips trailing newlines, carriage returns, and tabs from each line in a note.
