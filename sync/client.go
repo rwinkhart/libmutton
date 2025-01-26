@@ -462,11 +462,11 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 	// fetch remote lists
 	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime := getRemoteDataFromClient(sshClient, manualSync)
 
-	// sync folders
-	folderSync(remoteFolders)
-
 	// sync deletions
 	deletionSync(deletions)
+
+	// sync folders
+	folderSync(remoteFolders)
 
 	// fetch local lists
 	localEntryModMap := getLocalData()
