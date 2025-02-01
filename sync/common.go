@@ -20,10 +20,11 @@ func getModTimes(entryList []string) []int64 {
 }
 
 // ShearLocal removes the target file or directory from the local system.
-// Returns: deviceID (only on client; for use in ShearRemoteFromClient).
+// Returns: deviceID (only on client; for use in ShearRemoteFromClient),
+// isDir (only on client; for use in ShearRemoteFromClient).
 // If the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client).
 // This function should only be used directly by the server binary.
-func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
+func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) {
 	// determine if running on a server
 	var onServer bool
 	if clientDeviceID != "" {
@@ -49,8 +50,9 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 
 	// get the full targetLocation path and remove the target
 	targetLocationComplete := core.TargetLocationFormat(targetLocationIncomplete)
+	var isFile bool
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
-		core.TargetIsFile(targetLocationComplete, true, 0)
+		isFile, _ = core.TargetIsFile(targetLocationComplete, true, 0)
 	}
 	err := os.RemoveAll(targetLocationComplete)
 	if err != nil {
@@ -59,9 +61,9 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) string {
 	}
 
 	if !onServer && len(*deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
-		return (*deviceIDList)[0].Name()
+		return (*deviceIDList)[0].Name(), !isFile
 	}
-	return ""
+	return "", true
 
 	// do not exit program, as this function is used as part of ShearRemoteFromClient
 }

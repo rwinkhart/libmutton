@@ -11,11 +11,16 @@ import (
 // ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary).
 func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
-	deviceID := ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
+	deviceID, isDir := ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
 
 	if !forceOffline && deviceID != "" { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
 		sshClient, _, _ := GetSSHClient(false)
+
+		// ensure targetLocationIncomplete ends with a slash if it is a directory (for clarity in shear message)
+		if isDir && !strings.HasSuffix(targetLocationIncomplete, "/") {
+			targetLocationIncomplete += "/"
+		}
 
 		// call the server to remotely shear the target and add it to the deletions list
 		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, core.PathSeparator, core.FSPath))
