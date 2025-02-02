@@ -1,8 +1,6 @@
 package sync
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/rwinkhart/libmutton/core"
@@ -28,8 +26,7 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(core.ErrorServerConnection)
+			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 
@@ -55,8 +52,7 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(core.ErrorServerConnection)
+			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 
@@ -79,8 +75,7 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			fmt.Println(core.AnsiError+"Sync failed - Unable to close SSH client:", err.Error()+core.AnsiReset)
-			os.Exit(core.ErrorServerConnection)
+			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 

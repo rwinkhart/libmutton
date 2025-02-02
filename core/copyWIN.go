@@ -4,7 +4,6 @@ package core
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 )
@@ -14,8 +13,7 @@ func copyString(continuous bool, copySubject string) {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
-		os.Exit(ErrorClipboard)
+		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {

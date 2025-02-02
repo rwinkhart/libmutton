@@ -23,8 +23,7 @@ func CopyArgument(targetLocation string, field int) {
 
 			// ensure field is not empty
 			if decryptedEntry[field] == "" {
-				fmt.Println(AnsiError + "Field is empty" + AnsiReset)
-				os.Exit(ErrorTargetNotFound)
+				PrintError("Field is empty", ErrorTargetNotFound, true)
 			}
 
 			if field != 2 {
@@ -50,8 +49,7 @@ func CopyArgument(targetLocation string, field int) {
 				}
 			}
 		} else {
-			fmt.Println(AnsiError + "Field does not exist in entry" + AnsiReset)
-			os.Exit(ErrorTargetNotFound)
+			PrintError("Field does not exist in entry", ErrorTargetNotFound, true)
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
@@ -79,8 +77,7 @@ func clipClearProcess(assignedContents string) {
 	clearClipboard := func() {
 		err := cmdClear.Run()
 		if err != nil {
-			fmt.Println(AnsiError+"Failed to clear clipboard:", err.Error()+AnsiReset)
-			os.Exit(ErrorClipboard)
+			PrintError("Failed to clear clipboard", ErrorClipboard, true)
 		}
 		Exit(0)
 	}
@@ -96,8 +93,7 @@ func clipClearProcess(assignedContents string) {
 
 	newContents, err := cmdPaste.Output()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to read clipboard contents:", err.Error()+AnsiReset)
-		os.Exit(ErrorClipboard)
+		PrintError("Failed to read clipboard contents", ErrorClipboard, true)
 	}
 
 	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {
@@ -117,8 +113,7 @@ func GenTOTP(secret string, time time.Time, forSteam bool) string {
 	}
 
 	if err != nil {
-		fmt.Println(AnsiError + "Error generating TOTP code" + AnsiReset)
-		os.Exit(ErrorOther)
+		PrintError("Error generating TOTP code", ErrorOther, true)
 	}
 
 	return totpToken

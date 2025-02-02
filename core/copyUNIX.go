@@ -3,7 +3,6 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 )
@@ -19,15 +18,13 @@ func copyString(continuous bool, copySubject string) {
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	} else {
-		fmt.Println(AnsiError + "Clipboard platform could not be determined - Note that the clipboard does not function in a raw TTY" + AnsiReset)
-		os.Exit(ErrorClipboard)
+		PrintError("Clipboard platform could not be determined", ErrorClipboard, true)
 	}
 
 	WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
-		os.Exit(ErrorClipboard)
+		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {

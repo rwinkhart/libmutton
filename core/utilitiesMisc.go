@@ -18,21 +18,18 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 	targetInfo, err := os.Stat(targetLocation)
 	if err != nil {
 		if errorOnFail {
-			fmt.Println(AnsiError + "Failed to access \"" + targetLocation + "\" - Ensure it exists and has the correct permissions" + AnsiReset)
-			os.Exit(ErrorTargetNotFound)
+			PrintError("Failed to access \""+targetLocation+"\" - Ensure it exists and has the correct permissions", ErrorTargetNotFound, true)
 		}
 		return false, false
 	}
 	if targetInfo.IsDir() {
 		if errorOnFail && failCondition == 2 {
-			fmt.Println(AnsiError + "\"" + targetLocation + "\" is a directory" + AnsiReset)
-			os.Exit(ErrorTargetWrongType)
+			PrintError("\""+targetLocation+"\" is a directory", ErrorTargetWrongType, true)
 		}
 		return false, true
 	} else {
 		if errorOnFail && failCondition == 1 {
-			fmt.Println(AnsiError + "\"" + targetLocation + "\" is a file" + AnsiReset)
-			os.Exit(ErrorTargetWrongType)
+			PrintError("\""+targetLocation+"\" is a file", ErrorTargetWrongType, true)
 		}
 		return true, true
 	}
@@ -43,8 +40,7 @@ func WriteEntry(targetLocation string, entryData []string) {
 	encryptedBytes := EncryptGPG(entryData)
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to write to file:", err.Error()+AnsiReset)
-		os.Exit(ErrorWrite)
+		PrintError("Failed to write to file: "+err.Error(), ErrorWrite, true)
 	}
 }
 
@@ -53,8 +49,7 @@ func WriteEntry(targetLocation string, entryData []string) {
 func WriteToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to access stdin for system command:", err.Error()+AnsiReset)
-		os.Exit(ErrorOther)
+		PrintError("Failed to access stdin for system command: "+err.Error(), ErrorOther, true)
 	}
 
 	go func() {
@@ -69,8 +64,7 @@ func WriteToStdin(cmd *exec.Cmd, input string) {
 func CreateTempFile() *os.File {
 	tempFile, err := os.CreateTemp("", "*.markdown")
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to create temporary file:", err.Error()+AnsiReset)
-		os.Exit(ErrorWrite)
+		PrintError("Failed to create temporary file: "+err.Error(), ErrorWrite, true)
 	}
 	return tempFile
 }
@@ -181,4 +175,17 @@ func EntryIsNotEmpty(entryData []string) bool {
 // ExpandPathWithHome, given a path (as a string) containing "~", returns the path with "~" expanded to the user's home directory.
 func ExpandPathWithHome(path string) string {
 	return strings.Replace(path, "~", Home, 1)
+}
+
+// PrintError prints an error message in the standard libmutton format and exits with the specified exit code.
+// Requires: message (the error message to print),
+// exitCode (the exit code to use),
+// forceHardExit (if true, exit immediately; if false, allow soft exit for interactive clients).
+func PrintError(message string, exitCode int, forceHardExit bool) {
+	fmt.Println(AnsiError + message + AnsiReset)
+	if forceHardExit {
+		os.Exit(exitCode)
+	} else {
+		Exit(exitCode)
+	}
 }

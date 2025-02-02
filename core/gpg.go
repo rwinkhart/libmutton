@@ -1,8 +1,6 @@
 package core
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 )
@@ -18,8 +16,7 @@ func DecryptGPG(targetLocation string) []string {
 	enableVirtualTerminalProcessing()
 
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to decrypt \"" + targetLocation + "\" - Ensure it is a valid GPG-encrypted file and that you entered your passphrase correctly" + AnsiReset)
-		os.Exit(ErrorDecryption)
+		PrintError("Failed to decrypt \""+targetLocation+"\" - Ensure it is a valid GPG-encrypted file and that you entered your passphrase correctly", ErrorDecryption, true)
 	}
 
 	return strings.Split(string(output), "\n")
@@ -32,8 +29,7 @@ func EncryptGPG(input []string) []byte {
 	WriteToStdin(cmd, strings.Join(input, "\n"))
 	encryptedBytes, err := cmd.Output()
 	if err != nil {
-		fmt.Println(AnsiError + "Failed to encrypt data - Ensure that your GPG key is valid and that you have a valid GPG ID set in libmutton.ini" + AnsiReset)
-		os.Exit(ErrorEncryption)
+		PrintError("Failed to encrypt data - Ensure that you have a valid GPG ID set in libmutton.ini", ErrorEncryption, true)
 	}
 	return encryptedBytes
 }

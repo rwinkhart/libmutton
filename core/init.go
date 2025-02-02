@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -45,8 +44,7 @@ func GpgKeyGen() string {
 	cmd.Stdin = os.Stdin
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to generate GPG key:", err.Error()+AnsiReset)
-		os.Exit(ErrorOther)
+		PrintError("Failed to generate GPG key: "+err.Error(), ErrorOther, true)
 	}
 
 	return "libmutton-" + unixTime + " (gpg-libmutton) <github.com/rwinkhart/libmutton>"
@@ -58,8 +56,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to create \""+EntryRoot+"\":", err.Error()+AnsiReset)
-		os.Exit(ErrorWrite)
+		PrintError("Failed to create \""+EntryRoot+"\": "+err.Error(), ErrorWrite, true)
 	}
 
 	// get old device ID before its potential removal
@@ -77,8 +74,7 @@ func DirInit(preserveOldConfigDir bool) string {
 		if isAccessible {
 			err = os.RemoveAll(ConfigDir)
 			if err != nil {
-				fmt.Println(AnsiError+"Failed to remove existing config directory:", err.Error()+AnsiReset)
-				os.Exit(ErrorWrite)
+				PrintError("Failed to remove existing config directory: "+err.Error(), ErrorWrite, true)
 			}
 		}
 	}
@@ -86,8 +82,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	// create config directory w/devices subdirectory
 	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to create \""+ConfigDir+"\":", err.Error()+AnsiReset)
-		os.Exit(ErrorWrite)
+		PrintError("Failed to create \""+ConfigDir+"\": "+err.Error(), ErrorWrite, true)
 	}
 
 	return oldDeviceID

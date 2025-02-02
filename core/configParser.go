@@ -13,8 +13,7 @@ import (
 func loadConfig() *ini.File {
 	cfg, err := ini.Load(ConfigPath)
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to load libmutton.ini:", err.Error()+AnsiReset)
-		os.Exit(ErrorRead)
+		PrintError("Failed to load libmutton.ini: "+err.Error(), ErrorRead, true)
 	}
 	return cfg
 }
@@ -38,14 +37,12 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 			switch missingValueError {
 			case "":
 				err = fmt.Errorf("Failed to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
-				fmt.Println(err.Error())
 			case "0":
 				Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
 			default:
 				err = fmt.Errorf("%s", missingValueError)
-				fmt.Println(err.Error())
 			}
-			Exit(ErrorRead) // hard exit for CLI; GUI/TUI continue silently
+			PrintError(err.Error(), ErrorRead, false)
 			// if interactive (soft exit), return nil and the error to be handled by the caller
 			return nil, err
 		}
@@ -63,8 +60,7 @@ func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
 	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
 	if err != nil {
 		if errorOnFail {
-			fmt.Println(AnsiError+"Failed to read the devices directory:", err.Error()+AnsiReset)
-			os.Exit(ErrorRead)
+			PrintError("Failed to read the devices directory: "+err.Error(), ErrorRead, true)
 		} else {
 			return nil // a nil return value indicates that the devices directory could not be read/does not exist
 		}
@@ -113,7 +109,6 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 	// save to libmutton.ini
 	err := cfg.SaveTo(ConfigPath)
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to save libmutton.ini:", err.Error()+AnsiReset)
-		os.Exit(ErrorWrite)
+		PrintError("Failed to save libmutton.ini: "+err.Error(), ErrorWrite, true)
 	}
 }

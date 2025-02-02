@@ -17,8 +17,7 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 	modList := getModTimes(entryList)
 	deletionsList, err := os.ReadDir(core.ConfigDir + core.PathSeparator + "deletions")
 	if err != nil {
-		fmt.Println(core.AnsiError+"Failed to read the deletions directory:", err.Error()+core.AnsiReset)
-		os.Exit(core.ErrorRead)
+		core.PrintError("Failed to read the deletions directory: "+err.Error(), core.ErrorRead, true)
 	}
 
 	// print the current UNIX timestamp to stdout

@@ -1,7 +1,6 @@
 package sync
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -56,8 +55,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 	}
 	err := os.RemoveAll(targetLocationComplete)
 	if err != nil {
-		fmt.Println(core.AnsiError+"Failed to remove local target:", err.Error()+core.AnsiReset)
-		os.Exit(core.ErrorWrite)
+		core.PrintError("Failed to remove local target: "+err.Error(), core.ErrorWrite, true)
 	}
 
 	if !onServer && len(*deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
@@ -82,15 +80,13 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	// ensure newLocation does not exist
 	_, isAccessible := core.TargetIsFile(newLocation, false, 0)
 	if isAccessible {
-		fmt.Println(core.AnsiError + "\"" + newLocation + "\" already exists" + core.AnsiReset)
-		os.Exit(core.ErrorTargetExists)
+		core.PrintError("\""+newLocation+"\" already exists", core.ErrorTargetExists, true)
 	}
 
 	// rename oldLocation to newLocation
 	err := os.Rename(oldLocation, newLocation)
 	if err != nil {
-		fmt.Println(core.AnsiError + "Failed to rename - Does the target containing directory exist?" + core.AnsiReset)
-		os.Exit(core.ErrorTargetNotFound)
+		core.PrintError("Failed to rename - Does the target containing directory exist?", core.ErrorTargetNotFound, true)
 	}
 
 	// do not exit program, as this function is used as part of RenameRemoteFromClient
@@ -104,11 +100,9 @@ func AddFolderLocal(targetLocationIncomplete string) {
 	err := os.Mkdir(targetLocationComplete, 0700)
 	if err != nil {
 		if os.IsExist(err) {
-			fmt.Println(core.AnsiError + "Directory already exists" + core.AnsiReset)
-			os.Exit(core.ErrorTargetExists)
+			core.PrintError("Directory already exists", core.ErrorTargetExists, true)
 		} else {
-			fmt.Println(core.AnsiError+"Failed to create directory:", err.Error()+core.AnsiReset)
-			os.Exit(core.ErrorWrite)
+			core.PrintError("Failed to create directory: "+err.Error(), core.ErrorWrite, true)
 		}
 	}
 

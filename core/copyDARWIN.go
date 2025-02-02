@@ -3,8 +3,6 @@
 package core
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
 )
 
@@ -14,8 +12,7 @@ func copyString(continuous bool, copySubject string) {
 	WriteToStdin(cmd, copySubject)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(AnsiError+"Failed to copy to clipboard:", err.Error()+AnsiReset)
-		os.Exit(ErrorClipboard)
+		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {

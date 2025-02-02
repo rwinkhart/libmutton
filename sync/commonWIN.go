@@ -3,7 +3,6 @@
 package sync
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -26,12 +25,10 @@ func WalkEntryDir() ([]string, []string) {
 			// check for errors encountered while walking directory
 			if err != nil {
 				if os.IsNotExist(err) {
-					fmt.Println(core.AnsiError + "The entry directory does not exist - Initialize libmutton to create it" + core.AnsiReset)
+					core.PrintError("The entry directory does not exist - Initialize libmutton to create it", core.ErrorOther, true)
 				} else {
-					// otherwise, print the source of the error
-					fmt.Println(core.AnsiError+"An unexpected error occurred while generating the entry list:", err.Error()+core.AnsiReset)
+					core.PrintError("An unexpected error occurred while generating the entry list: "+err.Error(), core.ErrorOther, true)
 				}
-				os.Exit(core.ErrorOther)
 			}
 
 			// trim root path from each path before storing and replace backslashes with forward slashes
