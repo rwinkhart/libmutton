@@ -27,7 +27,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	var sshUserConfig []string
 	var missingValueError string
 	if manualSync {
-		missingValueError = joinErrorWithEXE("SSH settings not configured - Run \"", " init\" to configure")
+		missingValueError = core.AnsiError + "SSH settings not fully configured" + core.AnsiReset
 	} else {
 		missingValueError = "0" // allow silent exit at this point in offline mode
 	}
@@ -140,7 +140,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	deviceIDList := core.GenDeviceIDList(true)
 	if len(*deviceIDList) == 0 {
 		if manualSync {
-			fmt.Println(joinErrorWithEXE("Sync failed - No device ID found; run \"", " init\" to generate a device ID"))
+			fmt.Println(core.AnsiError + "Sync failed - No device ID found" + core.AnsiReset)
 			os.Exit(core.ErrorTargetNotFound)
 		} else {
 			core.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode

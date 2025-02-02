@@ -18,10 +18,8 @@ These are as follows:
 ## Required Global Variable Manipulation
 libmutton provides a `PassphraseInputFunction` global variable that all clients must set to support passphrase-protected SSH identity files. This approach allows for different types of clients (CLI, GUI, TUI) to prompt for the passphrase in the most appropriate way.
 
-## Required Arguments
-Some arguments should be accepted by all/most libmutton-based password managers. These are as follows:
-- `clipclear`: This argument is required for correct functionality of non-interactive CLI implementations (not needed for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `core.ClipClearArgument()`.
-- `init`: This argument is optional, but recommended for CLI interfaces. Some error messages request the user to use the `init` argument to fix configuration issues. If the argument does not exist, this may confuse the user.
+## Required Argument (clipclear)
+The `clipclear` argument should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `core.ClipClearArgument()`.
 
 ## Configuration
 libmutton-based password manager clients should all share the same INI configuration file.
