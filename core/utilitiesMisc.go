@@ -109,6 +109,18 @@ func ClampTrailingWhitespace(note []string) {
 	}
 }
 
+// EntryAddPrecheck ensures the directory meant to contain a new
+// entry exists and that the target entry location is not already used.
+func EntryAddPrecheck(targetLocation string) {
+	// ensure target location does not already exist
+	_, isAccessible := TargetIsFile(targetLocation, false, 0)
+	if isAccessible {
+		PrintError("Target location already exists", ErrorTargetExists, false)
+	}
+	// ensure target containing directory exists and is a directory (not a file)
+	TargetIsFile(targetLocation[:strings.LastIndex(targetLocation, PathSeparator)], true, 1)
+}
+
 // StringGen generates a random string of a specified length and complexity.
 // Requires: complexity (minimum percentage of special characters to be returned in the generated string; only impacts complex strings),
 // safeForFileName: (if true, the generated string will only contain special characters that are safe for file names; only impacts complex strings).
