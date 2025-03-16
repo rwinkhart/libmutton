@@ -111,14 +111,22 @@ func ClampTrailingWhitespace(note []string) {
 
 // EntryAddPrecheck ensures the directory meant to contain a new
 // entry exists and that the target entry location is not already used.
-func EntryAddPrecheck(targetLocation string) {
+// Returns: statusCode (0 = success, 1 = target location already exists, 2 = containing directory is invalid).
+func EntryAddPrecheck(targetLocation string) uint8 {
 	// ensure target location does not already exist
 	_, isAccessible := TargetIsFile(targetLocation, false, 0)
 	if isAccessible {
 		PrintError("Target location already exists", ErrorTargetExists, false)
+		return 1 // inform interactive clients that the target location already exists
 	}
 	// ensure target containing directory exists and is a directory (not a file)
-	TargetIsFile(targetLocation[:strings.LastIndex(targetLocation, PathSeparator)], true, 1)
+	containingDir := targetLocation[:strings.LastIndex(targetLocation, PathSeparator)]
+	isFile, isAccisAccessible := TargetIsFile(containingDir, false, 1)
+	if isFile || !isAccisAccessible {
+		PrintError("\""+containingDir+"\" is not a valid containing directory", ErrorTargetWrongType, false)
+		return 2 // inform interactive clients that the containing directory is invalid
+	}
+	return 0
 }
 
 // StringGen generates a random string of a specified length and complexity.
