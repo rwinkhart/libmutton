@@ -2,9 +2,11 @@
 
 package core
 
-var EntryRoot = Home + "/.local/share/libmutton" // Path to libmutton entry directory
-var ConfigDir = Home + "/.config/libmutton"      // Path to libmutton configuration directory
-var ConfigPath = ConfigDir + "/libmutton.ini"    // Path to libmutton configuration file
+var (
+	EntryRoot  = Home + "/.local/share/libmutton" // Path to libmutton entry directory
+	ConfigDir  = Home + "/.config/libmutton"      // Path to libmutton configuration directory
+	ConfigPath = ConfigDir + "/libmutton.ini"     // Path to libmutton configuration file
+)
 
 const (
 	PathSeparator = "/"   // Platform-specific path separator
