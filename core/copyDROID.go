@@ -3,16 +3,16 @@
 package core
 
 import (
-	"os/exec"
+	"golang.design/x/clipboard"
 )
+
+// TODO Investigate background clipboard clearing and on-app-close clipboard clearing for Android
 
 // copyString copies a string to the clipboard.
 func copyString(continuous bool, copySubject string) {
-	// temporary dummy function to allow Android compilation
-}
+	clipboard.Write(clipboard.FmtText, []byte(copySubject))
 
-// getClipCommands returns the commands for pasting and clearing the clipboard contents.
-func getClipCommands() (*exec.Cmd, *exec.Cmd) {
-	// temporary dummy function to allow Android compilation
-	return nil, nil
+	if !continuous {
+		LaunchClipClearProcess(copySubject)
+	}
 }
