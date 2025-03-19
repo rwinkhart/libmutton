@@ -31,7 +31,7 @@ func WalkEntryDir() ([]string, []string) {
 			}
 
 			// trim root path from each path before storing
-			trimmedPath := fullPath[rootLength:]
+			trimmedPath := fullPath[RootLength:]
 
 			// append the path to the appropriate slice
 			if !entry.IsDir() {

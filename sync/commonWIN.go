@@ -32,7 +32,7 @@ func WalkEntryDir() ([]string, []string) {
 			}
 
 			// trim root path from each path before storing and replace backslashes with forward slashes
-			trimmedPath := strings.ReplaceAll(fullPath[rootLength:], "\\", "/")
+			trimmedPath := strings.ReplaceAll(fullPath[RootLength:], "\\", "/")
 
 			// append the path to the appropriate slice
 			if !entry.IsDir() {
