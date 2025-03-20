@@ -27,6 +27,12 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	}
 	_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 
+	// remove old device ID file (locally; may not exist)
+	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)
+	if err != nil {
+		core.PrintError("Failed to remove old device ID file (locally): "+err.Error(), core.ErrorWrite, true)
+	}
+
 	// register new device ID with server and fetch remote EntryRoot and OS type
 	// also removes the old device ID file (remotely)
 	// manualSync is true so the user is alerted if device ID registration fails
@@ -35,12 +41,6 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	err = sshClient.Close()
 	if err != nil {
 		core.PrintError("Init failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
-	}
-
-	// remove old device ID file (locally; may not exist)
-	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)
-	if err != nil {
-		core.PrintError("Failed to remove old device ID file (locally): "+err.Error(), core.ErrorWrite, true)
 	}
 
 	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1]

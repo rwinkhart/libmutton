@@ -60,13 +60,7 @@ func DirInit(preserveOldConfigDir bool) string {
 	}
 
 	// get old device ID before its potential removal
-	oldDeviceIDList := GenDeviceIDList(false) // errorOnFail is false so that nil is received when the devices directory does not exist
-	var oldDeviceID string
-	if oldDeviceIDList != nil && len(*oldDeviceIDList) > 0 { // ensure not derferencing nil, which occurs when the devices directory does not exist
-		oldDeviceID = (*oldDeviceIDList)[0].Name()
-	} else {
-		oldDeviceID = FSMisc // indicates to server that no device ID is being replaced
-	}
+	oldDeviceID := GetCurrentDeviceID()
 
 	// remove existing config directory (if it exists and not in append mode)
 	if !preserveOldConfigDir {
@@ -86,4 +80,17 @@ func DirInit(preserveOldConfigDir bool) string {
 	}
 
 	return oldDeviceID
+}
+
+// GetOldDeviceID returns the current device ID or
+// FSMisc if there is no device ID (e.g. first run).
+func GetCurrentDeviceID() string {
+	deviceIDList := GenDeviceIDList(false) // errorOnFail is false so that nil is received when the devices directory does not exist
+	var deviceID string
+	if deviceIDList != nil && len(*deviceIDList) > 0 { // ensure not derferencing nil, which occurs when the devices directory does not exist
+		deviceID = (*deviceIDList)[0].Name()
+	} else {
+		deviceID = FSMisc // indicates to server that no device ID is being replaced
+	}
+	return deviceID
 }
