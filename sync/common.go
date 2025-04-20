@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -100,7 +101,7 @@ func AddFolderLocal(targetLocationIncomplete string) {
 	err := os.Mkdir(targetLocationComplete, 0700)
 	if err != nil {
 		if os.IsExist(err) {
-			core.PrintError("Directory already exists", core.ErrorTargetExists, true)
+			fmt.Println(ansiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {
 			core.PrintError("Failed to create directory: "+err.Error(), core.ErrorWrite, true)
 		}
