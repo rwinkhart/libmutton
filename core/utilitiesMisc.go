@@ -130,22 +130,27 @@ func EntryAddPrecheck(targetLocation string) uint8 {
 }
 
 // StringGen generates a random string of a specified length and complexity.
-// Requires: complexity (minimum percentage of special characters to be returned in the generated string; only impacts complex strings),
-// safeForFileName: (if true, the generated string will only contain special characters that are safe for file names; only impacts complex strings).
-func StringGen(length int, complex bool, complexity float64, safeForFileName bool) string {
+// Requires: complexity (minimum percentage of special characters to be returned in the generated string; set to 0 to generate a simple string),
+// complexCharsetLevel (0 = safe for filenames, 1 = safe for most password entries, 2 = safe only for well-made password entries)
+func StringGen(length int, complexity float64, complexCharsetLevel uint8) string {
 	var actualSpecialChars int // track the number of special characters in the generated string
 	var minSpecialChars int    // track the minimum number of special characters to accept
 	var extendedCharset string // additions to character set used for complex strings
 
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" // default character set used for all strings
-	const extendedCharsetFiles = "!#$%&'()+,-.;=@[]^_`{}~"                      // additional special characters for complex strings (safe in file names)
-	const extendedCharsetPassword = "\"*:><?/\\|"                               // additional special characters for complex strings (NOT safe in file names)
-	if complex {
+	const extendedCharsetFiles = "!#$%&+,-.;=@_~^()[]{}`'"                      // additional special characters for complex strings (safe in file names)
+	const extendedCharsetMostPassword = "*:><?|"                                // additional special characters for complex strings (NOT safe in file names)
+	const extendedCharsetSpecialPassword = "\"/\\"                              // additional special characters for complex strings (NOT safe in file names)
+
+	if complexity > 0 {
 		minSpecialChars = int(math.Round(float64(length) * complexity)) // determine minimum number of special characters to accept
-		if !safeForFileName {
-			extendedCharset = extendedCharsetFiles + extendedCharsetPassword
-		} else {
+		switch complexCharsetLevel {
+		case 0:
 			extendedCharset = extendedCharsetFiles
+		case 1:
+			extendedCharset = extendedCharsetMostPassword + extendedCharsetFiles[:len(extendedCharsetFiles)-9]
+		case 2:
+			extendedCharset = extendedCharsetFiles + extendedCharsetMostPassword + extendedCharsetSpecialPassword
 		}
 		charset += extendedCharset
 	}
@@ -160,7 +165,7 @@ func StringGen(length int, complex bool, complexity float64, safeForFileName boo
 		}
 
 		// return early if the string is not complex
-		if !complex {
+		if complexity == 0 {
 			return string(result)
 		}
 

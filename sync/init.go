@@ -17,7 +17,7 @@ import (
 func DeviceIDGen(oldDeviceID string) (string, string) {
 	// generate new device ID
 	deviceIDPrefix, _ := os.Hostname()
-	deviceIDSuffix := core.StringGen(rand.Intn(32)+48, true, 0.2, true) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+	deviceIDSuffix := core.StringGen(rand.Intn(32)+48, 0.2, 0) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 	newDeviceID := deviceIDPrefix + "-" + deviceIDSuffix
 
 	// create new device ID file (locally)
