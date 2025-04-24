@@ -165,7 +165,7 @@ func StringGen(length int, complexity float64, complexCharsetLevel uint8) string
 		}
 
 		// return early if the string is not complex
-		if complexity == 0 {
+		if complexity <= 0 {
 			return string(result)
 		}
 
