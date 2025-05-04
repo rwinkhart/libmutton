@@ -15,8 +15,12 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/otp v1.4.1-0.20231130234153-3357de7c0481 h1:FkxbO331O7mS5EJkP+MCi0o2gswh/Aezs+//NmefrR8=
 github.com/pquerna/otp v1.4.1-0.20231130234153-3357de7c0481/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
-github.com/rwinkhart/rcw v0.0.0-20250504183741-f176d57b6ba5 h1:BX31d76TLGZqeukYECLFPkLD+SS/CAV12Lkdlc6UuGM=
-github.com/rwinkhart/rcw v0.0.0-20250504183741-f176d57b6ba5/go.mod h1:giXrq9o5a7bwMSuMvz+5bb2+qbM+zV4pXaG/SceXfLM=
+github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410 h1:NhHwFM3Pgm6zRUfFKvi0p5ndjfFbVWsRwmmhyFlG4PE=
+github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
+github.com/rwinkhart/peercred-mini v0.0.0-20250407033241-c09add2eceea h1:VE2ti/AE4Y3kgnyK+J5c5hpddE+dKHpsFch3K2R6puQ=
+github.com/rwinkhart/peercred-mini v0.0.0-20250407033241-c09add2eceea/go.mod h1:t+YkvAdnTKTrg4d469tw3K+GCUzX/Bja4h8yKjSIsGs=
+github.com/rwinkhart/rcw v0.0.0-20250504233845-9314852f061b h1:eWN9ogSzNE8KcFcoIBgrdgMCOUhxnV7m+SJ9Z3SCnPU=
+github.com/rwinkhart/rcw v0.0.0-20250504233845-9314852f061b/go.mod h1:giXrq9o5a7bwMSuMvz+5bb2+qbM+zV4pXaG/SceXfLM=
 github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0 h1:KRbqimv9Eexf3VB2FrRAQ4v2fGGu7gt3ayMgdT0FNao=
 github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0/go.mod h1:BJP2sWEmIv4KK5OTEluFJCKSidICx8ciO85XgH3Ak8k=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

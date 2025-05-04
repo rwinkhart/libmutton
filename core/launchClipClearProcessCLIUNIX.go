@@ -11,8 +11,7 @@ import (
 // LaunchClipClearProcess launches the timed clipboard clearing process.
 // For non-interactive CLI implementations, an entirely separate process is created for this purpose.
 func LaunchClipClearProcess(copySubject string, isWayland bool) {
-	executableName := os.Args[0]
-	cmd := exec.Command(executableName, "clipclear", strconv.FormatBool(isWayland))
+	cmd := exec.Command(os.Args[0], "clipclear", strconv.FormatBool(isWayland))
 	writeToStdin(cmd, copySubject)
 	err := cmd.Start()
 	if err != nil {

@@ -2,8 +2,10 @@ package core
 
 import (
 	"os"
+	"os/exec"
 	"strings"
 
+	"github.com/rwinkhart/rcw/daemon"
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
@@ -24,4 +26,23 @@ func DecryptFileToSlice(targetLocation string, passphrase []byte) []string {
 func EncryptBytes(decBytes []byte, passphrase []byte) []byte {
 	encBytes := wrappers.Encrypt(decBytes, passphrase)
 	return encBytes
+}
+
+// LaunchRCWDProcess launches an RCW daemon to serve the given passphrase.
+func LaunchRCWDProcess(passphrase string) {
+	cmd := exec.Command(os.Args[0], "startrcwd")
+	writeToStdin(cmd, passphrase)
+	err := cmd.Start()
+	if err != nil {
+		PrintError("Failed to launch RCW daemon - Does this libmutton implementation support the \"startrcwd\" argument?", ErrorOther, true)
+	}
+}
+
+// RCWDArgument reads the passphrase from stdin and serves it via an RCW daemon.
+func RCWDArgument() {
+	passphrase := readFromStdin()
+	if passphrase == "" {
+		os.Exit(0)
+	}
+	daemon.Start(string(passphrase))
 }

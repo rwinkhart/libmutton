@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -59,14 +58,11 @@ func CopyArgument(targetLocation string, field int, passphrase []byte) {
 
 // ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
 func ClipClearArgument() {
-	// read previous clipboard contents from stdin
-	clipScanner := bufio.NewScanner(os.Stdin)
-	if clipScanner.Scan() {
-		assignedContents := clipScanner.Text()
-		clipClearProcess(assignedContents)
-	} else {
+	assignedContents := readFromStdin()
+	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
+	clipClearProcess(assignedContents)
 }
 
 // GenTOTP generates a TOTP token from a secret (supports standard and Steam TOTP).

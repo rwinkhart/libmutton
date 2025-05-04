@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bufio"
 	"crypto/rand"
 	"fmt"
 	"io"
@@ -57,6 +58,15 @@ func writeToStdin(cmd *exec.Cmd, input string) {
 		}(stdin)
 		_, _ = io.WriteString(stdin, input)
 	}()
+}
+
+// readFromStdin is a utility function that reads a string from stdin.
+func readFromStdin() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		return scanner.Text()
+	}
+	return ""
 }
 
 // CreateTempFile creates a temporary file and returns a pointer to it.
