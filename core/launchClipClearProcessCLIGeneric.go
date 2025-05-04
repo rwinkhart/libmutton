@@ -12,7 +12,7 @@ import (
 func LaunchClipClearProcess(copySubject string) {
 	executableName := os.Args[0]
 	cmd := exec.Command(executableName, "clipclear")
-	WriteToStdin(cmd, copySubject)
+	writeToStdin(cmd, copySubject)
 	err := cmd.Start()
 	if err != nil {
 		PrintError("Failed to launch automated clipboard clearing process - Does this libmutton implementation support the \"clipclear\" argument?", ErrorClipboard, true)

@@ -1,12 +1,12 @@
 package core
 
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
-func GetOldEntryData(targetLocation string, field int) []string {
+func GetOldEntryData(targetLocation string, field int, passphrase []byte) []string {
 	// ensure targetLocation exists
 	TargetIsFile(targetLocation, true, 2)
 
 	// read old entry data
-	unencryptedEntry := DecryptGPG(targetLocation)
+	unencryptedEntry := DecryptFileToSlice(targetLocation, passphrase)
 
 	// return the old entry data with all required lines present
 	if field > 0 {

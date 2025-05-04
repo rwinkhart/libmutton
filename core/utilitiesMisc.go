@@ -36,17 +36,16 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 }
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
-func WriteEntry(targetLocation string, entryData []string) {
-	encryptedBytes := EncryptGPG(entryData)
+func WriteEntry(targetLocation string, entryData []byte, passphrase []byte) {
+	encryptedBytes := EncryptBytes(entryData, passphrase)
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
 		PrintError("Failed to write to file: "+err.Error(), ErrorWrite, true)
 	}
 }
 
-// WriteToStdin is a utility function that writes a string to a command's stdin.
-// TODO unexport (import?) after migration off of GPG
-func WriteToStdin(cmd *exec.Cmd, input string) {
+// writeToStdin is a utility function that writes a string to a command's stdin.
+func writeToStdin(cmd *exec.Cmd, input string) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		PrintError("Failed to access stdin for system command: "+err.Error(), ErrorOther, true)

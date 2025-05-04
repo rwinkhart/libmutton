@@ -12,9 +12,3 @@ const (
 	PathSeparator = "/"   // Platform-specific path separator
 	IsWindows     = false // Platform indicator
 )
-
-// enableVirtualTerminalProcessing is a dummy function on UNIX-like systems (only needed on Windows).
-// TODO Remove after migration off of GPG, as pinentry is responsible for disabling ANSI escape sequence interpretation.
-func enableVirtualTerminalProcessing() {
-	return
-}

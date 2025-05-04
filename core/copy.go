@@ -12,10 +12,10 @@ import (
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
-func CopyArgument(targetLocation string, field int) {
+func CopyArgument(targetLocation string, field int, passphrase []byte) {
 	if isFile, _ := TargetIsFile(targetLocation, true, 2); isFile {
 
-		decryptedEntry := DecryptGPG(targetLocation)
+		decryptedEntry := DecryptFileToSlice(targetLocation, passphrase)
 		var copySubject string // will store data to be copied
 
 		// ensure field exists in entry

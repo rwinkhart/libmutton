@@ -30,7 +30,6 @@ On UNIX-like systems, this is located at `~/.config/libmutton/libmutton.ini`. On
 The current base layout of `libmutton.ini` will change leading up to release v1.0.0. As of right now, the specification is as follows:
 ```
 [LIBMUTTON]
-gpgID = <gpg key id>
 sshUser = <remote user>
 sshIP = <remote ip>
 sshPort = <remote ssh port>
@@ -45,6 +44,3 @@ If creating a third-party client that requires extra configuration to be stored,
 configKey = <value>
 ```
 This ensures that a user can use multiple client applications with the same configuration while avoiding conflicts.
-
-# Relevant Bugs Affecting Third-Party Client Implementations
-- Password-protected SSH identity files currently only prompt for password entry in the CLI, and thus they are not yet supported in GUI/TUI implementations
