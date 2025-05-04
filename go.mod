@@ -20,3 +20,7 @@ require (
 	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7 // indirect; only for Android builds
 	golang.org/x/sys v0.32.0 // indirect
 )
+
+replace golang.org/x/sys => github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0
+
+replace github.com/Microsoft/go-winio => github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410
