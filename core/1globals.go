@@ -33,3 +33,5 @@ const (
 	ErrorClipboard        = 110
 	ErrorOther            = 111
 )
+
+var GetPassphrase func() []byte

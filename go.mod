@@ -1,14 +1,14 @@
 module github.com/rwinkhart/libmutton
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/fortis/go-steam-totp v0.0.0-20171114202746-18e928674727
 	github.com/pkg/sftp v1.13.9
 	github.com/pquerna/otp v1.4.1-0.20231130234153-3357de7c0481
-	github.com/rwinkhart/rcw v0.0.0-20250505000323-5975c71b4f68
+	github.com/rwinkhart/rcw v0.0.0-20250508202611-f447c8a28b43
 	golang.design/x/clipboard v0.7.0 // only for Android builds
-	golang.org/x/crypto v0.37.0
+	golang.org/x/crypto v0.38.0
 	gopkg.in/ini.v1 v1.67.0
 )
 
@@ -20,7 +20,7 @@ require (
 	golang.org/x/exp/shiny v0.0.0-20250408133849-7e4ce0ab07d0 // indirect; only for Android builds
 	golang.org/x/image v0.26.0 // indirect; only for Android builds
 	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7 // indirect; only for Android builds
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
 
 replace golang.org/x/sys => github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0

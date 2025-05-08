@@ -37,8 +37,8 @@ func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) 
 }
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
-func WriteEntry(targetLocation string, entryData []byte, passphrase []byte) {
-	encryptedBytes := EncryptBytes(entryData, passphrase)
+func WriteEntry(targetLocation string, entryData []byte) {
+	encryptedBytes := EncryptBytes(entryData)
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
 		PrintError("Failed to write to file: "+err.Error(), ErrorWrite, true)
