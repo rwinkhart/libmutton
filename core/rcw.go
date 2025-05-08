@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/rwinkhart/rcw/daemon"
 	"github.com/rwinkhart/rcw/wrappers"
@@ -29,21 +28,34 @@ func DecryptFileToSlice(targetLocation string) []string {
 	}
 
 	// decrypt data using RCW daemon
-	launchRCWDProcess()
-	return strings.Split(string(daemon.GetDec(encBytes)), "\n")
+	passphrase := launchRCWDProcess()
+	if passphrase == nil {
+		// if daemon is already running, use it to decrypt the data
+		return strings.Split(string(daemon.GetDec(encBytes)), "\n")
+	}
+	// if the daemon is not already running, use wrappers.Decrypt
+	// directly to avoid waiting for socket file creation
+	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
+	return strings.Split(string(decBytes), "\n")
 }
 
 // EncryptBytes encrypts a byte slice using RCW and returns the encrypted data.
 func EncryptBytes(decBytes []byte) []byte {
-	launchRCWDProcess()
-	return daemon.GetEnc(decBytes)
+	passphrase := launchRCWDProcess()
+	if passphrase == nil {
+		// if daemon is already running, use it to encrypt the data
+		return daemon.GetEnc(decBytes)
+	}
+	// if the daemon is not already running, use wrappers.Encrypt
+	// directly to avoid waiting for socket file creation
+	return wrappers.Encrypt(decBytes, passphrase)
 }
 
 // launchRCWDProcess launches an RCW daemon to cache a passphrase.
-// It returns immediately if the daemon appears to be already running.
-func launchRCWDProcess() {
+// If the daemon is not already running, it returns the passphrase (otherwise returns nil).
+func launchRCWDProcess() []byte {
 	if daemon.IsOpen() {
-		return
+		return nil
 	}
 	var passphrase []byte
 	for {
@@ -58,11 +70,5 @@ func launchRCWDProcess() {
 	writeToStdin(cmd, string(passphrase))
 	cmd.Start()
 
-	// block until socket file is created
-	for {
-		if daemon.IsOpen() {
-			break
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
+	return passphrase
 }

@@ -6,7 +6,7 @@ require (
 	github.com/fortis/go-steam-totp v0.0.0-20171114202746-18e928674727
 	github.com/pkg/sftp v1.13.9
 	github.com/pquerna/otp v1.4.1-0.20231130234153-3357de7c0481
-	github.com/rwinkhart/rcw v0.0.0-20250508202611-f447c8a28b43
+	github.com/rwinkhart/rcw v0.0.0-20250508234041-b49d9f1eea42
 	golang.design/x/clipboard v0.7.0 // only for Android builds
 	golang.org/x/crypto v0.38.0
 	gopkg.in/ini.v1 v1.67.0

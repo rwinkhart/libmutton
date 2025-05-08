@@ -19,8 +19,8 @@ github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e84
 github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/rwinkhart/peercred-mini v0.0.0-20250407033241-c09add2eceea h1:VE2ti/AE4Y3kgnyK+J5c5hpddE+dKHpsFch3K2R6puQ=
 github.com/rwinkhart/peercred-mini v0.0.0-20250407033241-c09add2eceea/go.mod h1:t+YkvAdnTKTrg4d469tw3K+GCUzX/Bja4h8yKjSIsGs=
-github.com/rwinkhart/rcw v0.0.0-20250508202611-f447c8a28b43 h1:TFHU8EkCP0AxAExfA/k5TLfFt7Nja2AmPA1DdVzgRX8=
-github.com/rwinkhart/rcw v0.0.0-20250508202611-f447c8a28b43/go.mod h1:6/TBegxRkK+FbGEmcxqDs4entuCX45cqpYOYKUv2MI0=
+github.com/rwinkhart/rcw v0.0.0-20250508234041-b49d9f1eea42 h1:/vsBCwHP22cmqrtjsRB1OcPcb+sckktdeFlHKmhzD54=
+github.com/rwinkhart/rcw v0.0.0-20250508234041-b49d9f1eea42/go.mod h1:6/TBegxRkK+FbGEmcxqDs4entuCX45cqpYOYKUv2MI0=
 github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0 h1:KRbqimv9Eexf3VB2FrRAQ4v2fGGu7gt3ayMgdT0FNao=
 github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0/go.mod h1:BJP2sWEmIv4KK5OTEluFJCKSidICx8ciO85XgH3Ak8k=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
