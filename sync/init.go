@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 )
 
@@ -23,14 +24,14 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	// create new device ID file (locally)
 	fileToClose, err := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+newDeviceID, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		core.PrintError("Failed to create local device ID file: "+err.Error(), core.ErrorWrite, true)
+		back.PrintError("Failed to create local device ID file: "+err.Error(), back.ErrorWrite, true)
 	}
 	_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + oldDeviceID)
 	if err != nil {
-		core.PrintError("Failed to remove old device ID file (locally): "+err.Error(), core.ErrorWrite, true)
+		back.PrintError("Failed to remove old device ID file (locally): "+err.Error(), back.ErrorWrite, true)
 	}
 
 	// register new device ID with server and fetch remote EntryRoot and OS type
@@ -40,7 +41,7 @@ func DeviceIDGen(oldDeviceID string) (string, string) {
 	sshEntryRootSSHIsWindows := strings.Split(GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), core.FSSpace)
 	err = sshClient.Close()
 	if err != nil {
-		core.PrintError("Init failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
+		back.PrintError("Init failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 	}
 
 	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1]

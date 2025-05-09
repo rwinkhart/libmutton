@@ -3,6 +3,7 @@ package sync
 import (
 	"strings"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 )
 
@@ -26,11 +27,11 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
+			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 
-	core.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
+	back.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
 }
 
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list.
@@ -52,11 +53,11 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
+			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 
-	core.Exit(0)
+	back.Exit(0)
 }
 
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely.
@@ -75,9 +76,9 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 		// close the SSH client
 		err := sshClient.Close()
 		if err != nil {
-			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
+			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}
 
-	core.Exit(0)
+	back.Exit(0)
 }

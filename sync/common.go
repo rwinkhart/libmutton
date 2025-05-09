@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 )
 
@@ -41,7 +42,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 				if err != nil {
 					// do not print error as there is currently no way of seeing server-side errors
 					// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
-					os.Exit(core.ErrorWrite)
+					os.Exit(back.ErrorWrite)
 				}
 				_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 			}
@@ -52,11 +53,11 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 	targetLocationComplete := core.TargetLocationFormat(targetLocationIncomplete)
 	var isFile bool
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
-		isFile, _ = core.TargetIsFile(targetLocationComplete, true, 0)
+		isFile, _ = back.TargetIsFile(targetLocationComplete, true, 0)
 	}
 	err := os.RemoveAll(targetLocationComplete)
 	if err != nil {
-		core.PrintError("Failed to remove local target: "+err.Error(), core.ErrorWrite, true)
+		back.PrintError("Failed to remove local target: "+err.Error(), back.ErrorWrite, true)
 	}
 
 	if !onServer && len(*deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
@@ -75,19 +76,19 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	newLocation := core.TargetLocationFormat(newLocationIncomplete)
 
 	if verifyOldLocationExists {
-		core.TargetIsFile(oldLocation, true, 0)
+		back.TargetIsFile(oldLocation, true, 0)
 	}
 
 	// ensure newLocation does not exist
-	_, isAccessible := core.TargetIsFile(newLocation, false, 0)
+	_, isAccessible := back.TargetIsFile(newLocation, false, 0)
 	if isAccessible {
-		core.PrintError("\""+newLocation+"\" already exists", core.ErrorTargetExists, true)
+		back.PrintError("\""+newLocation+"\" already exists", core.ErrorTargetExists, true)
 	}
 
 	// rename oldLocation to newLocation
 	err := os.Rename(oldLocation, newLocation)
 	if err != nil {
-		core.PrintError("Failed to rename - Does the target containing directory exist?", core.ErrorTargetNotFound, true)
+		back.PrintError("Failed to rename - Does the target containing directory exist?", back.ErrorTargetNotFound, true)
 	}
 
 	// do not exit program, as this function is used as part of RenameRemoteFromClient
@@ -103,7 +104,7 @@ func AddFolderLocal(targetLocationIncomplete string) {
 		if os.IsExist(err) {
 			fmt.Println(ansiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {
-			core.PrintError("Failed to create directory: "+err.Error(), core.ErrorWrite, true)
+			back.PrintError("Failed to create directory: "+err.Error(), back.ErrorWrite, true)
 		}
 	}
 

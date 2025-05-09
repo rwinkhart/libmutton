@@ -23,6 +23,8 @@ require (
 	golang.org/x/sys v0.33.0 // indirect
 )
 
+require github.com/rwinkhart/go-boilerplate v0.0.0-20250509154735-0846290a7620
+
 replace golang.org/x/sys => github.com/rwinkhart/sys-freebsd-13-xucred v0.32.0
 
 replace github.com/Microsoft/go-winio => github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410

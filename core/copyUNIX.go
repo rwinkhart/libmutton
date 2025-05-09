@@ -5,6 +5,8 @@ package core
 import (
 	"os"
 	"os/exec"
+
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // copyString copies a string to the clipboard.
@@ -18,13 +20,13 @@ func copyString(continuous bool, copySubject string) {
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	} else {
-		PrintError("Clipboard platform could not be determined", ErrorClipboard, true)
+		back.PrintError("Clipboard platform could not be determined", ErrorClipboard, true)
 	}
 
-	writeToStdin(cmdCopy, copySubject)
+	back.WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
-		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
+		back.PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {

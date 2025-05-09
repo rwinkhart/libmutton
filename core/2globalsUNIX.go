@@ -2,10 +2,12 @@
 
 package core
 
+import "github.com/rwinkhart/go-boilerplate/back"
+
 var (
-	EntryRoot  = Home + "/.local/share/libmutton" // Path to libmutton entry directory
-	ConfigDir  = Home + "/.config/libmutton"      // Path to libmutton configuration directory
-	ConfigPath = ConfigDir + "/libmutton.ini"     // Path to libmutton configuration file
+	EntryRoot  = back.Home + "/.local/share/libmutton" // Path to libmutton entry directory
+	ConfigDir  = back.Home + "/.config/libmutton"      // Path to libmutton configuration directory
+	ConfigPath = ConfigDir + "/libmutton.ini"          // Path to libmutton configuration file
 )
 
 const (

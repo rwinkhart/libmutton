@@ -5,6 +5,8 @@ package core
 import (
 	"strings"
 	"time"
+
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // clipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
@@ -15,9 +17,9 @@ func clipClearProcess(assignedContents string) {
 	clearClipboard := func() {
 		err := cmdClear.Run()
 		if err != nil {
-			PrintError("Failed to clear clipboard", ErrorClipboard, true)
+			back.PrintError("Failed to clear clipboard", ErrorClipboard, true)
 		}
-		Exit(0)
+		back.Exit(0)
 	}
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
@@ -31,7 +33,7 @@ func clipClearProcess(assignedContents string) {
 
 	newContents, err := cmdPaste.Output()
 	if err != nil {
-		PrintError("Failed to read clipboard contents", ErrorClipboard, true)
+		back.PrintError("Failed to read clipboard contents", ErrorClipboard, true)
 	}
 
 	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {

@@ -6,13 +6,14 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/rcw/daemon"
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
 // RCWDArgument reads the passphrase from stdin and caches it via an RCW daemon.
 func RCWDArgument() {
-	passphrase := readFromStdin()
+	passphrase := back.ReadFromStdin()
 	if passphrase == "" {
 		os.Exit(0)
 	}
@@ -24,7 +25,7 @@ func DecryptFileToSlice(targetLocation string) []string {
 	// read encrypted file
 	encBytes, err := os.ReadFile(targetLocation)
 	if err != nil {
-		PrintError("Failed to open \""+targetLocation+"\" for decryption - "+err.Error(), ErrorDecryption, true)
+		back.PrintError("Failed to open \""+targetLocation+"\" for decryption - "+err.Error(), back.ErrorRead, true)
 	}
 
 	// decrypt data using RCW daemon
@@ -37,7 +38,7 @@ func DecryptFileToSlice(targetLocation string) []string {
 	// directly to avoid waiting for socket file creation
 	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
 	if err != nil {
-		PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), ErrorDecryption, true)
+		back.PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), ErrorDecryption, true)
 	}
 	return strings.Split(string(decBytes), "\n")
 }
@@ -62,15 +63,15 @@ func launchRCWDProcess() []byte {
 	}
 	var passphrase []byte
 	for {
-		passphrase = GetPassphrase()
+		passphrase = GetPassphrase("RCW Passphrase:")
 		err := wrappers.RunSanityCheck(ConfigDir+PathSeparator+"sanity.rcw", passphrase)
 		if err == nil {
 			break
 		}
-		fmt.Println(AnsiError + "Incorrect passphrase" + AnsiReset)
+		fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
 	}
 	cmd := exec.Command(os.Args[0], "startrcwd")
-	writeToStdin(cmd, string(passphrase))
+	back.WriteToStdin(cmd, string(passphrase))
 	cmd.Start()
 
 	return passphrase

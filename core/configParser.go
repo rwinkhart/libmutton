@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"gopkg.in/ini.v1"
 )
 
@@ -13,7 +14,7 @@ import (
 func loadConfig() *ini.File {
 	cfg, err := ini.Load(ConfigPath)
 	if err != nil {
-		PrintError("Failed to load libmutton.ini: "+err.Error(), ErrorRead, true)
+		back.PrintError("Failed to load libmutton.ini: "+err.Error(), back.ErrorRead, true)
 	}
 	return cfg
 }
@@ -38,11 +39,11 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 			case "":
 				err = fmt.Errorf("Failed to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
 			case "0":
-				Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
+				back.Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
 			default:
 				err = fmt.Errorf("%s", missingValueError)
 			}
-			PrintError(err.Error(), ErrorRead, false)
+			back.PrintError(err.Error(), back.ErrorRead, false)
 			// if interactive (soft exit), return nil and the error to be handled by the caller
 			return nil, err
 		}
@@ -60,7 +61,7 @@ func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
 	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
 	if err != nil {
 		if errorOnFail {
-			PrintError("Failed to read the devices directory: "+err.Error(), ErrorRead, true)
+			back.PrintError("Failed to read the devices directory: "+err.Error(), back.ErrorRead, true)
 		} else {
 			return nil // a nil return value indicates that the devices directory could not be read/does not exist
 		}
@@ -109,6 +110,6 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 	// save to libmutton.ini
 	err := cfg.SaveTo(ConfigPath)
 	if err != nil {
-		PrintError("Failed to save libmutton.ini: "+err.Error(), ErrorWrite, true)
+		back.PrintError("Failed to save libmutton.ini: "+err.Error(), back.ErrorWrite, true)
 	}
 }

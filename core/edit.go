@@ -1,9 +1,11 @@
 package core
 
+import "github.com/rwinkhart/go-boilerplate/back"
+
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
 func GetOldEntryData(targetLocation string, field int) []string {
 	// ensure targetLocation exists
-	TargetIsFile(targetLocation, true, 2)
+	back.TargetIsFile(targetLocation, true, 2)
 
 	// read old entry data
 	unencryptedEntry := DecryptFileToSlice(targetLocation)

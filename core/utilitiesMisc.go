@@ -1,91 +1,23 @@
 package core
 
 import (
-	"bufio"
 	"crypto/rand"
 	"fmt"
-	"io"
 	"math"
 	"math/big"
 	"os"
-	"os/exec"
 	"strings"
-)
 
-// TargetIsFile checks if the targetLocation is a file, directory, or is inaccessible.
-// Requires: failCondition (0 = fail on inaccessible, 1 = fail on inaccessible&file, 2 = fail on inaccessible&directory).
-// Returns: isFile, isAccessible.
-func TargetIsFile(targetLocation string, errorOnFail bool, failCondition uint8) (bool, bool) {
-	targetInfo, err := os.Stat(targetLocation)
-	if err != nil {
-		if errorOnFail {
-			PrintError("Failed to access \""+targetLocation+"\" - Ensure it exists and has the correct permissions", ErrorTargetNotFound, true)
-		}
-		return false, false
-	}
-	if targetInfo.IsDir() {
-		if errorOnFail && failCondition == 2 {
-			PrintError("\""+targetLocation+"\" is a directory", ErrorTargetWrongType, true)
-		}
-		return false, true
-	} else {
-		if errorOnFail && failCondition == 1 {
-			PrintError("\""+targetLocation+"\" is a file", ErrorTargetWrongType, true)
-		}
-		return true, true
-	}
-}
+	"github.com/rwinkhart/go-boilerplate/back"
+)
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
 func WriteEntry(targetLocation string, entryData []byte) {
 	encryptedBytes := EncryptBytes(entryData)
 	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
 	if err != nil {
-		PrintError("Failed to write to file: "+err.Error(), ErrorWrite, true)
+		back.PrintError("Failed to write to file: "+err.Error(), back.ErrorWrite, true)
 	}
-}
-
-// writeToStdin is a utility function that writes a string to a command's stdin.
-func writeToStdin(cmd *exec.Cmd, input string) {
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		PrintError("Failed to access stdin for system command: "+err.Error(), ErrorOther, true)
-	}
-
-	go func() {
-		defer func(stdin io.WriteCloser) {
-			_ = stdin.Close() // error ignored; if stdin could be accessed, it can probably be closed
-		}(stdin)
-		_, _ = io.WriteString(stdin, input)
-	}()
-}
-
-// readFromStdin is a utility function that reads a string from stdin.
-func readFromStdin() string {
-	scanner := bufio.NewScanner(os.Stdin)
-	if scanner.Scan() {
-		return scanner.Text()
-	}
-	return ""
-}
-
-// CreateTempFile creates a temporary file and returns a pointer to it.
-func CreateTempFile() *os.File {
-	tempFile, err := os.CreateTemp("", "*.markdown")
-	if err != nil {
-		PrintError("Failed to create temporary file: "+err.Error(), ErrorWrite, true)
-	}
-	return tempFile
-}
-
-// RemoveTrailingEmptyStrings removes empty strings from the end of a slice.
-func RemoveTrailingEmptyStrings(slice []string) []string {
-	for i := len(slice) - 1; i >= 0; i-- {
-		if slice[i] != "" {
-			return slice[:i+1]
-		}
-	}
-	return nil
 }
 
 // ClampTrailingWhitespace strips trailing newlines, carriage returns, and tabs from each line in a note.
@@ -123,16 +55,16 @@ func ClampTrailingWhitespace(note []string) {
 // Returns: statusCode (0 = success, 1 = target location already exists, 2 = containing directory is invalid).
 func EntryAddPrecheck(targetLocation string) uint8 {
 	// ensure target location does not already exist
-	_, isAccessible := TargetIsFile(targetLocation, false, 0)
+	_, isAccessible := back.TargetIsFile(targetLocation, false, 0)
 	if isAccessible {
-		PrintError("Target location already exists", ErrorTargetExists, false)
+		back.PrintError("Target location already exists", ErrorTargetExists, false)
 		return 1 // inform interactive clients that the target location already exists
 	}
 	// ensure target containing directory exists and is a directory (not a file)
 	containingDir := targetLocation[:strings.LastIndex(targetLocation, PathSeparator)]
-	isFile, isAccisAccessible := TargetIsFile(containingDir, false, 1)
+	isFile, isAccisAccessible := back.TargetIsFile(containingDir, false, 1)
 	if isFile || !isAccisAccessible {
-		PrintError("\""+containingDir+"\" is not a valid containing directory", ErrorTargetWrongType, false)
+		back.PrintError("\""+containingDir+"\" is not a valid containing directory", back.ErrorTargetWrongType, false)
 		return 2 // inform interactive clients that the containing directory is invalid
 	}
 	return 0
@@ -204,22 +136,4 @@ func EntryIsNotEmpty(entryData []string) bool {
 		}
 	}
 	return false
-}
-
-// ExpandPathWithHome, given a path (as a string) containing "~", returns the path with "~" expanded to the user's home directory.
-func ExpandPathWithHome(path string) string {
-	return strings.Replace(path, "~", Home, 1)
-}
-
-// PrintError prints an error message in the standard libmutton format and exits with the specified exit code.
-// Requires: message (the error message to print),
-// exitCode (the exit code to use),
-// forceHardExit (if true, exit immediately; if false, allow soft exit for interactive clients).
-func PrintError(message string, exitCode int, forceHardExit bool) {
-	fmt.Println(AnsiError + message + AnsiReset)
-	if forceHardExit {
-		os.Exit(exitCode)
-	} else {
-		Exit(exitCode)
-	}
 }

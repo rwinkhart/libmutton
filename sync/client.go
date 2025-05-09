@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/sftp"
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -53,7 +54,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		case 6:
 			isWindows, err = strconv.ParseBool(key)
 			if err != nil {
-				core.PrintError("Sync failed - Unable to parse server OS type: "+err.Error(), core.ErrorRead, true)
+				back.PrintError("Sync failed - Unable to parse server OS type: "+err.Error(), back.ErrorRead, true)
 			}
 		}
 	}
@@ -61,7 +62,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// read private key
 	key, err := os.ReadFile(keyFile)
 	if err != nil {
-		core.PrintError("Sync failed - Unable to read private key: "+keyFile, core.ErrorRead, true)
+		back.PrintError("Sync failed - Unable to read private key: "+keyFile, back.ErrorRead, true)
 	}
 
 	// parse private key
@@ -69,17 +70,17 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	if keyFileProtected != "true" {
 		parsedKey, err = ssh.ParsePrivateKey(key)
 	} else {
-		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, core.PassphraseInputFunction("Enter passphrase for your SSH keyfile:"))
+		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, core.GetPassphrase("Enter passphrase for your SSH keyfile:"))
 	}
 	if err != nil {
-		core.PrintError("Sync failed - Unable to parse private key: "+keyFile, core.ErrorRead, true)
+		back.PrintError("Sync failed - Unable to parse private key: "+keyFile, back.ErrorRead, true)
 	}
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
-	hostKeyCallback, err = knownhosts.New(core.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
+	hostKeyCallback, err = knownhosts.New(back.Home + core.PathSeparator + ".ssh" + core.PathSeparator + "known_hosts")
 	if err != nil {
-		core.PrintError("Sync failed - Unable to read known hosts file: "+err.Error(), core.ErrorRead, true)
+		back.PrintError("Sync failed - Unable to read known hosts file: "+err.Error(), back.ErrorRead, true)
 	}
 
 	// configure SSH client
@@ -95,7 +96,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// connect to SSH server
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
-		core.PrintError("Sync failed - Unable to connect to remote server: "+err.Error(), core.ErrorServerConnection, false) // do not crash/close interactive clients
+		back.PrintError("Sync failed - Unable to connect to remote server: "+err.Error(), core.ErrorServerConnection, false) // do not crash/close interactive clients
 		return nil, "", false
 	}
 
@@ -107,7 +108,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	// create a session
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		core.PrintError("Sync failed - Unable to establish SSH session: "+err.Error(), core.ErrorServerConnection, true)
+		back.PrintError("Sync failed - Unable to establish SSH session: "+err.Error(), core.ErrorServerConnection, true)
 	}
 
 	// provide stdin data for session
@@ -117,7 +118,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	var output []byte
 	output, err = sshSession.CombinedOutput(cmd)
 	if err != nil {
-		core.PrintError("Sync failed - Unable to run SSH command: "+err.Error(), core.ErrorSyncProcess, true)
+		back.PrintError("Sync failed - Unable to run SSH command: "+err.Error(), core.ErrorSyncProcess, true)
 	}
 
 	// convert the output to a string and remove leading/trailing whitespace
@@ -133,9 +134,9 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	deviceIDList := core.GenDeviceIDList(true)
 	if len(*deviceIDList) == 0 {
 		if manualSync {
-			core.PrintError("Sync failed - No device ID found", core.ErrorTargetNotFound, true)
+			back.PrintError("Sync failed - No device ID found", back.ErrorTargetNotFound, true)
 		} else {
-			core.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
+			back.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
 		}
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
@@ -146,11 +147,11 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 
 	// parse output/re-form lists
 	if len(outputSlice) != 5 { // ensure information from server is complete
-		core.PrintError("Sync failed - Unable to fetch remote data; server returned an unexpected response", core.ErrorSyncProcess, true)
+		back.PrintError("Sync failed - Unable to fetch remote data; server returned an unexpected response", core.ErrorSyncProcess, true)
 	}
 	serverTime, err := strconv.ParseInt(outputSlice[0], 10, 64)
 	if err != nil {
-		core.PrintError("Sync failed - Unable to parse server time: "+err.Error(), core.ErrorRead, true)
+		back.PrintError("Sync failed - Unable to parse server time: "+err.Error(), back.ErrorRead, true)
 	}
 	entries := strings.Split(outputSlice[1], core.FSMisc)[1:]
 	modsStrings := strings.Split(outputSlice[2], core.FSMisc)[1:]
@@ -163,7 +164,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	for _, modString := range modsStrings {
 		mod, err = strconv.ParseInt(modString, 10, 64)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to parse mod time: "+err.Error(), core.ErrorRead, true)
+			back.PrintError("Sync failed - Unable to parse mod time: "+err.Error(), back.ErrorRead, true)
 		}
 		mods = append(mods, mod)
 	}
@@ -209,12 +210,12 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
-		core.PrintError("Sync failed - Unable to establish SFTP session: "+err.Error(), core.ErrorServerConnection, true)
+		back.PrintError("Sync failed - Unable to establish SFTP session: "+err.Error(), core.ErrorServerConnection, true)
 	}
 	defer func(sftpClient *sftp.Client) {
 		err = sftpClient.Close()
 		if err != nil {
-			core.PrintError("Sync failed - Unable to close SFTP client: "+err.Error(), core.ErrorServerConnection, true)
+			back.PrintError("Sync failed - Unable to close SFTP client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}(sftpClient)
 
@@ -223,7 +224,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	for _, entryName := range downloadList {
 		filesTransferred = true // set a flag to indicate that files have been downloaded (used to determine whether to print a gap between download and upload messages)
 
-		fmt.Println("Downloading " + ansiDownload + entryName + core.AnsiReset)
+		fmt.Println("Downloading " + ansiDownload + entryName + back.AnsiReset)
 
 		// store path to remote entry
 		remoteEntryFullPath := targetLocationFormatSFTP(entryName, sshEntryRoot, sshIsWindows)
@@ -232,7 +233,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var fileInfo os.FileInfo
 		fileInfo, err = sftpClient.Stat(remoteEntryFullPath)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to get remote file info (mod time): "+err.Error(), core.ErrorRead, true)
+			back.PrintError("Sync failed - Unable to get remote file info (mod time): "+err.Error(), back.ErrorRead, true)
 		}
 		modTime := fileInfo.ModTime()
 
@@ -240,7 +241,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.Open(remoteEntryFullPath)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to open remote file: "+err.Error(), core.ErrorRead, true)
+			back.PrintError("Sync failed - Unable to open remote file: "+err.Error(), back.ErrorRead, true)
 		}
 
 		// store path to local entry
@@ -250,13 +251,13 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var localFile *os.File
 		localFile, err = os.OpenFile(localEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to create local file: "+err.Error(), core.ErrorWrite, true)
+			back.PrintError("Sync failed - Unable to create local file: "+err.Error(), back.ErrorWrite, true)
 		}
 
 		// download the file
 		_, err = remoteFile.WriteTo(localFile)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to download remote file: "+err.Error(), core.ErrorSyncProcess, true)
+			back.PrintError("Sync failed - Unable to download remote file: "+err.Error(), core.ErrorSyncProcess, true)
 		}
 
 		// close the files
@@ -276,7 +277,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	for _, entryName := range uploadList {
 		filesTransferred = true // set a flag to indicate that files have been uploaded (used to determine whether to print a gap between upload and sync complete messages)
 
-		fmt.Println("Uploading " + ansiUpload + entryName + core.AnsiReset)
+		fmt.Println("Uploading " + ansiUpload + entryName + back.AnsiReset)
 
 		// store path to local entry
 		localEntryFullPath := core.TargetLocationFormat(entryName)
@@ -285,7 +286,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var fileInfo os.FileInfo
 		fileInfo, err = os.Stat(localEntryFullPath)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to get local file info (mod time): "+err.Error(), core.ErrorRead, true)
+			back.PrintError("Sync failed - Unable to get local file info (mod time): "+err.Error(), back.ErrorRead, true)
 		}
 		modTime := fileInfo.ModTime()
 
@@ -293,7 +294,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var localFile *os.File
 		localFile, err = os.Open(localEntryFullPath)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to open local file: "+err.Error(), core.ErrorRead, true)
+			back.PrintError("Sync failed - Unable to open local file: "+err.Error(), back.ErrorRead, true)
 		}
 
 		// store path to remote entry
@@ -303,13 +304,13 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.OpenFile(remoteEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to create remote file ("+remoteEntryFullPath+"): "+err.Error(), core.ErrorWrite, true)
+			back.PrintError("Sync failed - Unable to create remote file ("+remoteEntryFullPath+"): "+err.Error(), back.ErrorWrite, true)
 		}
 
 		// upload the file
 		_, err = localFile.WriteTo(remoteFile)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to upload local file: "+err.Error(), core.ErrorSyncProcess, true)
+			back.PrintError("Sync failed - Unable to upload local file: "+err.Error(), core.ErrorSyncProcess, true)
 		}
 
 		// close the files
@@ -319,7 +320,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		// set permissions on remote file
 		err = sftpClient.Chmod(remoteEntryFullPath, 0600)
 		if err != nil {
-			core.PrintError("Sync failed - Unable to set permissions on remote file: "+err.Error(), core.ErrorSyncProcess, true)
+			back.PrintError("Sync failed - Unable to set permissions on remote file: "+err.Error(), core.ErrorSyncProcess, true)
 		}
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
@@ -343,23 +344,23 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 		if remoteModTime, present := remoteEntryModMap[entry]; present {
 			// entry exists on both client and server, compare mod times
 			if remoteModTime > localModTime {
-				fmt.Println(ansiDownload+entry+core.AnsiReset, "is newer on server, adding to download list")
+				fmt.Println(ansiDownload+entry+back.AnsiReset, "is newer on server, adding to download list")
 				downloadList = append(downloadList, entry)
 			} else if remoteModTime < localModTime {
-				fmt.Println(ansiUpload+entry+core.AnsiReset, "is newer on client, adding to upload list")
+				fmt.Println(ansiUpload+entry+back.AnsiReset, "is newer on client, adding to upload list")
 				uploadList = append(uploadList, entry)
 			}
 			// remove entry from remoteEntryModMap (process of elimination)
 			delete(remoteEntryModMap, entry)
 		} else {
-			fmt.Println(ansiUpload+entry+core.AnsiReset, "does not exist on server, adding to upload list")
+			fmt.Println(ansiUpload+entry+back.AnsiReset, "does not exist on server, adding to upload list")
 			uploadList = append(uploadList, entry)
 		}
 	}
 
 	// iterate over remaining entries in remoteEntryModMap
 	for entry := range remoteEntryModMap {
-		fmt.Println(ansiDownload+entry+core.AnsiReset, "does not exist on client, adding to download list")
+		fmt.Println(ansiDownload+entry+back.AnsiReset, "does not exist on client, adding to download list")
 		downloadList = append(downloadList, entry)
 	}
 
@@ -369,7 +370,7 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 		sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList)
 	} else if !timeSynced {
 		// do not call sftpSync if the client and server times are out of sync
-		core.Exit(1)
+		back.Exit(1)
 	}
 
 	fmt.Println("Client is synchronized with server")
@@ -385,10 +386,10 @@ func deletionSync(deletions []string) {
 	var filesDeleted bool
 	for _, deletion := range deletions {
 		filesDeleted = true // set a flag to indicate that files have been deleted (used to determine whether to print a gap between deletion and other messages)
-		fmt.Println(ansiDelete+deletion+core.AnsiReset, "has been sheared, removing locally (if it exists)")
+		fmt.Println(ansiDelete+deletion+back.AnsiReset, "has been sheared, removing locally (if it exists)")
 		err := os.RemoveAll(core.TargetLocationFormat(deletion))
 		if err != nil {
-			core.PrintError("Sync failed - Failed to shear "+deletion+" locally: "+err.Error(), core.ErrorWrite, true)
+			back.PrintError("Sync failed - Failed to shear "+deletion+" locally: "+err.Error(), back.ErrorWrite, true)
 		}
 	}
 
@@ -404,15 +405,15 @@ func folderSync(folders []string) {
 		folderFullPath := core.TargetLocationFormat(folder)
 
 		// check if folder already exists
-		isFile, isAccessible := core.TargetIsFile(folderFullPath, false, 1)
+		isFile, isAccessible := back.TargetIsFile(folderFullPath, false, 1)
 
 		if !isFile && !isAccessible {
 			err := os.MkdirAll(folderFullPath, 0700)
 			if err != nil {
-				core.PrintError("Sync failed - Failed to create folder ("+folder+"): "+err.Error(), core.ErrorWrite, true)
+				back.PrintError("Sync failed - Failed to create folder ("+folder+"): "+err.Error(), back.ErrorWrite, true)
 			}
 		} else if isFile {
-			core.PrintError("Sync failed - Failed to create folder ("+folder+") - A file with the same name already exists", core.ErrorTargetExists, true)
+			back.PrintError("Sync failed - Failed to create folder ("+folder+") - A file with the same name already exists", core.ErrorTargetExists, true)
 		}
 	}
 }
@@ -429,7 +430,7 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 	defer func(sshClient *ssh.Client) {
 		err := sshClient.Close()
 		if err != nil {
-			core.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
+			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), core.ErrorServerConnection, true)
 		}
 	}(sshClient)
 
@@ -450,7 +451,7 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 	timeDiff := serverTime - clientTime
 	if timeDiff < -45 || timeDiff > 45 {
 		timeSynced = false
-		fmt.Print(core.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + core.AnsiReset)
+		fmt.Print(back.AnsiError + "Client and server clocks are out of sync.\n\nPlease ensure both clocks are correct before attempting to sync again.\n\nA dry sync output will be printed below (if any operations would have been performed). It is strongly recommended to review it and manually update the modification times as applicable to ensure the correct version of each entry is kept.\n\nIf the client's clock is at fault, update the modification times of any entries pending upload, even if the correct (upload) operation is being performed on them. Failure to do so could result in entries being uploaded to the server with the incorrect modification times (could result in data loss).\n\n" + back.AnsiReset)
 	}
 
 	// sync new and updated entries
@@ -461,6 +462,6 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 		return lists
 	}
 	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap)
-	core.Exit(0) // exit program if running non-interactively
+	back.Exit(0) // exit program if running non-interactively
 	return lists // dummy return for when not returning lists
 }

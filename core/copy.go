@@ -8,11 +8,12 @@ import (
 
 	steamtotp "github.com/fortis/go-steam-totp"
 	"github.com/pquerna/otp/totp"
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
 func CopyArgument(targetLocation string, field int) {
-	if isFile, _ := TargetIsFile(targetLocation, true, 2); isFile {
+	if isFile, _ := back.TargetIsFile(targetLocation, true, 2); isFile {
 
 		decryptedEntry := DecryptFileToSlice(targetLocation)
 		var copySubject string // will store data to be copied
@@ -22,7 +23,7 @@ func CopyArgument(targetLocation string, field int) {
 
 			// ensure field is not empty
 			if decryptedEntry[field] == "" {
-				PrintError("Field is empty", ErrorTargetNotFound, true)
+				back.PrintError("Field is empty", back.ErrorTargetNotFound, true)
 			}
 
 			if field != 2 {
@@ -48,7 +49,7 @@ func CopyArgument(targetLocation string, field int) {
 				}
 			}
 		} else {
-			PrintError("Field does not exist in entry", ErrorTargetNotFound, true)
+			back.PrintError("Field does not exist in entry", back.ErrorTargetNotFound, true)
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
@@ -58,7 +59,7 @@ func CopyArgument(targetLocation string, field int) {
 
 // ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
 func ClipClearArgument() {
-	assignedContents := readFromStdin()
+	assignedContents := back.ReadFromStdin()
 	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
@@ -77,7 +78,7 @@ func GenTOTP(secret string, time time.Time, forSteam bool) string {
 	}
 
 	if err != nil {
-		PrintError("Error generating TOTP code", ErrorOther, true)
+		back.PrintError("Error generating TOTP code", back.ErrorOther, true)
 	}
 
 	return totpToken

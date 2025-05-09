@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 )
 
@@ -17,7 +18,7 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 	modList := getModTimes(entryList)
 	deletionsList, err := os.ReadDir(core.ConfigDir + core.PathSeparator + "deletions")
 	if err != nil {
-		core.PrintError("Failed to read the deletions directory: "+err.Error(), core.ErrorRead, true)
+		back.PrintError("Failed to read the deletions directory: "+err.Error(), back.ErrorRead, true)
 	}
 
 	// print the current UNIX timestamp to stdout
