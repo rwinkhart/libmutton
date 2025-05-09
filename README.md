@@ -13,7 +13,7 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v0.4.0
-- [ ] Swap to native (cascade) encryption (custom)
+- [x] Swap to native (cascade) encryption
 - [ ] Add refresh/re-encrypt functionality
 #### Release v0.5.0
 - [ ] Implement "netpin" (quick-unlock) with new encryption
