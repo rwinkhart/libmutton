@@ -24,7 +24,7 @@ func DecryptFileToSlice(targetLocation string) []string {
 	// read encrypted file
 	encBytes, err := os.ReadFile(targetLocation)
 	if err != nil {
-		PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), ErrorDecryption, true)
+		PrintError("Failed to open \""+targetLocation+"\" for decryption - "+err.Error(), ErrorDecryption, true)
 	}
 
 	// decrypt data using RCW daemon
@@ -36,6 +36,9 @@ func DecryptFileToSlice(targetLocation string) []string {
 	// if the daemon is not already running, use wrappers.Decrypt
 	// directly to avoid waiting for socket file creation
 	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
+	if err != nil {
+		PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), ErrorDecryption, true)
+	}
 	return strings.Split(string(decBytes), "\n")
 }
 
