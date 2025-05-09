@@ -12,9 +12,6 @@ import (
 func LaunchClipClearProcess(copySubject string) {
 	cmd := exec.Command(os.Args[0], "clipclear")
 	writeToStdin(cmd, copySubject)
-	err := cmd.Start()
-	if err != nil {
-		PrintError("Failed to launch automated clipboard clearing process - Does this libmutton implementation support the \"clipclear\" argument?", ErrorClipboard, true)
-	}
+	cmd.Start()
 	os.Exit(0) // use os.Exit directly since this version of this function is only meant for non-interactive CLI implementations
 }
