@@ -8,7 +8,7 @@ import (
 
 // RCWSanityCheckGen generates the RCW sanity check file for libmutton.
 func RCWSanityCheckGen(passphrase []byte) {
-	err := wrappers.GenSanityCheck(ConfigDir+"/sanity.rcw", passphrase)
+	err := wrappers.GenSanityCheck(ConfigDir+PathSeparator+"sanity.rcw", passphrase)
 	if err != nil {
 		PrintError("Failed to generate sanity check file: "+err.Error(), ErrorWrite, true)
 	}
