@@ -13,8 +13,8 @@ import (
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
 func WriteEntry(targetLocation string, entryData []byte) {
-	encryptedBytes := EncryptBytes(entryData)
-	err := os.WriteFile(targetLocation, encryptedBytes, 0600)
+	encBytes := EncryptBytes(entryData)
+	err := os.WriteFile(targetLocation, encBytes, 0600)
 	if err != nil {
 		back.PrintError("Failed to write to file: "+err.Error(), back.ErrorWrite, true)
 	}
