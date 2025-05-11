@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"golang.design/x/clipboard"
 )
 
@@ -14,7 +15,7 @@ import (
 func clipClearProcess(assignedContents string) {
 	clearClipboard := func() {
 		clipboard.Write(clipboard.FmtText, []byte(""))
-		Exit(0)
+		back.Exit(0)
 	}
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // copyString copies a string to the clipboard.
@@ -13,7 +15,7 @@ func copyString(continuous bool, copySubject string) {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {
-		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
+		back.PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {

@@ -4,15 +4,17 @@ package core
 
 import (
 	"os/exec"
+
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // copyString copies a string to the clipboard.
 func copyString(continuous bool, copySubject string) {
 	cmd := exec.Command("pbcopy")
-	writeToStdin(cmd, copySubject)
+	back.WriteToStdin(cmd, copySubject)
 	err := cmd.Run()
 	if err != nil {
-		PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
+		back.PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
 	}
 
 	if !continuous {
@@ -23,6 +25,6 @@ func copyString(continuous bool, copySubject string) {
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
 func getClipCommands() (*exec.Cmd, *exec.Cmd) {
 	cmdClear := exec.Command("pbcopy")
-	writeToStdin(cmdClear, "")
+	back.WriteToStdin(cmdClear, "")
 	return exec.Command("pbpaste"), cmdClear
 }

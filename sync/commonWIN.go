@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/core"
 )
 
@@ -25,9 +26,9 @@ func WalkEntryDir() ([]string, []string) {
 			// check for errors encountered while walking directory
 			if err != nil {
 				if os.IsNotExist(err) {
-					core.PrintError("The entry directory does not exist - Initialize libmutton to create it", core.ErrorOther, true)
+					back.PrintError("The entry directory does not exist - Initialize libmutton to create it", back.ErrorOther, true)
 				} else {
-					core.PrintError("An unexpected error occurred while generating the entry list: "+err.Error(), core.ErrorOther, true)
+					back.PrintError("An unexpected error occurred while generating the entry list: "+err.Error(), back.ErrorOther, true)
 				}
 			}
 
