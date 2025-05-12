@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/core"
-	"github.com/rwinkhart/libmutton/sync"
+	"github.com/rwinkhart/libmutton/global"
+	"github.com/rwinkhart/libmutton/synccommon"
+	"github.com/rwinkhart/libmutton/syncserver"
 )
 
 const ansiBold = "\033[1m"
@@ -37,38 +38,38 @@ func main() {
 	case "fetch":
 		// print all information needed for syncing to stdout for interpretation by the client
 		// stdin[0] is expected to be the device ID
-		sync.GetRemoteDataFromServer(stdin[0])
+		syncserver.GetRemoteDataFromServer(stdin[0])
 	case "rename":
 		// move an entry to a new location before using fallthrough to add its previous iteration to the deletions directory
 		// stdin[0] is evaluated after fallthrough
 		// stdin[1] is expected to be the OLD incomplete target location with FSPath representing path separators - Always pass in UNIX format
 		// stdin[2] is expected to be the NEW incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.RenameLocal(strings.ReplaceAll(stdin[1], core.FSPath, "/"), strings.ReplaceAll(stdin[2], core.FSPath, "/"), true)
+		synccommon.RenameLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), strings.ReplaceAll(stdin[2], global.FSPath, "/"), true)
 		fallthrough // fallthrough to add the old entry to the deletions directory
 	case "shear":
 		// shear an entry from the server and add it to the deletions directory
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.ShearLocal(strings.ReplaceAll(stdin[1], core.FSPath, "/"), stdin[0])
+		synccommon.ShearLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), stdin[0])
 	case "addfolder":
 		// add a new folder to the server
 		// stdin[0] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		sync.AddFolderLocal(strings.ReplaceAll(stdin[0], core.FSPath, "/"))
+		synccommon.AddFolderLocal(strings.ReplaceAll(stdin[0], global.FSPath, "/"))
 	case "register":
 		// register a new device ID
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the old device ID (for removal)
-		fileToClose, _ := os.OpenFile(core.ConfigDir+core.PathSeparator+"devices"+core.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600) // errors ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
+		fileToClose, _ := os.OpenFile(global.ConfigDir+global.PathSeparator+"devices"+global.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600) // errors ignored; failure unlikely to occur if init was successful; "register" is not a user-facing argument and thus the error would not be visible
 		_ = fileToClose.Close()
-		if stdin[1] != core.FSMisc { // sync.FSMisc is used to indicate that no device ID is being replaced
-			_ = os.RemoveAll(core.ConfigDir + core.PathSeparator + "devices" + core.PathSeparator + stdin[1])
+		if stdin[1] != global.FSMisc { // sync.FSMisc is used to indicate that no device ID is being replaced
+			_ = os.RemoveAll(global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1])
 		}
 		// print EntryRoot and bool indicating OS type to stdout for client to store in config
-		fmt.Print(core.EntryRoot + core.FSSpace + strconv.FormatBool(core.IsWindows))
+		fmt.Print(global.EntryRoot + global.FSSpace + strconv.FormatBool(global.IsWindows))
 	case "init":
 		// create the necessary directories for libmuttonserver to function
-		core.DirInit(false)
-		_ = os.MkdirAll(core.ConfigDir+core.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
+		global.DirInit(false)
+		_ = os.MkdirAll(global.ConfigDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
 		fmt.Println("libmuttonserver directories initialized")
 	case "version":
 		versionServer()
@@ -117,5 +118,5 @@ ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
            OR OTHER DEALINGS IN THE SOFTWARE.` + "\n\n---------------------------------------------------------")
-	fmt.Print(ansiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + core.LibmuttonVersion + "\n\n        Copyright (c) 2024-2025: Randall Winkhart" + "\n\n")
+	fmt.Print(ansiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + global.LibmuttonVersion + "\n\n        Copyright (c) 2024-2025: Randall Winkhart" + "\n\n")
 }

@@ -2,17 +2,16 @@ package core
 
 import (
 	"fmt"
-	"io/fs"
-	"os"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/global"
 	"gopkg.in/ini.v1"
 )
 
 // loadConfig loads the libmutton.ini file and returns the configuration.
 // It is a utility function for ParseConfig and WriteConfig; do not call directly.
 func loadConfig() *ini.File {
-	cfg, err := ini.Load(ConfigPath)
+	cfg, err := ini.Load(global.ConfigPath)
 	if err != nil {
 		back.PrintError("Failed to load libmutton.ini: "+err.Error(), back.ErrorRead, true)
 	}
@@ -54,21 +53,6 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 	return config, err
 }
 
-// GenDeviceIDList returns a pointer to a slice of all registered device IDs.
-// Requires: errorOnFail (set to true to throw an error if the devices directory cannot be read/does not exist)
-func GenDeviceIDList(errorOnFail bool) *[]fs.DirEntry {
-	// create a slice of all registered devices
-	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
-	if err != nil {
-		if errorOnFail {
-			back.PrintError("Failed to read the devices directory: "+err.Error(), back.ErrorRead, true)
-		} else {
-			return nil // a nil return value indicates that the devices directory could not be read/does not exist
-		}
-	}
-	return &deviceIDList
-}
-
 // WriteConfig writes the provided key-value pairs under the specified section headers in the libmutton.ini file.
 // Requires: valuesToWrite (a slice of length 3 arrays each containing a section, a key name, and a value),
 // prune (a slice similar to valuesToWrite to allow removing the specified keys from an existing config),
@@ -108,7 +92,7 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 	}
 
 	// save to libmutton.ini
-	err := cfg.SaveTo(ConfigPath)
+	err := cfg.SaveTo(global.ConfigPath)
 	if err != nil {
 		back.PrintError("Failed to save libmutton.ini: "+err.Error(), back.ErrorWrite, true)
 	}

@@ -1,4 +1,4 @@
-package core
+package crypt
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/rcw/daemon"
 	"github.com/rwinkhart/rcw/wrappers"
 )
@@ -38,7 +39,7 @@ func DecryptFileToSlice(targetLocation string) []string {
 	// directly to avoid waiting for socket file creation
 	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
 	if err != nil {
-		back.PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), ErrorDecryption, true)
+		back.PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), global.ErrorDecryption, true)
 	}
 	return strings.Split(string(decBytes), "\n")
 }
@@ -63,8 +64,8 @@ func launchRCWDProcess() []byte {
 	}
 	var passphrase []byte
 	for {
-		passphrase = GetPassphrase("RCW Passphrase:")
-		err := wrappers.RunSanityCheck(ConfigDir+PathSeparator+"sanity.rcw", passphrase)
+		passphrase = global.GetPassphrase("RCW Passphrase:")
+		err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", passphrase)
 		if err == nil {
 			break
 		}

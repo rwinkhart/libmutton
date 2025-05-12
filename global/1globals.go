@@ -1,4 +1,4 @@
-package core
+package global
 
 type ByteInputFetcher func(prompt string) []byte
 

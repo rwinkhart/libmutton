@@ -1,6 +1,6 @@
 //go:build windows
 
-package sync
+package synccommon
 
 import (
 	"io/fs"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/core"
+	"github.com/rwinkhart/libmutton/global"
 )
 
 // WalkEntryDir walks the entry directory and returns lists of all files and directories found (two separate lists).
@@ -20,7 +20,7 @@ func WalkEntryDir() ([]string, []string) {
 	var dirList []string
 
 	// walk entry directory
-	_ = filepath.WalkDir(core.EntryRoot,
+	_ = filepath.WalkDir(global.EntryRoot,
 		func(fullPath string, entry fs.DirEntry, err error) error {
 
 			// check for errors encountered while walking directory

@@ -1,6 +1,9 @@
 package core
 
-import "github.com/rwinkhart/go-boilerplate/back"
+import (
+	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/crypt"
+)
 
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
 func GetOldEntryData(targetLocation string, field int) []string {
@@ -8,7 +11,7 @@ func GetOldEntryData(targetLocation string, field int) []string {
 	back.TargetIsFile(targetLocation, true, 2)
 
 	// read old entry data
-	unencryptedEntry := DecryptFileToSlice(targetLocation)
+	unencryptedEntry := crypt.DecryptFileToSlice(targetLocation)
 
 	// return the old entry data with all required lines present
 	if field > 0 {

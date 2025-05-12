@@ -9,13 +9,14 @@ import (
 	steamtotp "github.com/fortis/go-steam-totp"
 	"github.com/pquerna/otp/totp"
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/crypt"
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
 func CopyArgument(targetLocation string, field int) {
 	if isFile, _ := back.TargetIsFile(targetLocation, true, 2); isFile {
 
-		decryptedEntry := DecryptFileToSlice(targetLocation)
+		decryptedEntry := crypt.DecryptFileToSlice(targetLocation)
 		var copySubject string // will store data to be copied
 
 		// ensure field exists in entry

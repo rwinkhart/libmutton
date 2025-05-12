@@ -1,4 +1,4 @@
-package sync
+package synccommon
 
 import (
 	"fmt"
@@ -6,14 +6,23 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/core"
+	"github.com/rwinkhart/libmutton/global"
 )
 
-// getModTimes returns a list of all entry modification times.
-func getModTimes(entryList []string) []int64 {
+// ANSI color constants used only in this file
+const (
+	AnsiDelete   = "\033[38;5;1m"
+	AnsiDownload = "\033[38;5;2m"
+	AnsiUpload   = "\033[38;5;4m"
+)
+
+var RootLength = len(global.EntryRoot) // length of global.EntryRoot string
+
+// GetModTimes returns a list of all entry modification times.
+func GetModTimes(entryList []string) []int64 {
 	var modList []int64
 	for _, file := range entryList {
-		modTime, _ := os.Stat(core.TargetLocationFormat(file))
+		modTime, _ := os.Stat(global.TargetLocationFormat(file))
 		modList = append(modList, modTime.ModTime().Unix())
 	}
 
@@ -32,13 +41,13 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 		onServer = true
 	}
 
-	deviceIDList := core.GenDeviceIDList(true)
+	deviceIDList := global.GenDeviceIDList(true)
 
 	// add the sheared target (incomplete, vanity) to the deletions list (if running on a server)
 	if onServer {
-		for _, device := range *deviceIDList {
+		for _, device := range deviceIDList {
 			if device.Name() != clientDeviceID {
-				fileToClose, err := os.OpenFile(core.ConfigDir+core.PathSeparator+"deletions"+core.PathSeparator+device.Name()+core.FSSpace+strings.ReplaceAll(targetLocationIncomplete, "/", core.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
+				fileToClose, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+strings.ReplaceAll(targetLocationIncomplete, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 				if err != nil {
 					// do not print error as there is currently no way of seeing server-side errors
 					// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
@@ -50,7 +59,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 	}
 
 	// get the full targetLocation path and remove the target
-	targetLocationComplete := core.TargetLocationFormat(targetLocationIncomplete)
+	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	var isFile bool
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
 		isFile, _ = back.TargetIsFile(targetLocationComplete, true, 0)
@@ -60,8 +69,8 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 		back.PrintError("Failed to remove local target: "+err.Error(), back.ErrorWrite, true)
 	}
 
-	if !onServer && len(*deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
-		return (*deviceIDList)[0].Name(), !isFile
+	if !onServer && len(deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
+		return (deviceIDList)[0].Name(), !isFile
 	}
 	return "", true
 
@@ -72,8 +81,8 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 // This function should only be used directly by the server binary.
 func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldLocationExists bool) {
 	// get full paths for both locations
-	oldLocation := core.TargetLocationFormat(oldLocationIncomplete)
-	newLocation := core.TargetLocationFormat(newLocationIncomplete)
+	oldLocation := global.TargetLocationFormat(oldLocationIncomplete)
+	newLocation := global.TargetLocationFormat(newLocationIncomplete)
 
 	if verifyOldLocationExists {
 		back.TargetIsFile(oldLocation, true, 0)
@@ -82,7 +91,7 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	// ensure newLocation does not exist
 	_, isAccessible := back.TargetIsFile(newLocation, false, 0)
 	if isAccessible {
-		back.PrintError("\""+newLocation+"\" already exists", core.ErrorTargetExists, true)
+		back.PrintError("\""+newLocation+"\" already exists", global.ErrorTargetExists, true)
 	}
 
 	// rename oldLocation to newLocation
@@ -98,11 +107,11 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 // This function should only be used directly by the server binary.
 func AddFolderLocal(targetLocationIncomplete string) {
 	// get the full targetLocation path and create the target
-	targetLocationComplete := core.TargetLocationFormat(targetLocationIncomplete)
+	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	err := os.Mkdir(targetLocationComplete, 0700)
 	if err != nil {
 		if os.IsExist(err) {
-			fmt.Println(ansiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
+			fmt.Println(AnsiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {
 			back.PrintError("Failed to create directory: "+err.Error(), back.ErrorWrite, true)
 		}

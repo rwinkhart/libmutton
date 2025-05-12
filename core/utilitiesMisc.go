@@ -9,11 +9,13 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/crypt"
+	"github.com/rwinkhart/libmutton/global"
 )
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
 func WriteEntry(targetLocation string, entryData []byte) {
-	encBytes := EncryptBytes(entryData)
+	encBytes := crypt.EncryptBytes(entryData)
 	err := os.WriteFile(targetLocation, encBytes, 0600)
 	if err != nil {
 		back.PrintError("Failed to write to file: "+err.Error(), back.ErrorWrite, true)
@@ -57,13 +59,13 @@ func EntryAddPrecheck(targetLocation string) uint8 {
 	// ensure target location does not already exist
 	_, isAccessible := back.TargetIsFile(targetLocation, false, 0)
 	if isAccessible {
-		back.PrintError("Target location already exists", ErrorTargetExists, false)
+		back.PrintError("Target location already exists", global.ErrorTargetExists, false)
 		return 1 // inform interactive clients that the target location already exists
 	}
 	// ensure target containing directory exists and is a directory (not a file)
-	containingDir := targetLocation[:strings.LastIndex(targetLocation, PathSeparator)]
-	isFile, isAccisAccessible := back.TargetIsFile(containingDir, false, 1)
-	if isFile || !isAccisAccessible {
+	containingDir := targetLocation[:strings.LastIndex(targetLocation, global.PathSeparator)]
+	isFile, isAccessible := back.TargetIsFile(containingDir, false, 1)
+	if isFile || !isAccessible {
 		back.PrintError("\""+containingDir+"\" is not a valid containing directory", back.ErrorTargetWrongType, false)
 		return 2 // inform interactive clients that the containing directory is invalid
 	}

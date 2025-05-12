@@ -1,6 +1,6 @@
 //go:build !windows
 
-package core
+package global
 
 import "github.com/rwinkhart/go-boilerplate/back"
 

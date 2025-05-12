@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/global"
 )
 
 // copyString copies a string to the clipboard.
@@ -20,13 +21,13 @@ func copyString(continuous bool, copySubject string) {
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	} else {
-		back.PrintError("Clipboard platform could not be determined", ErrorClipboard, true)
+		back.PrintError("Clipboard platform could not be determined", global.ErrorClipboard, true)
 	}
 
 	back.WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
-		back.PrintError("Failed to copy to clipboard: "+err.Error(), ErrorClipboard, true)
+		back.PrintError("Failed to copy to clipboard: "+err.Error(), global.ErrorClipboard, true)
 	}
 
 	if !continuous {
