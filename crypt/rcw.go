@@ -12,6 +12,8 @@ import (
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
+var Daemonize = true
+
 // RCWDArgument reads the passphrase from stdin and caches it via an RCW daemon.
 func RCWDArgument() {
 	passphrase := back.ReadFromStdin()
@@ -59,7 +61,7 @@ func EncryptBytes(decBytes []byte) []byte {
 // launchRCWDProcess launches an RCW daemon to cache a passphrase.
 // If the daemon is not already running, it returns the passphrase (otherwise returns nil).
 func launchRCWDProcess() []byte {
-	if daemon.IsOpen() {
+	if Daemonize && daemon.IsOpen() {
 		return nil
 	}
 	var passphrase []byte
@@ -71,9 +73,12 @@ func launchRCWDProcess() []byte {
 		}
 		fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
 	}
-	cmd := exec.Command(os.Args[0], "startrcwd")
-	back.WriteToStdin(cmd, string(passphrase))
-	cmd.Start()
+
+	if Daemonize {
+		cmd := exec.Command(os.Args[0], "startrcwd")
+		back.WriteToStdin(cmd, string(passphrase))
+		cmd.Start()
+	}
 
 	return passphrase
 }
