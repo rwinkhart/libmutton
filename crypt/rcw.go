@@ -13,6 +13,7 @@ import (
 )
 
 var Daemonize = true
+var RetryPassphrase = true
 
 // RCWDArgument reads the passphrase from stdin and caches it via an RCW daemon.
 func RCWDArgument() {
@@ -72,6 +73,9 @@ func launchRCWDProcess() []byte {
 			break
 		}
 		fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
+		if !RetryPassphrase {
+			break
+		}
 	}
 
 	if Daemonize {
