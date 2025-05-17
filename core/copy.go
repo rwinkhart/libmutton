@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	steamtotp "github.com/fortis/go-steam-totp"
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/crypt"
@@ -73,13 +73,13 @@ func GenTOTP(secret string, time time.Time, forSteam bool) string {
 	var err error
 
 	if forSteam {
-		totpToken, err = steamtotp.GenerateAuthCode(secret, time)
+		totpToken, err = totp.GenerateCodeCustom(secret, time, totp.ValidateOpts{Period: 30, Digits: 5, Encoder: otp.EncoderSteam})
 	} else {
 		totpToken, err = totp.GenerateCode(secret, time)
 	}
 
 	if err != nil {
-		back.PrintError("Error generating TOTP code", back.ErrorOther, true)
+		back.PrintError("Error generating TOTP code: "+err.Error(), back.ErrorOther, true)
 	}
 
 	return totpToken

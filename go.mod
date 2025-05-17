@@ -3,9 +3,8 @@ module github.com/rwinkhart/libmutton
 go 1.24.3
 
 require (
-	github.com/fortis/go-steam-totp v0.0.0-20171114202746-18e928674727
 	github.com/pkg/sftp v1.13.9
-	github.com/pquerna/otp v1.4.1-0.20231130234153-3357de7c0481
+	github.com/pquerna/otp v1.5.0
 	github.com/rwinkhart/go-boilerplate v0.0.0-20250509173525-20670ec7bb9c
 	github.com/rwinkhart/rcw v0.1.2
 	golang.design/x/clipboard v0.7.0 // only for Android builds
