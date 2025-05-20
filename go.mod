@@ -6,7 +6,7 @@ require (
 	github.com/pkg/sftp v1.13.9
 	github.com/pquerna/otp v1.5.0
 	github.com/rwinkhart/go-boilerplate v0.0.0-20250509173525-20670ec7bb9c
-	github.com/rwinkhart/rcw v0.1.2
+	github.com/rwinkhart/rcw v0.2.0
 	golang.design/x/clipboard v0.7.0 // only for Android builds
 	golang.org/x/crypto v0.38.0
 	gopkg.in/ini.v1 v1.67.0
