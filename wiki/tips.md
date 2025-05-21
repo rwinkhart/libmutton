@@ -5,7 +5,7 @@ For standard TOTP, all the user needs to do is add their TOTP secret (NOT the fu
 #### Steam TOTP
 For Steam TOTP, the user must first extract their TOTP secret from the Steam app for Android.
 
-There are several methods for doing this, but the most consistent I have found is [detailed here](https://github.com/JustArchiNET/ArchiSteamFarm/discussions/2786).
+There are several methods for doing this, but the most consistent I have found is [detailed here](https://github.com/JustArchiNET/ArchiSteamFarm/discussions/2786). Note that a rooted phone is not required if using a ROM like LineageOS that offers rooted ADB (must be enabled in developer options and adb must be started with `adb -d root`).
 
 This method will result in a Base64-encoded Steam TOTP secret. libmutton requires a base32-encoded secret, so this secret must be converted as follows (on Linux/FreeBSD/Mac): `printf '<shared_secret>' | base64 -d | base32`
 
