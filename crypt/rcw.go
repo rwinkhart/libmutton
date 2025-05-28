@@ -60,22 +60,25 @@ func EncryptBytes(decBytes []byte) []byte {
 }
 
 // launchRCWDProcess launches an RCW daemon to cache a passphrase.
-// If the daemon is not already running, it returns the passphrase (otherwise returns nil).
+// If the daemon is not already running OR if not running in daemonize mode,
+// it collects and returns the passphrase (otherwise returns nil).
 func launchRCWDProcess() []byte {
 	if Daemonize && daemon.IsOpen() {
 		return nil
 	}
 	var passphrase []byte
-	for {
+	if RetryPassphrase {
+		for {
+			passphrase = global.GetPassphrase("RCW Passphrase:")
+			err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", passphrase)
+			if err == nil {
+				break
+			}
+			fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
+		}
+	} else {
+		// in this mode, it is up to the client to perform the sanity check
 		passphrase = global.GetPassphrase("RCW Passphrase:")
-		err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", passphrase)
-		if err == nil {
-			break
-		}
-		fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
-		if !RetryPassphrase {
-			break
-		}
 	}
 
 	if Daemonize {
