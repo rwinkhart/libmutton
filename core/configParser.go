@@ -92,6 +92,7 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 	}
 
 	// save to libmutton.ini
+	setUmask(0077) // only give permissions to owner
 	err := cfg.SaveTo(global.ConfigPath)
 	if err != nil {
 		back.PrintError("Failed to save libmutton.ini: "+err.Error(), back.ErrorWrite, true)
