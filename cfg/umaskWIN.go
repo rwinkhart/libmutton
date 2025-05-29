@@ -1,6 +1,6 @@
 //go:build windows
 
-package core
+package cfg
 
 // setUmask is a dummy function on Windows.
 func setUmask(umask int) {

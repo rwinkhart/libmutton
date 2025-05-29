@@ -1,6 +1,7 @@
 package syncclient
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 
 	"github.com/pkg/sftp"
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/core"
+	"github.com/rwinkhart/libmutton/cfg"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
 	"golang.org/x/crypto/ssh"
@@ -18,7 +19,7 @@ import (
 
 // GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot and an indicator of the server's OS).
 // Only supports key-based authentication (passphrases are supported for CLI-based implementations).
-func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
+func GetSSHClient(manualSync bool) (*ssh.Client, string, bool, error) {
 	// get SSH config info, exit if not configured (displaying an error if the sync job was called manually)
 	var sshUserConfig []string
 	var missingValueError string
@@ -27,7 +28,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	} else {
 		missingValueError = "0" // allow silent exit at this point in offline mode
 	}
-	sshUserConfig, _ = core.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
+	sshUserConfig, _ = cfg.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
 	var isWindows bool
@@ -49,7 +50,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		case 6:
 			isWindows, err = strconv.ParseBool(key)
 			if err != nil {
-				back.PrintError("Sync failed - Unable to parse server OS type: "+err.Error(), back.ErrorRead, true)
+				return nil, "", false, errors.New("unable to parse server OS type: " + err.Error())
 			}
 		}
 	}
@@ -57,7 +58,7 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// read private key
 	key, err := os.ReadFile(keyFile)
 	if err != nil {
-		back.PrintError("Sync failed - Unable to read private key: "+keyFile, back.ErrorRead, true)
+		return nil, "", false, errors.New("unable to read private key: " + keyFile)
 	}
 
 	// parse private key
@@ -68,14 +69,14 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassphrase("Enter passphrase for your SSH keyfile:"))
 	}
 	if err != nil {
-		back.PrintError("Sync failed - Unable to parse private key: "+keyFile, back.ErrorRead, true)
+		return nil, "", false, errors.New("unable to parse private key: " + keyFile)
 	}
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
 	hostKeyCallback, err = knownhosts.New(back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "known_hosts")
 	if err != nil {
-		back.PrintError("Sync failed - Unable to read known hosts file: "+err.Error(), back.ErrorRead, true)
+		return nil, "", false, errors.New("unable to read known hosts file: " + err.Error())
 	}
 
 	// configure SSH client
@@ -91,11 +92,10 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool) {
 	// connect to SSH server
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
-		back.PrintError("Sync failed - Unable to connect to remote server: "+err.Error(), global.ErrorServerConnection, false) // do not crash/close interactive clients
-		return nil, "", false
+		return nil, "", false, errors.New("unable to connect to remote server: " + err.Error())
 	}
 
-	return sshClient, entryRoot, isWindows
+	return sshClient, entryRoot, isWindows, nil
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
@@ -418,14 +418,17 @@ func folderSync(folders []string) {
 // Setting returnLists to true will return the deletions, downloads, and uploads lists for use by the client.
 func RunJob(manualSync, returnLists bool) [3][]string {
 	// get SSH client to re-use throughout the sync process
-	sshClient, sshEntryRoot, sshIsWindows := GetSSHClient(manualSync)
+	sshClient, sshEntryRoot, sshIsWindows, err := GetSSHClient(manualSync)
+	if err != nil {
+		back.PrintError("sync failed - unable to connect to SSH client: "+err.Error(), global.ErrorServerConnection, true)
+	}
 	if sshClient == nil { // indicate SSH dialing failure for interactive clients
 		return [3][]string{nil, nil, nil}
 	}
 	defer func(sshClient *ssh.Client) {
 		err := sshClient.Close()
 		if err != nil {
-			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
+			back.PrintError("sync failed - unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
 		}
 	}(sshClient)
 

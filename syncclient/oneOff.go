@@ -15,7 +15,10 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 
 	if !forceOffline && deviceID != "" { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _ := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient(false)
+		if err != nil {
+			back.PrintError("Sync failed - Unable to connect to SSH client: "+err.Error(), global.ErrorServerConnection, true)
+		}
 
 		// ensure targetLocationIncomplete ends with a slash if it is a directory (for clarity in shear message)
 		if isDir && !strings.HasSuffix(targetLocationIncomplete, "/") {
@@ -26,7 +29,7 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) {
 		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath))
 
 		// close the SSH client
-		err := sshClient.Close()
+		err = sshClient.Close()
 		if err != nil {
 			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
 		}
@@ -43,7 +46,10 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 	deviceIDList := global.GenDeviceIDList(true)
 	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _ := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient(false)
+		if err != nil {
+			back.PrintError("Sync failed - Unable to connect to SSH client: "+err.Error(), global.ErrorServerConnection, true)
+		}
 
 		// call the server to move the target on the remote system and add the old target to the deletions list
 		GetSSHOutput(sshClient, "libmuttonserver rename",
@@ -52,7 +58,7 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 				strings.ReplaceAll(newLocationIncomplete, global.PathSeparator, global.FSPath))
 
 		// close the SSH client
-		err := sshClient.Close()
+		err = sshClient.Close()
 		if err != nil {
 			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
 		}
@@ -69,13 +75,16 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 	deviceIDList := global.GenDeviceIDList(true)
 	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _ := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient(false)
+		if err != nil {
+			back.PrintError("Sync failed - Unable to connect to SSH client: "+err.Error(), global.ErrorServerConnection, true)
+		}
 
 		// call the server to create the folder remotely
 		GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath)) // call the server to create the folder remotely
 
 		// close the SSH client
-		err := sshClient.Close()
+		err = sshClient.Close()
 		if err != nil {
 			back.PrintError("Sync failed - Unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
 		}

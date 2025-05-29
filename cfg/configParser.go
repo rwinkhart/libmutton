@@ -1,4 +1,4 @@
-package core
+package cfg
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 		if value == "" {
 			switch missingValueError {
 			case "":
-				err = fmt.Errorf("Failed to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
+				err = fmt.Errorf("failed to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
 			case "0":
 				back.Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
 			default:
@@ -72,7 +72,7 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 	var section *ini.Section
 	for _, trio := range valuesToWrite {
 		if cfg.Section(trio[0]) == nil {
-			// create and aquire section if it doesn't exist
+			// create and acquire section if it doesn't exist
 			section, _ = cfg.NewSection(trio[0])
 		} else {
 			// acquire existing section
