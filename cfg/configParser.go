@@ -38,7 +38,7 @@ func ParseConfig(valuesRequested [][2]string) ([]string, error) {
 		config = append(config, value)
 
 		// notify requester immediately if in offline mode
-		if pair[0] == "LIBMUTTON" && pair[1] == "offlineMode" && value == "true" {
+		if pair[1] == "offlineMode" && pair[0] == "LIBMUTTON" && value == "true" {
 			return config, nil
 		}
 	}
