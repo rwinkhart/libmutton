@@ -267,6 +267,9 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// set the modification time of the local file to match the value saved from the remote file (from before the download)
 		err = os.Chtimes(localEntryFullPath, time.Now(), modTime)
+		if err != nil {
+			return errors.New("unable to set local file modification time: " + err.Error())
+		}
 	}
 
 	if filesTransferred {
@@ -326,6 +329,9 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
 		err = sftpClient.Chtimes(remoteEntryFullPath, time.Now(), modTime)
+		if err != nil {
+			return errors.New("unable to set remote file modification time: " + err.Error())
+		}
 	}
 
 	if filesTransferred {
