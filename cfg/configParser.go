@@ -21,6 +21,7 @@ func loadConfig() (*ini.File, error) {
 // ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys.
 // Requires: valuesRequested (a slice of length 2 arrays each containing a section and a key name).
 // Returns: config (slice of values for the specified keys).
+// If requesting SSH config, request "LIBMUTTON/offlineMode" first to avoid errors.
 func ParseConfig(valuesRequested [][2]string) ([]string, error) {
 	cfg, err := loadConfig()
 	if err != nil {
@@ -35,6 +36,11 @@ func ParseConfig(valuesRequested [][2]string) ([]string, error) {
 			return nil, fmt.Errorf("unable to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
 		}
 		config = append(config, value)
+
+		// notify requester immediately if in offline mode
+		if pair[0] == "LIBMUTTON" && pair[1] == "offlineMode" && value == "true" {
+			return config, nil
+		}
 	}
 
 	return config, err

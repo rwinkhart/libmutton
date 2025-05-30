@@ -11,15 +11,18 @@ import (
 
 // ShearRemoteFromClient removes the target file or directory from the local system and calls the server to remove it remotely and add it to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for shearing (ShearLocal should only be used directly by the server binary).
-func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) error {
+func ShearRemoteFromClient(targetLocationIncomplete string) error {
 	deviceID, isDir, err := synccommon.ShearLocal(targetLocationIncomplete, "") // remove the target from the local system and get the device ID of the client
 	if err != nil {
 		return errors.New("unable to shear target locally: " + err.Error())
 	}
 
-	if !forceOffline && deviceID != "" { // ensure a device ID exists (online mode)
-		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient()
+	if deviceID != "" { // ensure a device ID exists (online mode)
+		// create an SSH client
+		sshClient, offlineMode, _, _, err := GetSSHClient()
+		if offlineMode {
+			goto end
+		}
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}
@@ -42,13 +45,14 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) e
 		}
 	}
 
+end:
 	back.Exit(0) // sync is not required after shearing since the target has already been removed from the local system
 	return nil
 }
 
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary).
-func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string, forceOffline bool) error {
+func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string) error {
 	err := synccommon.RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
 	if err != nil {
 		return errors.New("unable to rename target locally: " + err.Error())
@@ -58,9 +62,12 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 	if err != nil {
 		return errors.New("unable to generate device ID list: " + err.Error())
 	}
-	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
-		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient()
+	if len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
+		// create an SSH client
+		sshClient, offlineMode, _, _, err := GetSSHClient()
+		if offlineMode {
+			goto end
+		}
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}
@@ -81,13 +88,14 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 		}
 	}
 
+end:
 	back.Exit(0)
 	return nil
 }
 
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely.
 // It can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary).
-func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline bool) error {
+func AddFolderRemoteFromClient(targetLocationIncomplete string) error {
 	err := synccommon.AddFolderLocal(targetLocationIncomplete) // add the folder on the local system
 	if err != nil {
 		return errors.New("unable to add folder locally: " + err.Error())
@@ -97,9 +105,12 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 	if err != nil {
 		return errors.New("unable to generate device ID list: " + err.Error())
 	}
-	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
-		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient()
+	if len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
+		// create an SSH client
+		sshClient, offlineMode, _, _, err := GetSSHClient()
+		if offlineMode {
+			goto end
+		}
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}
@@ -117,6 +128,7 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 		}
 	}
 
+end:
 	back.Exit(0)
 	return nil
 }

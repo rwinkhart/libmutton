@@ -17,13 +17,22 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-// GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot and an indicator of the server's OS).
+// GetSSHClient
+// Returns:
+// sshClient,
+// offlineMode (whether the client is in offline mode).
+// sshIsWindows (whether the remote server is running Windows),
+// sshEntryRoot (the root directory for entries on the remote server),
 // Only supports key-based authentication (passphrases are supported for CLI-based implementations).
-func GetSSHClient() (*ssh.Client, string, bool, error) {
-	// get SSH config info, exit if not configured
-	sshUserConfig, err := cfg.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}})
+func GetSSHClient() (*ssh.Client, bool, bool, string, error) {
+	// get SSH config info
+	sshUserConfig, err := cfg.ParseConfig([][2]string{{"LIBMUTTON", "offlineMode"}, {"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}})
+	if len(sshUserConfig) == 1 {
+		// offline mode is enabled
+		return nil, true, false, "", nil
+	}
 	if err != nil {
-		return nil, "", false, errors.New("unable to parse SSH config: " + err.Error())
+		return nil, false, false, "", errors.New("unable to parse SSH config: " + err.Error())
 	}
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
@@ -45,7 +54,7 @@ func GetSSHClient() (*ssh.Client, string, bool, error) {
 		case 6:
 			isWindows, err = strconv.ParseBool(key)
 			if err != nil {
-				return nil, "", false, errors.New("unable to parse server OS type: " + err.Error())
+				return nil, false, false, "", errors.New("unable to parse server OS type: " + err.Error())
 			}
 		}
 	}
@@ -53,7 +62,7 @@ func GetSSHClient() (*ssh.Client, string, bool, error) {
 	// read private key
 	key, err := os.ReadFile(keyFile)
 	if err != nil {
-		return nil, "", false, errors.New("unable to read private key: " + keyFile)
+		return nil, false, false, "", errors.New("unable to read private key: " + keyFile)
 	}
 
 	// parse private key
@@ -64,14 +73,14 @@ func GetSSHClient() (*ssh.Client, string, bool, error) {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassphrase("Enter passphrase for your SSH keyfile:"))
 	}
 	if err != nil {
-		return nil, "", false, errors.New("unable to parse private key: " + keyFile)
+		return nil, false, false, "", errors.New("unable to parse private key: " + keyFile)
 	}
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
 	hostKeyCallback, err = knownhosts.New(back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "known_hosts")
 	if err != nil {
-		return nil, "", false, errors.New("unable to read known hosts file: " + err.Error())
+		return nil, false, false, "", errors.New("unable to read known hosts file: " + err.Error())
 	}
 
 	// configure SSH client
@@ -87,10 +96,10 @@ func GetSSHClient() (*ssh.Client, string, bool, error) {
 	// connect to SSH server
 	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
 	if err != nil {
-		return nil, "", false, errors.New("unable to connect to remote server: " + err.Error())
+		return nil, false, false, "", errors.New("unable to connect to remote server: " + err.Error())
 	}
 
-	return sshClient, entryRoot, isWindows, nil
+	return sshClient, false, isWindows, entryRoot, nil
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
@@ -119,18 +128,14 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) (string, error) {
 }
 
 // getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server&client times as UNIX timestamps.
-func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64, error) {
+func getRemoteDataFromClient(sshClient *ssh.Client) (map[string]int64, []string, []string, int64, int64, error) {
 	// get remote output over SSH
 	deviceIDList, err := global.GenDeviceIDList()
 	if err != nil {
 		return nil, nil, nil, 0, 0, err
 	}
 	if len(deviceIDList) == 0 {
-		if manualSync {
-			return nil, nil, nil, 0, 0, errors.New("no device ID found")
-		} else {
-			back.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
-		}
+		return nil, nil, nil, 0, 0, errors.New("no device ID found")
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
 	output, err := GetSSHOutput(sshClient, "libmuttonserver fetch", (deviceIDList)[0].Name())
@@ -427,24 +432,22 @@ func folderSync(folders []string) error {
 }
 
 // RunJob runs the SSH sync job.
-// Setting manualSync to true will throw errors if sync is not configured (online mode is assumed).
 // Setting returnLists to true will return the deletions, downloads, and uploads lists for use by the client.
-func RunJob(manualSync, returnLists bool) ([3][]string, error) {
+func RunJob(returnLists bool) ([3][]string, error) {
 	// get SSH client to re-use throughout the sync process
-	sshClient, sshEntryRoot, sshIsWindows, err := GetSSHClient()
+	sshClient, offlineMode, sshIsWindows, sshEntryRoot, err := GetSSHClient()
+	if offlineMode {
+		return [3][]string{nil, nil, nil}, nil
+	}
 	if err != nil {
-		if manualSync {
-			return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
-		} else {
-			return [3][]string{nil, nil, nil}, nil // return silently if the sync job was called automatically, as the user may just be in offline mode
-		}
+		return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
 	}
 	defer func(sshClient *ssh.Client) {
 		_ = sshClient.Close()
 	}(sshClient)
 
 	// fetch remote lists
-	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime, err := getRemoteDataFromClient(sshClient, manualSync)
+	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime, err := getRemoteDataFromClient(sshClient)
 	if err != nil {
 		return [3][]string{nil, nil, nil}, errors.New("unable to fetch remote data: " + err.Error())
 	}

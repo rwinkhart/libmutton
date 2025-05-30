@@ -47,6 +47,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		err = cfg.WriteConfig(append(
 			clientSpecificIniData,
 			[][3]string{
+				{"LIBMUTTON", "offlineMode", "false"},
 				{"LIBMUTTON", "sshUser", sshUser},
 				{"LIBMUTTON", "sshIP", sshIP},
 				{"LIBMUTTON", "sshPort", sshPort},
@@ -74,7 +75,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		}
 		// write config file
 		if len(clientSpecificIniData) > 0 { // TODO test passing empty clientSpecificIniData
-			err = cfg.WriteConfig(clientSpecificIniData, nil, false)
+			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
 			if err != nil {
 				return errors.New("unable to write config file: " + err.Error())
 			}
