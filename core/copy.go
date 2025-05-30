@@ -88,7 +88,7 @@ func GenTOTP(secret string, time time.Time, forSteam bool) (string, error) {
 	}
 
 	if err != nil {
-		return "", errors.New("error generating TOTP code: " + err.Error())
+		return "", errors.New("unable to generate TOTP token: " + err.Error())
 	}
 
 	return totpToken, nil
