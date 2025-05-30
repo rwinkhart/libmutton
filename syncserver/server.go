@@ -1,12 +1,12 @@
 package syncserver
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
 )
@@ -14,12 +14,15 @@ import (
 // GetRemoteDataFromServer prints to stdout the remote entries, mod times, folders, and deletions.
 // Lists in output are separated by FSSpace.
 // Output is meant to be captured over SSH for interpretation by the client.
-func GetRemoteDataFromServer(clientDeviceID string) {
-	entryList, dirList := synccommon.WalkEntryDir()
+func GetRemoteDataFromServer(clientDeviceID string) error {
+	entryList, dirList, err := synccommon.WalkEntryDir()
+	if err != nil {
+		return errors.New("unable to walk the entry directory: " + err.Error())
+	}
 	modList := synccommon.GetModTimes(entryList)
 	deletionsList, err := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
 	if err != nil {
-		back.PrintError("Failed to read the deletions directory: "+err.Error(), back.ErrorRead, true)
+		return errors.New("unable to read the deletions directory: " + err.Error())
 	}
 
 	// print the current UNIX timestamp to stdout
@@ -57,4 +60,5 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 			_ = os.Remove(global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
 		}
 	}
+	return nil
 }

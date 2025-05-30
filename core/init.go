@@ -23,7 +23,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		sshKeyPath := cmp.Or(back.ExpandPathWithHome(inputCB(back.AnsiBold+"Note:"+back.AnsiReset+" Only key-based authentication is supported (keys may optionally be passphrase-protected).\n      The remote server must already be in your ~"+global.PathSeparator+".ssh"+global.PathSeparator+"known_hosts file.\n\nSSH private identity file path (falls back to \""+fallbackSSHKey+"\"):")), fallbackSSHKey)
 		sshKeyIsFile, _ := back.TargetIsFile(sshKeyPath, false, 0)
 		if !sshKeyIsFile {
-			return errors.New("ssh identity file not found: " + sshKeyPath)
+			return errors.New("SSH identity file not found: " + sshKeyPath)
 		}
 
 		// get other ssh info from user
@@ -38,7 +38,10 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 
 		// perform operations based on collected user input
 		//// initialize libmutton directories
-		oldDeviceID := global.DirInit(preserveOldConfigDir)
+		oldDeviceID, err := global.DirInit(preserveOldConfigDir)
+		if err != nil {
+			return errors.New("unable to initialize libmutton directories: " + err.Error())
+		}
 		//// write config file
 		//// temporarily assign sshEntryRoot and sshIsWindows to null to pass initial device ID registration
 		cfg.WriteConfig(append(
@@ -54,7 +57,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		// generate and register device ID
 		sshEntryRoot, sshIsWindows, err := synccycles.DeviceIDGen(oldDeviceID)
 		if err != nil {
-			return errors.New("failed to generate device ID: " + err.Error())
+			return errors.New("unable to generate device ID: " + err.Error())
 		}
 		cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
 	} else {
@@ -69,7 +72,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 	if len(rcwPassphrase) > 0 {
 		err := wrappers.GenSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", rcwPassphrase)
 		if err != nil {
-			return errors.New("failed to generate sanity check file: " + err.Error())
+			return errors.New("unable to generate sanity check file: " + err.Error())
 		}
 	}
 	return nil

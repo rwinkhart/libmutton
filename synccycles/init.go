@@ -25,14 +25,14 @@ func DeviceIDGen(oldDeviceID string) (string, string, error) {
 	// create new device ID file (locally)
 	fileToClose, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"devices"+global.PathSeparator+newDeviceID, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return "", "", errors.New("failed to create local device ID file: " + err.Error())
+		return "", "", errors.New("unable to create local device ID file: " + err.Error())
 	}
 	_ = fileToClose.Close() // error ignored; if the file could be created, it can probably be closed
 
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID)
 	if err != nil {
-		return "", "", errors.New("failed to remove old device ID file (locally): " + err.Error())
+		return "", "", errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}
 
 	// register new device ID with server and fetch remote EntryRoot and OS type
@@ -40,12 +40,16 @@ func DeviceIDGen(oldDeviceID string) (string, string, error) {
 	// manualSync is true so the user is alerted if device ID registration fails
 	sshClient, _, _, err := syncclient.GetSSHClient(true)
 	if err != nil {
-		return "", "", errors.New("device ID gen failed - unable to connect to SSH client: " + err.Error())
+		return "", "", errors.New("unable to connect to SSH client: " + err.Error())
 	}
-	sshEntryRootSSHIsWindows := strings.Split(syncclient.GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID), global.FSSpace)
+	output, err := syncclient.GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID)
+	if err != nil {
+		return "", "", errors.New("unable to register device ID with server: " + err.Error())
+	}
+	sshEntryRootSSHIsWindows := strings.Split(output, global.FSSpace)
 	err = sshClient.Close()
 	if err != nil {
-		return "", "", errors.New("device ID gen failed - unable to close SSH client: " + err.Error())
+		return "", "", errors.New("unable to close SSH client: " + err.Error())
 	}
 
 	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1], nil

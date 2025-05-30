@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -13,10 +14,13 @@ import (
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
-func CopyArgument(targetLocation string, field int) {
+func CopyArgument(targetLocation string, field int) error {
 	if isFile, _ := back.TargetIsFile(targetLocation, true, 2); isFile {
 
-		decryptedEntry := crypt.DecryptFileToSlice(targetLocation)
+		decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
+		if err != nil {
+			return errors.New("unable to decrypt entry: " + err.Error())
+		}
 		var copySubject string // will store data to be copied
 
 		// ensure field exists in entry
@@ -24,7 +28,7 @@ func CopyArgument(targetLocation string, field int) {
 
 			// ensure field is not empty
 			if decryptedEntry[field] == "" {
-				back.PrintError("Field is empty", back.ErrorTargetNotFound, true)
+				return errors.New("field is empty")
 			}
 
 			if field != 2 {
@@ -44,18 +48,23 @@ func CopyArgument(targetLocation string, field int) {
 
 				for { // keep token copied to clipboard, refresh on 30-second intervals
 					currentTime := time.Now()
-					copyString(true, GenTOTP(secret, currentTime, forSteam))
+					token, err := GenTOTP(secret, currentTime, forSteam)
+					if err != nil {
+						return err
+					}
+					copyString(true, token)
 					// sleep until next 30-second interval
 					time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
 				}
 			}
 		} else {
-			back.PrintError("Field does not exist in entry", back.ErrorTargetNotFound, true)
+			return errors.New("field does not exist in entry")
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
 		copyString(false, copySubject)
 	}
+	return nil
 }
 
 // ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
@@ -68,7 +77,7 @@ func ClipClearArgument() {
 }
 
 // GenTOTP generates a TOTP token from a secret (supports standard and Steam TOTP).
-func GenTOTP(secret string, time time.Time, forSteam bool) string {
+func GenTOTP(secret string, time time.Time, forSteam bool) (string, error) {
 	var totpToken string
 	var err error
 
@@ -79,8 +88,8 @@ func GenTOTP(secret string, time time.Time, forSteam bool) string {
 	}
 
 	if err != nil {
-		back.PrintError("Error generating TOTP code: "+err.Error(), back.ErrorOther, true)
+		return "", errors.New("error generating TOTP code: " + err.Error())
 	}
 
-	return totpToken
+	return totpToken, nil
 }

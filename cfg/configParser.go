@@ -1,6 +1,7 @@
 package cfg
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/rwinkhart/go-boilerplate/back"
@@ -10,12 +11,12 @@ import (
 
 // loadConfig loads the libmutton.ini file and returns the configuration.
 // It is a utility function for ParseConfig and WriteConfig; do not call directly.
-func loadConfig() *ini.File {
+func loadConfig() (*ini.File, error) {
 	cfg, err := ini.Load(global.ConfigPath)
 	if err != nil {
-		back.PrintError("Failed to load libmutton.ini: "+err.Error(), back.ErrorRead, true)
+		return nil, errors.New("unable to load libmutton.ini: " + err.Error())
 	}
-	return cfg
+	return cfg, nil
 }
 
 // ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys.
@@ -25,7 +26,10 @@ func loadConfig() *ini.File {
 // error (nil if no error occurred, otherwise an error using the generated or provided message).
 func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]string, error) {
 	var err error
-	cfg := loadConfig()
+	cfg, err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	var config []string
 
@@ -36,14 +40,12 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 		if value == "" {
 			switch missingValueError {
 			case "":
-				err = fmt.Errorf("failed to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
+				err = fmt.Errorf("unable to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
 			case "0":
 				back.Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
 			default:
 				err = fmt.Errorf("%s", missingValueError)
 			}
-			back.PrintError(err.Error(), back.ErrorRead, false)
-			// if interactive (soft exit), return nil and the error to be handled by the caller
 			return nil, err
 		}
 
@@ -57,12 +59,16 @@ func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]strin
 // Requires: valuesToWrite (a slice of length 3 arrays each containing a section, a key name, and a value),
 // prune (a slice similar to valuesToWrite to allow removing the specified keys from an existing config),
 // append (set to true to append to the existing libmutton.ini file, false to overwrite it).
-func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool) {
+func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool) error {
 	var cfg *ini.File
+	var err error
 
 	if append {
 		// load existing ini file
-		cfg = loadConfig()
+		cfg, err = loadConfig()
+		if err != nil {
+			return errors.New("unable to load existing libmutton.ini: " + err.Error())
+		}
 	} else {
 		// create empty ini container
 		cfg = ini.Empty()
@@ -93,8 +99,9 @@ func WriteConfig(valuesToWrite [][3]string, keysToPrune [][2]string, append bool
 
 	// save to libmutton.ini
 	setUmask(0077) // only give permissions to owner
-	err := cfg.SaveTo(global.ConfigPath)
+	err = cfg.SaveTo(global.ConfigPath)
 	if err != nil {
-		back.PrintError("Failed to save libmutton.ini: "+err.Error(), back.ErrorWrite, true)
+		return errors.New("unable to save libmutton.ini: " + err.Error())
 	}
+	return nil
 }

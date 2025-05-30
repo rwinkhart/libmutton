@@ -1,6 +1,7 @@
 package synccommon
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -34,14 +35,17 @@ func GetModTimes(entryList []string) []int64 {
 // isDir (only on client; for use in ShearRemoteFromClient).
 // If the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client).
 // This function should only be used directly by the server binary.
-func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) {
+func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool, error) {
 	// determine if running on a server
 	var onServer bool
 	if clientDeviceID != "" {
 		onServer = true
 	}
 
-	deviceIDList := global.GenDeviceIDList(true)
+	deviceIDList, err := global.GenDeviceIDList()
+	if err != nil {
+		return "", false, errors.New("unable to generate device ID list: " + err.Error())
+	}
 
 	// add the sheared target (incomplete, vanity) to the deletions list (if running on a server)
 	if onServer {
@@ -64,22 +68,22 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool) 
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
 		isFile, _ = back.TargetIsFile(targetLocationComplete, true, 0)
 	}
-	err := os.RemoveAll(targetLocationComplete)
+	err = os.RemoveAll(targetLocationComplete)
 	if err != nil {
-		back.PrintError("Failed to remove local target: "+err.Error(), back.ErrorWrite, true)
+		return "", false, errors.New("unable to remove local target: " + err.Error())
 	}
 
 	if !onServer && len(deviceIDList) > 0 { // return the device ID if running on the client and a device ID exists (online mode)
-		return (deviceIDList)[0].Name(), !isFile
+		return (deviceIDList)[0].Name(), !isFile, nil
 	}
-	return "", true
+	return "", true, nil
 
 	// do not exit program, as this function is used as part of ShearRemoteFromClient
 }
 
 // RenameLocal renames oldLocationIncomplete to newLocationIncomplete on the local system.
 // This function should only be used directly by the server binary.
-func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldLocationExists bool) {
+func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldLocationExists bool) error {
 	// get full paths for both locations
 	oldLocation := global.TargetLocationFormat(oldLocationIncomplete)
 	newLocation := global.TargetLocationFormat(newLocationIncomplete)
@@ -91,21 +95,23 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	// ensure newLocation does not exist
 	_, isAccessible := back.TargetIsFile(newLocation, false, 0)
 	if isAccessible {
-		back.PrintError("\""+newLocation+"\" already exists", global.ErrorTargetExists, true)
+		return errors.New("target already exists: " + newLocation)
 	}
 
 	// rename oldLocation to newLocation
 	err := os.Rename(oldLocation, newLocation)
 	if err != nil {
-		back.PrintError("Failed to rename - Does the target containing directory exist?", back.ErrorTargetNotFound, true)
+		return errors.New("unable to rename: " + err.Error())
 	}
+
+	return nil
 
 	// do not exit program, as this function is used as part of RenameRemoteFromClient
 }
 
 // AddFolderLocal creates a new entry-containing directory on the local system.
 // This function should only be used directly by the server binary.
-func AddFolderLocal(targetLocationIncomplete string) {
+func AddFolderLocal(targetLocationIncomplete string) error {
 	// get the full targetLocation path and create the target
 	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	err := os.Mkdir(targetLocationComplete, 0700)
@@ -113,9 +119,11 @@ func AddFolderLocal(targetLocationIncomplete string) {
 		if os.IsExist(err) {
 			fmt.Println(AnsiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {
-			back.PrintError("Failed to create directory: "+err.Error(), back.ErrorWrite, true)
+			return errors.New("unable to create directory: " + err.Error())
 		}
 	}
+
+	return nil
 
 	// do not exit program, as this function is used as part of AddFolderRemoteFromClient
 }

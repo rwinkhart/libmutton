@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -10,12 +11,13 @@ import (
 )
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
-func WriteEntry(targetLocation string, entryData []byte) {
+func WriteEntry(targetLocation string, entryData []byte) error {
 	encBytes := crypt.EncryptBytes(entryData)
 	err := os.WriteFile(targetLocation, encBytes, 0600)
 	if err != nil {
-		back.PrintError("Failed to write to file: "+err.Error(), back.ErrorWrite, true)
+		return errors.New("unable to write to file: " + err.Error())
 	}
+	return nil
 }
 
 // ClampTrailingWhitespace strips trailing newlines, carriage returns, and tabs from each line in a note.
@@ -51,21 +53,19 @@ func ClampTrailingWhitespace(note []string) {
 // EntryAddPrecheck ensures the directory meant to contain a new
 // entry exists and that the target entry location is not already used.
 // Returns: statusCode (0 = success, 1 = target location already exists, 2 = containing directory is invalid).
-func EntryAddPrecheck(targetLocation string) uint8 {
+func EntryAddPrecheck(targetLocation string) (uint8, error) {
 	// ensure target location does not already exist
 	_, isAccessible := back.TargetIsFile(targetLocation, false, 0)
 	if isAccessible {
-		back.PrintError("Target location already exists", global.ErrorTargetExists, false)
-		return 1 // inform interactive clients that the target location already exists
+		return 1, errors.New("target location already exists")
 	}
 	// ensure target containing directory exists and is a directory (not a file)
 	containingDir := targetLocation[:strings.LastIndex(targetLocation, global.PathSeparator)]
 	isFile, isAccessible := back.TargetIsFile(containingDir, false, 1)
 	if isFile || !isAccessible {
-		back.PrintError("\""+containingDir+"\" is not a valid containing directory", back.ErrorTargetWrongType, false)
-		return 2 // inform interactive clients that the containing directory is invalid
+		return 2, errors.New("\"" + containingDir + "\" is not a valid containing directory")
 	}
-	return 0
+	return 0, nil
 }
 
 // EntryIsNotEmpty iterates through entryData and returns true if any line is not empty.

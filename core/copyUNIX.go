@@ -3,36 +3,36 @@
 package core
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/global"
 )
 
 // copyString copies a string to the clipboard.
-func copyString(continuous bool, copySubject string) {
+func copyString(continuous bool, copySubject string) error {
+	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	var envSet, isWayland bool // track whether environment variables are set
 	var cmdCopy *exec.Cmd
-	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	if _, envSet = os.LookupEnv("WAYLAND_DISPLAY"); envSet {
 		cmdCopy = exec.Command("wl-copy", "-t", "text/plain")
 		isWayland = true
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	} else {
-		back.PrintError("Clipboard platform could not be determined", global.ErrorClipboard, true)
+		return errors.New("clipboard platform could not be determined")
 	}
 
 	back.WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
-		back.PrintError("Failed to copy to clipboard: "+err.Error(), global.ErrorClipboard, true)
+		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
-
 	if !continuous {
 		LaunchClipClearProcess(copySubject, isWayland)
 	}
+	return nil
 }
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.

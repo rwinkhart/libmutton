@@ -99,11 +99,11 @@ func GetSSHClient(manualSync bool) (*ssh.Client, string, bool, error) {
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
-func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
+func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) (string, error) {
 	// create a session
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		back.PrintError("Sync failed - Unable to establish SSH session: "+err.Error(), global.ErrorServerConnection, true)
+		return "", errors.New("unable to establish SSH session: " + err.Error())
 	}
 
 	// provide stdin data for session
@@ -113,40 +113,46 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) string {
 	var output []byte
 	output, err = sshSession.CombinedOutput(cmd)
 	if err != nil {
-		back.PrintError("Sync failed - Unable to run SSH command: "+err.Error(), global.ErrorSyncProcess, true)
+		return "", errors.New("unable to run SSH command: " + err.Error())
 	}
 
 	// convert the output to a string and remove leading/trailing whitespace
 	outputString := string(output)
 	outputString = strings.TrimSpace(outputString)
 
-	return outputString
+	return outputString, nil
 }
 
 // getRemoteDataFromClient returns a map of remote entries to their modification times, a list of remote folders, a list of queued deletions, and the current server&client times as UNIX timestamps.
-func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64) {
+func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string]int64, []string, []string, int64, int64, error) {
 	// get remote output over SSH
-	deviceIDList := global.GenDeviceIDList(true)
+	deviceIDList, err := global.GenDeviceIDList()
+	if err != nil {
+		return nil, nil, nil, 0, 0, err
+	}
 	if len(deviceIDList) == 0 {
 		if manualSync {
-			back.PrintError("Sync failed - No device ID found", back.ErrorTargetNotFound, true)
+			return nil, nil, nil, 0, 0, errors.New("no device ID found")
 		} else {
 			back.Exit(0) // exit silently if the sync job was called automatically, as the user may just be in offline mode
 		}
 	}
 	clientTime := time.Now().Unix() // get client time now to avoid accuracy issues caused by unpredictable sync time
-	output := GetSSHOutput(sshClient, "libmuttonserver fetch", (deviceIDList)[0].Name())
+	output, err := GetSSHOutput(sshClient, "libmuttonserver fetch", (deviceIDList)[0].Name())
+	if err != nil {
+		return nil, nil, nil, 0, 0, errors.New("unable to run remote command: " + err.Error())
+	}
 
 	// split output into slice based on occurrences of FSSpace
 	outputSlice := strings.Split(output, global.FSSpace)
 
 	// parse output/re-form lists
 	if len(outputSlice) != 5 { // ensure information from server is complete
-		back.PrintError("Sync failed - Unable to fetch remote data; server returned an unexpected response", global.ErrorSyncProcess, true)
+		return nil, nil, nil, 0, 0, errors.New("unable to run remote command; server returned an unexpected response")
 	}
 	serverTime, err := strconv.ParseInt(outputSlice[0], 10, 64)
 	if err != nil {
-		back.PrintError("Sync failed - Unable to parse server time: "+err.Error(), back.ErrorRead, true)
+		return nil, nil, nil, 0, 0, errors.New("unable to parse server time: " + err.Error())
 	}
 	entries := strings.Split(outputSlice[1], global.FSMisc)[1:]
 	modsStrings := strings.Split(outputSlice[2], global.FSMisc)[1:]
@@ -159,7 +165,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 	for _, modString := range modsStrings {
 		mod, err = strconv.ParseInt(modString, 10, 64)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to parse mod time: "+err.Error(), back.ErrorRead, true)
+			return nil, nil, nil, 0, 0, errors.New("unable to parse mod time: " + err.Error())
 		}
 		mods = append(mods, mod)
 	}
@@ -170,13 +176,16 @@ func getRemoteDataFromClient(sshClient *ssh.Client, manualSync bool) (map[string
 		entryModMap[entry] = mods[i]
 	}
 
-	return entryModMap, folders, deletions, serverTime, clientTime
+	return entryModMap, folders, deletions, serverTime, clientTime, nil
 }
 
 // getLocalData returns a map of local entries to their modification times.
-func getLocalData() map[string]int64 {
+func getLocalData() (map[string]int64, error) {
 	// get a list of all entries
-	entries, _ := synccommon.WalkEntryDir()
+	entries, _, err := synccommon.WalkEntryDir()
+	if err != nil {
+		return nil, err
+	}
 
 	// get a list of all entry modification times
 	modList := synccommon.GetModTimes(entries)
@@ -188,7 +197,7 @@ func getLocalData() map[string]int64 {
 	}
 
 	// return the lists
-	return entryModMap
+	return entryModMap, nil
 }
 
 // targetLocationFormatSFTP formats the target location to match the remote server's entry directory and path separator.
@@ -201,17 +210,14 @@ func targetLocationFormatSFTP(targetName, serverEntryRoot string, serverIsWindow
 }
 
 // sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP.
-func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, downloadList, uploadList []string) {
+func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, downloadList, uploadList []string) error {
 	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
-		back.PrintError("Sync failed - Unable to establish SFTP session: "+err.Error(), global.ErrorServerConnection, true)
+		return errors.New("unable to establish SFTP session: " + err.Error())
 	}
 	defer func(sftpClient *sftp.Client) {
-		err = sftpClient.Close()
-		if err != nil {
-			back.PrintError("Sync failed - Unable to close SFTP client: "+err.Error(), global.ErrorServerConnection, true)
-		}
+		_ = sftpClient.Close()
 	}(sftpClient)
 
 	// iterate over the download list
@@ -228,7 +234,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var fileInfo os.FileInfo
 		fileInfo, err = sftpClient.Stat(remoteEntryFullPath)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to get remote file info (mod time): "+err.Error(), back.ErrorRead, true)
+			return errors.New("unable to get remote file info (mod time): " + err.Error())
 		}
 		modTime := fileInfo.ModTime()
 
@@ -236,7 +242,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.Open(remoteEntryFullPath)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to open remote file: "+err.Error(), back.ErrorRead, true)
+			return errors.New("unable to open remote file: " + err.Error())
 		}
 
 		// store path to local entry
@@ -246,13 +252,13 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var localFile *os.File
 		localFile, err = os.OpenFile(localEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to create local file: "+err.Error(), back.ErrorWrite, true)
+			return errors.New("unable to create local file: " + err.Error())
 		}
 
 		// download the file
 		_, err = remoteFile.WriteTo(localFile)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to download remote file: "+err.Error(), global.ErrorSyncProcess, true)
+			return errors.New("unable to download remote file: " + err.Error())
 		}
 
 		// close the files
@@ -281,7 +287,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var fileInfo os.FileInfo
 		fileInfo, err = os.Stat(localEntryFullPath)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to get local file info (mod time): "+err.Error(), back.ErrorRead, true)
+			return errors.New("unable to get local file info (mod time): " + err.Error())
 		}
 		modTime := fileInfo.ModTime()
 
@@ -289,7 +295,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var localFile *os.File
 		localFile, err = os.Open(localEntryFullPath)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to open local file: "+err.Error(), back.ErrorRead, true)
+			return errors.New("unable to open local file: " + err.Error())
 		}
 
 		// store path to remote entry
@@ -299,13 +305,13 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.OpenFile(remoteEntryFullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to create remote file ("+remoteEntryFullPath+"): "+err.Error(), back.ErrorWrite, true)
+			return errors.New("unable to create remote file: " + err.Error())
 		}
 
 		// upload the file
 		_, err = localFile.WriteTo(remoteFile)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to upload local file: "+err.Error(), global.ErrorSyncProcess, true)
+			return errors.New("unable to upload local file: " + err.Error())
 		}
 
 		// close the files
@@ -315,7 +321,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		// set permissions on remote file
 		err = sftpClient.Chmod(remoteEntryFullPath, 0600)
 		if err != nil {
-			back.PrintError("Sync failed - Unable to set permissions on remote file: "+err.Error(), global.ErrorSyncProcess, true)
+			return errors.New("unable to set permissions on remote file: " + err.Error())
 		}
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
@@ -325,6 +331,8 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	if filesTransferred {
 		fmt.Println() // add a gap between upload and sync complete messages
 	}
+
+	return nil
 }
 
 // syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information.
@@ -377,24 +385,24 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 }
 
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
-func deletionSync(deletions []string) {
+func deletionSync(deletions []string) error {
 	var filesDeleted bool
 	for _, deletion := range deletions {
 		filesDeleted = true // set a flag to indicate that files have been deleted (used to determine whether to print a gap between deletion and other messages)
 		fmt.Println(synccommon.AnsiDelete+deletion+back.AnsiReset, "has been sheared, removing locally (if it exists)")
 		err := os.RemoveAll(global.TargetLocationFormat(deletion))
 		if err != nil {
-			back.PrintError("Sync failed - Failed to shear "+deletion+" locally: "+err.Error(), back.ErrorWrite, true)
+			return errors.New("unable to shear " + deletion + " locally: " + err.Error())
 		}
 	}
-
 	if filesDeleted {
 		fmt.Println() // add a gap between deletion and other messages
 	}
+	return nil
 }
 
 // folderSync creates folders on the client (from the given list of folder names).
-func folderSync(folders []string) {
+func folderSync(folders []string) error {
 	for _, folder := range folders {
 		// store the full local path of the folder
 		folderFullPath := global.TargetLocationFormat(folder)
@@ -405,35 +413,33 @@ func folderSync(folders []string) {
 		if !isFile && !isAccessible {
 			err := os.MkdirAll(folderFullPath, 0700)
 			if err != nil {
-				back.PrintError("Sync failed - Failed to create folder ("+folder+"): "+err.Error(), back.ErrorWrite, true)
+				return errors.New("unable to create folder (" + folder + "): " + err.Error())
 			}
 		} else if isFile {
-			back.PrintError("Sync failed - Failed to create folder ("+folder+") - A file with the same name already exists", global.ErrorTargetExists, true)
+			return errors.New("unable to create folder (" + folder + "): a file with the same name already exists")
 		}
 	}
+	return nil
 }
 
 // RunJob runs the SSH sync job.
 // Setting manualSync to true will throw errors if sync is not configured (online mode is assumed).
 // Setting returnLists to true will return the deletions, downloads, and uploads lists for use by the client.
-func RunJob(manualSync, returnLists bool) [3][]string {
+func RunJob(manualSync, returnLists bool) ([3][]string, error) {
 	// get SSH client to re-use throughout the sync process
 	sshClient, sshEntryRoot, sshIsWindows, err := GetSSHClient(manualSync)
 	if err != nil {
-		back.PrintError("sync failed - unable to connect to SSH client: "+err.Error(), global.ErrorServerConnection, true)
-	}
-	if sshClient == nil { // indicate SSH dialing failure for interactive clients
-		return [3][]string{nil, nil, nil}
+		return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
 	}
 	defer func(sshClient *ssh.Client) {
-		err := sshClient.Close()
-		if err != nil {
-			back.PrintError("sync failed - unable to close SSH client: "+err.Error(), global.ErrorServerConnection, true)
-		}
+		_ = sshClient.Close()
 	}(sshClient)
 
 	// fetch remote lists
-	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime := getRemoteDataFromClient(sshClient, manualSync)
+	remoteEntryModMap, remoteFolders, deletions, serverTime, clientTime, err := getRemoteDataFromClient(sshClient, manualSync)
+	if err != nil {
+		return [3][]string{nil, nil, nil}, errors.New("unable to fetch remote data: " + err.Error())
+	}
 
 	// sync deletions
 	deletionSync(deletions)
@@ -442,7 +448,10 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 	folderSync(remoteFolders)
 
 	// fetch local lists
-	localEntryModMap := getLocalData()
+	localEntryModMap, err := getLocalData()
+	if err != nil {
+		return [3][]string{nil, nil, nil}, errors.New("unable to fetch local entry data: " + err.Error())
+	}
 
 	// prior to syncing lists, ensure the client and server clocks are synced within 45 seconds
 	var timeSynced = true
@@ -457,9 +466,9 @@ func RunJob(manualSync, returnLists bool) [3][]string {
 	if returnLists {
 		lists = syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap)
 		lists[0] = deletions
-		return lists
+		return lists, nil
 	}
 	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap)
-	back.Exit(0) // exit program if running non-interactively
-	return lists // dummy return for when not returning lists
+	back.Exit(0)      // exit program if running non-interactively
+	return lists, nil // dummy return for when not returning lists
 }

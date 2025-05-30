@@ -1,6 +1,7 @@
 package crypt
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,26 +26,26 @@ func RCWDArgument() {
 }
 
 // DecryptFileToSlice decrypts an RCW wrapped file and returns the contents as a slice of (trimmed) strings.
-func DecryptFileToSlice(targetLocation string) []string {
+func DecryptFileToSlice(targetLocation string) ([]string, error) {
 	// read encrypted file
 	encBytes, err := os.ReadFile(targetLocation)
 	if err != nil {
-		back.PrintError("Failed to open \""+targetLocation+"\" for decryption - "+err.Error(), back.ErrorRead, true)
+		return nil, errors.New("unable to open \"" + targetLocation + "\" for decryption: " + err.Error())
 	}
 
 	// decrypt data using RCW daemon
 	passphrase := launchRCWDProcess()
 	if passphrase == nil {
 		// if daemon is already running, use it to decrypt the data
-		return strings.Split(string(daemon.GetDec(encBytes)), "\n")
+		return strings.Split(string(daemon.GetDec(encBytes)), "\n"), nil
 	}
 	// if the daemon is not already running, use wrappers.Decrypt
 	// directly to avoid waiting for socket file creation
 	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
 	if err != nil {
-		back.PrintError("Failed to decrypt \""+targetLocation+"\" - "+err.Error(), global.ErrorDecryption, true)
+		return nil, errors.New("unable to decrypt \"" + targetLocation + "\": " + err.Error())
 	}
-	return strings.Split(string(decBytes), "\n")
+	return strings.Split(string(decBytes), "\n"), nil
 }
 
 // EncryptBytes encrypts a byte slice using RCW and returns the encrypted data.
