@@ -343,7 +343,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 // syncLists determines which entries need to be downloaded and uploaded for synchronizations and calls sftpSync with this information.
 // Using maps means that syncing will be done in an arbitrary order, but it is a worthy tradeoff for speed and simplicity.
-func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced, returnLists bool, localEntryModMap, remoteEntryModMap map[string]int64) [3][]string {
+func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSynced, returnLists bool, localEntryModMap, remoteEntryModMap map[string]int64) ([3][]string, error) {
 	// initialize slices to store entries that need to be downloaded or uploaded
 	var downloadList, uploadList []string
 
@@ -376,7 +376,10 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 	// call sftpSync with the download and upload lists
 	if timeSynced && (max(len(downloadList), len(uploadList)) > 0) { // only call sftpSync if there are entries to download or upload
 		fmt.Println() // add a gap between list-add messages and the actual sync messages from sftpSync
-		sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList)
+		err := sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList)
+		if err != nil {
+			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
+		}
 	} else if !timeSynced {
 		// do not call sftpSync if the client and server times are out of sync
 		back.Exit(1)
@@ -385,9 +388,9 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 	fmt.Println("Client is synchronized with server")
 
 	if returnLists {
-		return [3][]string{nil, downloadList, uploadList}
+		return [3][]string{nil, downloadList, uploadList}, nil
 	}
-	return [3][]string{nil, nil, nil}
+	return [3][]string{nil, nil, nil}, nil
 }
 
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
@@ -448,10 +451,16 @@ func RunJob(manualSync, returnLists bool) ([3][]string, error) {
 	}
 
 	// sync deletions
-	deletionSync(deletions)
+	err = deletionSync(deletions)
+	if err != nil {
+		return [3][]string{nil, nil, nil}, errors.New("unable to sync deletions: " + err.Error())
+	}
 
 	// sync folders
-	folderSync(remoteFolders)
+	err = folderSync(remoteFolders)
+	if err != nil {
+		return [3][]string{nil, nil, nil}, errors.New("unable to sync folders: " + err.Error())
+	}
 
 	// fetch local lists
 	localEntryModMap, err := getLocalData()
@@ -459,7 +468,7 @@ func RunJob(manualSync, returnLists bool) ([3][]string, error) {
 		return [3][]string{nil, nil, nil}, errors.New("unable to fetch local entry data: " + err.Error())
 	}
 
-	// prior to syncing lists, ensure the client and server clocks are synced within 45 seconds
+	// before syncing lists, ensure the client and server clocks are synced within 45 seconds
 	var timeSynced = true
 	timeDiff := serverTime - clientTime
 	if timeDiff < -45 || timeDiff > 45 {
@@ -470,11 +479,17 @@ func RunJob(manualSync, returnLists bool) ([3][]string, error) {
 	// sync new and updated entries
 	var lists [3][]string
 	if returnLists {
-		lists = syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap)
+		lists, err = syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap)
+		if err != nil {
+			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
+		}
 		lists[0] = deletions
 		return lists, nil
 	}
-	syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap)
+	_, err = syncLists(sshClient, sshEntryRoot, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap)
+	if err != nil {
+		return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
+	}
 	back.Exit(0)      // exit program if running non-interactively
 	return lists, nil // dummy return for when not returning lists
 }

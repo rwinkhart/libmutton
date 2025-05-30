@@ -26,7 +26,10 @@ func clipClearProcess(assignedContents string) error {
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
 	if assignedContents == "" {
-		clearClipboard()
+		err := clearClipboard()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 

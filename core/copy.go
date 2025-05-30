@@ -52,7 +52,10 @@ func CopyArgument(targetLocation string, field int) error {
 					if err != nil {
 						return err
 					}
-					copyString(true, token)
+					err = copyString(true, token)
+					if err != nil {
+						return err
+					}
 					// sleep until next 30-second interval
 					time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
 				}
@@ -62,18 +65,22 @@ func CopyArgument(targetLocation string, field int) error {
 		}
 
 		// copy field to clipboard, launch clipboard clearing process
-		copyString(false, copySubject)
+		err = copyString(false, copySubject)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 // ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
-func ClipClearArgument() {
+func ClipClearArgument() error {
 	assignedContents := back.ReadFromStdin()
 	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
-	clipClearProcess(assignedContents)
+	err := clipClearProcess(assignedContents)
+	return err
 }
 
 // GenTOTP generates a TOTP token from a secret (supports standard and Steam TOTP).

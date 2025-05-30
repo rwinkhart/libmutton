@@ -14,7 +14,7 @@ import (
 )
 
 // LibmuttonInit creates the libmutton config structure based on user input.
-// rcwPassphrase and clientSpecificIniData are cab be left blank if not needed.
+// rcwPassphrase and clientSpecificIniData can be left blank if not needed.
 func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][3]string, rcwPassphrase []byte, preserveOldConfigDir bool) error {
 	r := strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (y/N)"))
 	if len(r) > 0 && r[0] == 'y' {
@@ -44,7 +44,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		}
 		//// write config file
 		//// temporarily assign sshEntryRoot and sshIsWindows to null to pass initial device ID registration
-		cfg.WriteConfig(append(
+		err = cfg.WriteConfig(append(
 			clientSpecificIniData,
 			[][3]string{
 				{"LIBMUTTON", "sshUser", sshUser},
@@ -54,18 +54,30 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 				{"LIBMUTTON", "sshKeyProtected", strconv.FormatBool(sshKeyProtected)},
 				{"LIBMUTTON", "sshEntryRoot", "null"},
 				{"LIBMUTTON", "sshIsWindows", "false"}}...), nil, false)
+		if err != nil {
+			return errors.New("unable to write config file: " + err.Error())
+		}
 		// generate and register device ID
 		sshEntryRoot, sshIsWindows, err := synccycles.DeviceIDGen(oldDeviceID)
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
-		cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
+		err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
+		if err != nil {
+			return errors.New("unable to write config file: " + err.Error())
+		}
 	} else {
 		// initialize libmutton directories
-		global.DirInit(preserveOldConfigDir)
+		_, err := global.DirInit(preserveOldConfigDir)
+		if err != nil {
+			return errors.New("unable to initialize libmutton directories: " + err.Error())
+		}
 		// write config file
 		if len(clientSpecificIniData) > 0 { // TODO test passing empty clientSpecificIniData
-			cfg.WriteConfig(clientSpecificIniData, nil, false)
+			err = cfg.WriteConfig(clientSpecificIniData, nil, false)
+			if err != nil {
+				return errors.New("unable to write config file: " + err.Error())
+			}
 		}
 	}
 	// generate rcw sanity check file (if requested)

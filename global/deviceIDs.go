@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// GetOldDeviceID returns the current device ID or
+// GetCurrentDeviceID returns the current device ID or
 // FSMisc if there is no device ID (e.g. first run).
 func GetCurrentDeviceID() (string, error) {
 	deviceIDList, err := GenDeviceIDList()

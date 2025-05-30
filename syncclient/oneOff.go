@@ -30,7 +30,10 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) e
 		}
 
 		// call the server to remotely shear the target and add it to the deletions list
-		GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath))
+		_, err = GetSSHOutput(sshClient, "libmuttonserver shear", deviceID+"\n"+strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath))
+		if err != nil {
+			return errors.New("unable to shear target remotely: " + err.Error())
+		}
 
 		// close the SSH client
 		err = sshClient.Close()
@@ -46,7 +49,10 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) e
 // RenameRemoteFromClient renames oldLocationIncomplete to newLocationIncomplete on the local system and calls the server to perform the rename remotely and add the old target to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended interface for renaming (RenameLocal should only be used directly by the server binary).
 func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string, forceOffline bool) error {
-	synccommon.RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
+	err := synccommon.RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
+	if err != nil {
+		return errors.New("unable to rename target locally: " + err.Error())
+	}
 
 	deviceIDList, err := global.GenDeviceIDList()
 	if err != nil {
@@ -60,10 +66,13 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 		}
 
 		// call the server to move the target on the remote system and add the old target to the deletions list
-		GetSSHOutput(sshClient, "libmuttonserver rename",
+		_, err = GetSSHOutput(sshClient, "libmuttonserver rename",
 			(deviceIDList)[0].Name()+"\n"+
 				strings.ReplaceAll(oldLocationIncomplete, global.PathSeparator, global.FSPath)+"\n"+
 				strings.ReplaceAll(newLocationIncomplete, global.PathSeparator, global.FSPath))
+		if err != nil {
+			return errors.New("unable to rename target remotely: " + err.Error())
+		}
 
 		// close the SSH client
 		err = sshClient.Close()
@@ -79,7 +88,10 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 // AddFolderRemoteFromClient creates a new entry-containing directory on the local system and calls the server to create the folder remotely.
 // It can safely be called in offline mode, as well, so this is the intended interface for adding folders (AddFolderLocal should only be used directly by the server binary).
 func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline bool) error {
-	synccommon.AddFolderLocal(targetLocationIncomplete) // add the folder on the local system
+	err := synccommon.AddFolderLocal(targetLocationIncomplete) // add the folder on the local system
+	if err != nil {
+		return errors.New("unable to add folder locally: " + err.Error())
+	}
 
 	deviceIDList, err := global.GenDeviceIDList()
 	if err != nil {
@@ -93,7 +105,10 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 		}
 
 		// call the server to create the folder remotely
-		GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath)) // call the server to create the folder remotely
+		_, err = GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(targetLocationIncomplete, global.PathSeparator, global.FSPath)) // call the server to create the folder remotely
+		if err != nil {
+			return errors.New("unable to add folder remotely: " + err.Error())
+		}
 
 		// close the SSH client
 		err = sshClient.Close()

@@ -38,23 +38,23 @@ func main() {
 	case "fetch":
 		// print all information needed for syncing to stdout for interpretation by the client
 		// stdin[0] is expected to be the device ID
-		syncserver.GetRemoteDataFromServer(stdin[0])
+		_ = syncserver.GetRemoteDataFromServer(stdin[0])
 	case "rename":
 		// move an entry to a new location before using fallthrough to add its previous iteration to the deletions directory
 		// stdin[0] is evaluated after fallthrough
 		// stdin[1] is expected to be the OLD incomplete target location with FSPath representing path separators - Always pass in UNIX format
 		// stdin[2] is expected to be the NEW incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		synccommon.RenameLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), strings.ReplaceAll(stdin[2], global.FSPath, "/"), true)
+		_ = synccommon.RenameLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), strings.ReplaceAll(stdin[2], global.FSPath, "/"), true)
 		fallthrough // fallthrough to add the old entry to the deletions directory
 	case "shear":
 		// shear an entry from the server and add it to the deletions directory
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		synccommon.ShearLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), stdin[0])
+		_, _, _ = synccommon.ShearLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), stdin[0])
 	case "addfolder":
 		// add a new folder to the server
 		// stdin[0] is expected to be the incomplete target location with FSPath representing path separators - Always pass in UNIX format
-		synccommon.AddFolderLocal(strings.ReplaceAll(stdin[0], global.FSPath, "/"))
+		_ = synccommon.AddFolderLocal(strings.ReplaceAll(stdin[0], global.FSPath, "/"))
 	case "register":
 		// register a new device ID
 		// stdin[0] is expected to be the device ID
@@ -68,7 +68,10 @@ func main() {
 		fmt.Print(global.EntryRoot + global.FSSpace + strconv.FormatBool(global.IsWindows))
 	case "init":
 		// create the necessary directories for libmuttonserver to function
-		global.DirInit(false)
+		_, err := global.DirInit(false)
+		if err != nil {
+			back.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite, true)
+		}
 		_ = os.MkdirAll(global.ConfigDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
 		fmt.Println("libmuttonserver directories initialized")
 	case "version":
