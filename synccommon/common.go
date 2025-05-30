@@ -62,7 +62,7 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool, 
 		}
 	}
 
-	// get the full targetLocation path and remove the target
+	// remove the target locally
 	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	var isFile bool
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
@@ -112,7 +112,7 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 // AddFolderLocal creates a new entry-containing directory on the local system.
 // This function should only be used directly by the server binary.
 func AddFolderLocal(targetLocationIncomplete string) error {
-	// get the full targetLocation path and create the target
+	// create the target locally
 	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	err := os.Mkdir(targetLocationComplete, 0700)
 	if err != nil {
