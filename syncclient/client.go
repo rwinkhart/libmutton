@@ -19,20 +19,15 @@ import (
 
 // GetSSHClient returns an SSH client connection to the server (also returns the remote EntryRoot and an indicator of the server's OS).
 // Only supports key-based authentication (passphrases are supported for CLI-based implementations).
-func GetSSHClient(manualSync bool) (*ssh.Client, string, bool, error) {
-	// get SSH config info, exit if not configured (displaying an error if the sync job was called manually)
-	var sshUserConfig []string
-	var missingValueError string
-	if manualSync {
-		missingValueError = "SSH settings not fully configured"
-	} else {
-		missingValueError = "0" // allow silent exit at this point in offline mode
+func GetSSHClient() (*ssh.Client, string, bool, error) {
+	// get SSH config info, exit if not configured
+	sshUserConfig, err := cfg.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}})
+	if err != nil {
+		return nil, "", false, errors.New("unable to parse SSH config: " + err.Error())
 	}
-	sshUserConfig, _ = cfg.ParseConfig([][2]string{{"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}}, missingValueError)
 
 	var user, ip, port, keyFile, keyFileProtected, entryRoot string
 	var isWindows bool
-	var err error
 	for i, key := range sshUserConfig {
 		switch i {
 		case 0:
@@ -436,9 +431,13 @@ func folderSync(folders []string) error {
 // Setting returnLists to true will return the deletions, downloads, and uploads lists for use by the client.
 func RunJob(manualSync, returnLists bool) ([3][]string, error) {
 	// get SSH client to re-use throughout the sync process
-	sshClient, sshEntryRoot, sshIsWindows, err := GetSSHClient(manualSync)
+	sshClient, sshEntryRoot, sshIsWindows, err := GetSSHClient()
 	if err != nil {
-		return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
+		if manualSync {
+			return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
+		} else {
+			return [3][]string{nil, nil, nil}, nil // return silently if the sync job was called automatically, as the user may just be in offline mode
+		}
 	}
 	defer func(sshClient *ssh.Client) {
 		_ = sshClient.Close()

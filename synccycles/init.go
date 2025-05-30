@@ -38,7 +38,7 @@ func DeviceIDGen(oldDeviceID string) (string, string, error) {
 	// register new device ID with server and fetch remote EntryRoot and OS type
 	// also removes the old device ID file (remotely)
 	// manualSync is true so the user is alerted if device ID registration fails
-	sshClient, _, _, err := syncclient.GetSSHClient(true)
+	sshClient, _, _, err := syncclient.GetSSHClient()
 	if err != nil {
 		return "", "", errors.New("unable to connect to SSH client: " + err.Error())
 	}

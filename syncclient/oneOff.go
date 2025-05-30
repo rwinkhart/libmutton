@@ -19,7 +19,7 @@ func ShearRemoteFromClient(targetLocationIncomplete string, forceOffline bool) e
 
 	if !forceOffline && deviceID != "" { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient()
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}
@@ -60,7 +60,7 @@ func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string,
 	}
 	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient()
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}
@@ -99,7 +99,7 @@ func AddFolderRemoteFromClient(targetLocationIncomplete string, forceOffline boo
 	}
 	if !forceOffline && len(deviceIDList) > 0 { // ensure a device ID exists (online mode)
 		// create an SSH client; manualSync is false in case a device ID exists but SSH is not configured
-		sshClient, _, _, err := GetSSHClient(false)
+		sshClient, _, _, err := GetSSHClient()
 		if err != nil {
 			return errors.New("unable to connect to SSH client: " + err.Error())
 		}

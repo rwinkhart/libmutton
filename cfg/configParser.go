@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/global"
 	"gopkg.in/ini.v1"
 )
@@ -20,35 +19,21 @@ func loadConfig() (*ini.File, error) {
 }
 
 // ParseConfig reads the libmutton.ini file and returns a slice of values for the specified keys.
-// Requires: valuesRequested (a slice of length 2 arrays each containing a section and a key name),
-// missingValueError (an error message to display if a key is missing a value, set to "" for auto-generated or "0" to exit/return silently with code 0).
-// Returns: config (slice of values for the specified keys),
-// error (nil if no error occurred, otherwise an error using the generated or provided message).
-func ParseConfig(valuesRequested [][2]string, missingValueError string) ([]string, error) {
-	var err error
+// Requires: valuesRequested (a slice of length 2 arrays each containing a section and a key name).
+// Returns: config (slice of values for the specified keys).
+func ParseConfig(valuesRequested [][2]string) ([]string, error) {
 	cfg, err := loadConfig()
 	if err != nil {
 		return nil, err
 	}
 
 	var config []string
-
 	for _, pair := range valuesRequested {
 		value := cfg.Section(pair[0]).Key(pair[1]).String()
-
 		// ensure specified key has a value
 		if value == "" {
-			switch missingValueError {
-			case "":
-				err = fmt.Errorf("unable to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
-			case "0":
-				back.Exit(0) // hard (expected) exit for CLI; GUI/TUI continue silently
-			default:
-				err = fmt.Errorf("%s", missingValueError)
-			}
-			return nil, err
+			return nil, fmt.Errorf("unable to find value for key \"%s\" in section \"[%s]\" in libmutton.ini", pair[1], pair[0])
 		}
-
 		config = append(config, value)
 	}
 
