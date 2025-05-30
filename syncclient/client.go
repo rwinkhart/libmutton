@@ -39,19 +39,19 @@ func GetSSHClient() (*ssh.Client, bool, bool, string, error) {
 	var isWindows bool
 	for i, key := range sshUserConfig {
 		switch i {
-		case 0:
-			user = key
 		case 1:
-			ip = key
+			user = key
 		case 2:
-			port = key
+			ip = key
 		case 3:
-			keyFile = key
+			port = key
 		case 4:
-			keyFileProtected = key
+			keyFile = key
 		case 5:
-			entryRoot = key
+			keyFileProtected = key
 		case 6:
+			entryRoot = key
+		case 7:
 			isWindows, err = strconv.ParseBool(key)
 			if err != nil {
 				return nil, false, false, "", errors.New("unable to parse server OS type: " + err.Error())
