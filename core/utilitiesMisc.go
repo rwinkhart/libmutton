@@ -8,15 +8,72 @@ import (
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/crypt"
 	"github.com/rwinkhart/libmutton/global"
+	"github.com/rwinkhart/libmutton/synccommon"
 )
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
-func WriteEntry(targetLocation string, entryData []byte) error {
-	encBytes := crypt.EncryptBytes(entryData)
-	err := os.WriteFile(targetLocation, encBytes, 0600)
+func WriteEntry(targetLocation string, decBytes []byte) error {
+	err := os.WriteFile(targetLocation, crypt.EncryptBytes(decBytes), 0600)
 	if err != nil {
 		return errors.New("unable to write to file: " + err.Error())
 	}
+	return nil
+}
+
+// EntryRefresh re-encrypts all libmutton entries with a new passphrase
+// and optimizes each entry to ensure they are as slim as possible.
+// This includes stripping trailing whitespace/newlines/carriage returns
+// from each field and running each note through ClampTrailingWhitespace
+// to ensure each note line is optimized as possible without breaking
+// Markdown formatting.
+func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) error {
+	// ensure global.EntryRoot+"-new" and global.EntryRoot-"old" do not exist
+	dirEnds := []string{"-new", "-old"}
+	for i, dirEnd := range dirEnds {
+		if i == 1 && !removeOldDir {
+			if _, err := os.Stat(global.EntryRoot + dirEnd); !os.IsNotExist(err) {
+				return errors.New("unable to refresh entries: \"" + global.EntryRoot + "-new\" already exists")
+			}
+		}
+		os.RemoveAll(global.EntryRoot + "-new")
+	}
+
+	// create output directory structure (global.EntryRoot + "-new"/*)
+	entries, folders, err := synccommon.WalkEntryDir()
+	if err != nil {
+		return errors.New("unable to walk entry directory: " + err.Error())
+	}
+	for _, folder := range folders {
+		fullPath := global.EntryRoot + "-new" + strings.ReplaceAll(folder, "/", global.PathSeparator)
+		err := os.MkdirAll(fullPath, 0700)
+		if err != nil {
+			return errors.New("unable to create temporary directory \"" + fullPath + "\": " + err.Error())
+		}
+	}
+
+	// decrypt, optimize, and re-encrypt each entry
+	for _, entry := range entries {
+		decryptedEntry, err := crypt.DecryptFileToSlice(global.TargetLocationFormat(entry))
+		if err != nil {
+			return err
+		}
+		// strip trailing whitespace...
+		fieldsMain := decryptedEntry[:4]
+		fieldsNote := back.RemoveTrailingEmptyStrings(decryptedEntry[4:])
+		// ...from each non-note field
+		for i, line := range fieldsMain {
+			fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
+		}
+		// ...and from each note line (preserve Markdown formatting)
+		ClampTrailingWhitespace(fieldsNote)
+
+		// re-combine fields
+		decryptedEntry = append(fieldsMain, fieldsNote...)
+
+		// write the entry to the new directory
+		WriteEntry(global.EntryRoot+"-new"+strings.ReplaceAll(entry, "/", global.PathSeparator), []byte(strings.Join(decryptedEntry, "\n")))
+	}
+
 	return nil
 }
 
@@ -25,9 +82,9 @@ func WriteEntry(targetLocation string, entryData []byte) error {
 func ClampTrailingWhitespace(note []string) {
 	for i, line := range note {
 		// remove trailing tabs, carriage returns, and newlines
-		note[i] = strings.TrimRight(line, "\t\r\n")
+		line = strings.TrimRight(line, "\t\r\n")
 
-		// determine the number of trailing spaces
+		// determine the number of trailing spaces in the trimmed line
 		var endSpacesCount int
 		for j := len(line) - 1; j >= 0; j-- {
 			if line[j] != ' ' {
@@ -39,9 +96,10 @@ func ClampTrailingWhitespace(note []string) {
 		// remove single spaces, truncate multiple spaces (leave two for Markdown formatting)
 		switch endSpacesCount {
 		case 0:
-			// do nothing
+			// no trailing spaces
+			note[i] = line
 		case 1:
-			// remove the trailing space
+			// remove the single trailing space
 			note[i] = strings.TrimRight(line, " ")
 		default:
 			// truncate the trailing spaces to two

@@ -17,12 +17,12 @@ import (
 func GetRemoteDataFromServer(clientDeviceID string) error {
 	entryList, dirList, err := synccommon.WalkEntryDir()
 	if err != nil {
-		return errors.New("unable to walk the entry directory: " + err.Error())
+		return errors.New("unable to walk entry directory: " + err.Error())
 	}
 	modList := synccommon.GetModTimes(entryList)
 	deletionsList, err := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
 	if err != nil {
-		return errors.New("unable to read the deletions directory: " + err.Error())
+		return errors.New("unable to read deletions directory: " + err.Error())
 	}
 
 	// print the current UNIX timestamp to stdout

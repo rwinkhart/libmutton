@@ -13,16 +13,16 @@ func GetOldEntryData(targetLocation string, field int) ([]string, error) {
 	back.TargetIsFile(targetLocation, true, 2)
 
 	// read old entry data
-	unencryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
+	decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
 	if err != nil {
 		return nil, errors.New("unable to decrypt entry: " + err.Error())
 	}
 
 	// return the old entry data with all required lines present
 	if field > 0 {
-		return ensureSliceLength(unencryptedEntry, field), nil
+		return ensureSliceLength(decryptedEntry, field), nil
 	} else {
-		return unencryptedEntry, nil
+		return decryptedEntry, nil
 	}
 }
 
