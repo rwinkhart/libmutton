@@ -9,6 +9,7 @@ import (
 	"github.com/rwinkhart/libmutton/crypt"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
+	"github.com/rwinkhart/rcw/wrappers"
 )
 
 // WriteEntry writes entryData to an encrypted file at targetLocation.
@@ -26,13 +27,14 @@ func WriteEntry(targetLocation string, decBytes []byte) error {
 // from each field and running each note through ClampTrailingWhitespace
 // to ensure each note line is optimized as possible without breaking
 // Markdown formatting.
+// Be sure to verify passphrases before using as input for this function!!
 func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) error {
 	// ensure global.EntryRoot+"-new" and global.EntryRoot-"old" do not exist
 	dirEnds := []string{"-new", "-old"}
 	for i, dirEnd := range dirEnds {
 		if i == 1 && !removeOldDir {
-			if _, err := os.Stat(global.EntryRoot + dirEnd); !os.IsNotExist(err) {
-				return errors.New("unable to refresh entries: \"" + global.EntryRoot + dirEnd + "\" already exists")
+			if _, err := os.Stat(global.EntryRoot + "-old"); !os.IsNotExist(err) {
+				return errors.New("unable to refresh entries: \"" + global.EntryRoot + "-old\" already exists")
 			}
 		}
 		os.RemoveAll(global.EntryRoot + dirEnd)
@@ -52,8 +54,14 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 	}
 
 	// decrypt, optimize, and re-encrypt each entry
-	for _, entry := range entries {
-		decryptedEntry, err := crypt.DecryptFileToSlice(global.TargetLocationFormat(entry))
+	for _, entryName := range entries {
+		targetLocation := global.TargetLocationFormat(entryName)
+		encBytes, err := os.ReadFile(targetLocation)
+		if err != nil {
+			return errors.New("unable to open \"" + targetLocation + "\" for decryption: " + err.Error())
+		}
+		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassphrase)
+		decryptedEntry := strings.Split(string(decBytes), "\n")
 		if err != nil {
 			return err
 		}
@@ -70,8 +78,17 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 		// re-combine fields
 		decryptedEntry = append(fieldsMain, fieldsNote...)
 
+		// re-encrypt the entry with the new passphrase
+		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassphrase)
+
 		// write the entry to the new directory
-		WriteEntry(global.EntryRoot+"-new"+strings.ReplaceAll(entry, "/", global.PathSeparator), []byte(strings.Join(decryptedEntry, "\n")))
+		err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(entryName, "/", global.PathSeparator), encBytes, 0600)
+		if err != nil {
+			return errors.New("unable to write to file: " + err.Error())
+		}
+
+		// generate new sanity check file
+		RCWSanityCheckGen(newRCWPassphrase)
 	}
 
 	return nil

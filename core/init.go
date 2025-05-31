@@ -83,10 +83,19 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 	}
 	// generate rcw sanity check file (if requested)
 	if len(rcwPassphrase) > 0 {
-		err := wrappers.GenSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", rcwPassphrase)
+		err := RCWSanityCheckGen(rcwPassphrase)
 		if err != nil {
-			return errors.New("unable to generate sanity check file: " + err.Error())
+			return err
 		}
+	}
+	return nil
+}
+
+// RCWSanityCheckGen generates the RCW sanity check file for libmutton.
+func RCWSanityCheckGen(passphrase []byte) error {
+	err := wrappers.GenSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", passphrase)
+	if err != nil {
+		return errors.New("unable to generate sanity check file: " + err.Error())
 	}
 	return nil
 }
