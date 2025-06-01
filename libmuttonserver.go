@@ -38,7 +38,7 @@ func main() {
 	case "fetch":
 		// print all information needed for syncing to stdout for interpretation by the client
 		// stdin[0] is expected to be the device ID
-		_ = syncserver.GetRemoteDataFromServer(stdin[0])
+		syncserver.GetRemoteDataFromServer(stdin[0])
 	case "rename":
 		// move an entry to a new location before using fallthrough to add its previous iteration to the deletions directory
 		// stdin[0] is evaluated after fallthrough

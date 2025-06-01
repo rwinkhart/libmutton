@@ -37,7 +37,10 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 				return errors.New("unable to refresh entries: \"" + global.EntryRoot + "-old\" already exists")
 			}
 		}
-		os.RemoveAll(global.EntryRoot + dirEnd)
+		err := os.RemoveAll(global.EntryRoot + dirEnd)
+		if err != nil {
+			return errors.New("unable to remove \"" + global.EntryRoot + dirEnd + "\": " + err.Error())
+		}
 	}
 
 	// create output directory structure (global.EntryRoot + "-new"/*)
