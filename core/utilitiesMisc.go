@@ -66,17 +66,27 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 			return err
 		}
 		// strip trailing whitespace...
-		fieldsMain := decryptedEntry[:4]
-		fieldsNote := back.RemoveTrailingEmptyStrings(decryptedEntry[4:])
-		// ...from each non-note field
-		for i, line := range fieldsMain {
-			fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
-		}
-		// ...and from each note line (preserve Markdown formatting)
-		ClampTrailingWhitespace(fieldsNote)
+		fieldsLength := len(decryptedEntry)
+		if fieldsLength < 4 {
+			fieldsMain := back.RemoveTrailingEmptyStrings(decryptedEntry)
+			// ...from each non-note field
+			for i, line := range fieldsMain {
+				fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
+			}
+			decryptedEntry = fieldsMain
+		} else {
+			fieldsMain := decryptedEntry[:4]
+			fieldsNote := back.RemoveTrailingEmptyStrings(decryptedEntry[4:])
+			// ...from each non-note field
+			for i, line := range fieldsMain {
+				fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
+			}
+			// ...and from each note line (preserve Markdown formatting)
+			ClampTrailingWhitespace(fieldsNote)
 
-		// re-combine fields
-		decryptedEntry = append(fieldsMain, fieldsNote...)
+			// re-combine fields
+			decryptedEntry = append(fieldsMain, fieldsNote...)
+		}
 
 		// re-encrypt the entry with the new passphrase
 		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassphrase)
