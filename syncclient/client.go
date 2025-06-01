@@ -417,15 +417,15 @@ func folderSync(folders []string) error {
 		folderFullPath := global.TargetLocationFormat(folder)
 
 		// check if target path already exists
-		isAccessible, _ := back.TargetIsFile(folderFullPath, false) // error is ignored because dir/file status is irrelevant
+		isAccessible, err := back.TargetIsFile(folderFullPath, false)
 
 		if !isAccessible {
 			err := os.MkdirAll(folderFullPath, 0700)
 			if err != nil {
 				return errors.New("unable to create folder (" + folder + "): " + err.Error())
 			}
-		} else {
-			return errors.New("unable to create folder (" + folder + "): a file with the same name already exists")
+		} else if err != nil {
+			return errors.New("unable to create folder (" + folder + "): " + err.Error())
 		}
 	}
 	return nil
