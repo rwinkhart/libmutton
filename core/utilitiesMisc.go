@@ -156,13 +156,13 @@ func ClampTrailingWhitespace(note []string) {
 // Returns: statusCode (0 = success, 1 = target location already exists, 2 = containing directory is invalid).
 func EntryAddPrecheck(targetLocation string) (uint8, error) {
 	// ensure target location does not already exist
-	_, isAccessible := back.TargetIsFile(targetLocation, false, 0)
+	_, isAccessible, _ := back.TargetIsFile(targetLocation, false, 0) // error is ignored because errorOnFail is false
 	if isAccessible {
 		return 1, errors.New("target location already exists")
 	}
 	// ensure target containing directory exists and is a directory (not a file)
 	containingDir := targetLocation[:strings.LastIndex(targetLocation, global.PathSeparator)]
-	isFile, isAccessible := back.TargetIsFile(containingDir, false, 1)
+	isFile, isAccessible, _ := back.TargetIsFile(containingDir, false, 1) // error is ignored because errorOnFail is false
 	if isFile || !isAccessible {
 		return 2, errors.New("\"" + containingDir + "\" is not a valid containing directory")
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/go-boilerplate/other"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
 	"github.com/rwinkhart/libmutton/syncserver"
@@ -70,7 +71,7 @@ func main() {
 		// create the necessary directories for libmuttonserver to function
 		_, err := global.DirInit(false)
 		if err != nil {
-			back.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite, true)
+			other.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite, true)
 		}
 		_ = os.MkdirAll(global.ConfigDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
 		fmt.Println("libmuttonserver directories initialized")

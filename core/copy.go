@@ -15,7 +15,10 @@ import (
 
 // CopyArgument copies a field from an entry to the clipboard.
 func CopyArgument(targetLocation string, field int) error {
-	if isFile, _ := back.TargetIsFile(targetLocation, true, 2); isFile {
+	if isFile, _, err := back.TargetIsFile(targetLocation, true, 2); isFile {
+		if err != nil {
+			return err
+		}
 
 		decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
 		if err != nil {

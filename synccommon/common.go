@@ -66,7 +66,10 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool, 
 	targetLocationComplete := global.TargetLocationFormat(targetLocationIncomplete)
 	var isFile bool
 	if !onServer { // error if target does not exist on client, needed because os.RemoveAll does not return an error if target does not exist
-		isFile, _ = back.TargetIsFile(targetLocationComplete, true, 0)
+		isFile, _, err = back.TargetIsFile(targetLocationComplete, true, 0)
+		if err != nil {
+			return "", false, err
+		}
 	}
 	err = os.RemoveAll(targetLocationComplete)
 	if err != nil {
@@ -93,7 +96,7 @@ func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldL
 	}
 
 	// ensure newLocation does not exist
-	_, isAccessible := back.TargetIsFile(newLocation, false, 0)
+	_, isAccessible, _ := back.TargetIsFile(newLocation, false, 0) // error is ignored because errorOnFail is false
 	if isAccessible {
 		return errors.New("target already exists: " + newLocation)
 	}

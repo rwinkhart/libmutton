@@ -13,10 +13,8 @@ const (
 	FSPath  = "\u259e" // ▞ Path separator
 	FSMisc  = "\u259f" // ▟ Misc. field separator (if \u259d is already used)
 
-	ErrorSyncProcess      = 103
-	ErrorServerConnection = 104
-	ErrorTargetExists     = 106
-	ErrorDecryption       = 108
-	ErrorEncryption       = 109
-	ErrorClipboard        = 110
+	ErrorSyncProcess = 104
+	ErrorDecryption  = 105
+	ErrorEncryption  = 106
+	ErrorClipboard   = 107
 )

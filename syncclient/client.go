@@ -417,7 +417,7 @@ func folderSync(folders []string) error {
 		folderFullPath := global.TargetLocationFormat(folder)
 
 		// check if folder already exists
-		isFile, isAccessible := back.TargetIsFile(folderFullPath, false, 1)
+		isFile, isAccessible, _ := back.TargetIsFile(folderFullPath, false, 1) // error is ignored because errorOnFail is false
 
 		if !isFile && !isAccessible {
 			err := os.MkdirAll(folderFullPath, 0700)
