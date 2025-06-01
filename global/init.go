@@ -19,7 +19,7 @@ func DirInit(preserveOldConfigDir bool) (string, error) {
 	// get old device ID before its potential removal
 	oldDeviceID, err := GetCurrentDeviceID()
 	if err != nil {
-		return "", errors.New("unable to get current device ID: " + err.Error())
+		oldDeviceID = FSMisc
 	}
 
 	// remove existing config directory (if it exists and not in append mode)
