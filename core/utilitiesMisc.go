@@ -104,6 +104,16 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 		}
 	}
 
+	// swap the new directory with the old one
+	err = os.Rename(global.EntryRoot, global.EntryRoot+"-old")
+	if err != nil {
+		return errors.New("unable to rename old directory: " + err.Error())
+	}
+	err = os.Rename(global.EntryRoot+"-new", global.EntryRoot)
+	if err != nil {
+		return errors.New("unable to rename new directory: " + err.Error())
+	}
+
 	return nil
 }
 
