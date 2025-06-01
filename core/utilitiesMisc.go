@@ -98,7 +98,10 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 		}
 
 		// generate new sanity check file
-		RCWSanityCheckGen(newRCWPassphrase)
+		err = RCWSanityCheckGen(newRCWPassphrase)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
