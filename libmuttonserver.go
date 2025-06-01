@@ -71,7 +71,7 @@ func main() {
 		// create the necessary directories for libmuttonserver to function
 		_, err := global.DirInit(false)
 		if err != nil {
-			other.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite, true)
+			other.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite)
 		}
 		_ = os.MkdirAll(global.ConfigDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
 		fmt.Println("libmuttonserver directories initialized")

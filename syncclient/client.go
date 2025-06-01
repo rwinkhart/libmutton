@@ -382,7 +382,7 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 		}
 	} else if !timeSynced {
 		// do not call sftpSync if the client and server times are out of sync
-		back.Exit(1)
+		back.Exit(global.ErrorSyncProcess)
 	}
 
 	fmt.Println("Client is synchronized with server")
