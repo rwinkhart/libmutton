@@ -74,7 +74,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
 		// write config file
-		if len(clientSpecificIniData) > 0 { // TODO test passing empty clientSpecificIniData
+		if len(clientSpecificIniData) > 0 {
 			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
 			if err != nil {
 				return errors.New("unable to write config file: " + err.Error())
