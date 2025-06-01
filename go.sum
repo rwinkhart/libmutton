@@ -13,8 +13,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/otp v1.5.0 h1:NMMR+WrmaqXU4EzdGJEE1aUUI0AMRzsp96fFFWNPwxs=
 github.com/pquerna/otp v1.5.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
-github.com/rwinkhart/go-boilerplate v0.0.0-20250601181619-e38a47784de0 h1:Zuwn0er30tMYrBXD1n4nM3mkGhrLFAdn3sZyMHkxx2I=
-github.com/rwinkhart/go-boilerplate v0.0.0-20250601181619-e38a47784de0/go.mod h1:cnzIF45I0FCOvE4YIB+26pLCUx2kWyY2llKYZruNaRY=
+github.com/rwinkhart/go-boilerplate v0.0.0-20250601184813-71b5056ca6b3 h1:QgmV+Om1Z1Ix+nO6k9RRIzLpevkeeyrmCspIKysvsc4=
+github.com/rwinkhart/go-boilerplate v0.0.0-20250601184813-71b5056ca6b3/go.mod h1:cnzIF45I0FCOvE4YIB+26pLCUx2kWyY2llKYZruNaRY=
 github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410 h1:NhHwFM3Pgm6zRUfFKvi0p5ndjfFbVWsRwmmhyFlG4PE=
 github.com/rwinkhart/go-winio-easy-pipe-handles v0.0.0-20250407031321-96994a0e8410/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/rwinkhart/peercred-mini v0.1.0 h1:TiS6u8cEWzW55S9X4iVpU72Iuy/NG6rMUJMtUEVEFLw=

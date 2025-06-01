@@ -9,8 +9,11 @@ import (
 
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
 func GetOldEntryData(targetLocation string, field int) ([]string, error) {
-	// ensure targetLocation exists
-	back.TargetIsFile(targetLocation, true, 2)
+	// ensure targetLocation exists and is a file
+	_, err := back.TargetIsFile(targetLocation, true)
+	if err != nil {
+		return nil, err
+	}
 
 	// read old entry data
 	decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)

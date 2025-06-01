@@ -15,64 +15,65 @@ import (
 
 // CopyArgument copies a field from an entry to the clipboard.
 func CopyArgument(targetLocation string, field int) error {
-	if isFile, _, err := back.TargetIsFile(targetLocation, true, 2); isFile {
-		if err != nil {
-			return err
-		}
-
-		decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
-		if err != nil {
-			return errors.New("unable to decrypt entry: " + err.Error())
-		}
-		var copySubject string // will store data to be copied
-
-		// ensure field exists in entry
-		if len(decryptedEntry) > field {
-
-			// ensure field is not empty
-			if decryptedEntry[field] == "" {
-				return errors.New("field is empty")
-			}
-
-			if field != 2 {
-				copySubject = decryptedEntry[field]
-			} else { // TOTP mode
-				var secret string // stores secret for TOTP generation
-				var forSteam bool // indicates whether to generate TOTP in Steam format
-
-				if strings.HasPrefix(decryptedEntry[2], "steam@") {
-					secret = decryptedEntry[2][6:]
-					forSteam = true
-				} else {
-					secret = decryptedEntry[2]
-				}
-
-				fmt.Println("Clipboard will be kept up to date with the current TOTP code until this process is closed")
-
-				for { // keep token copied to clipboard, refresh on 30-second intervals
-					currentTime := time.Now()
-					token, err := GenTOTP(secret, currentTime, forSteam)
-					if err != nil {
-						return err
-					}
-					err = copyString(true, token)
-					if err != nil {
-						return err
-					}
-					// sleep until next 30-second interval
-					time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
-				}
-			}
-		} else {
-			return errors.New("field does not exist in entry")
-		}
-
-		// copy field to clipboard, launch clipboard clearing process
-		err = copyString(false, copySubject)
-		if err != nil {
-			return err
-		}
+	// ensure targetLocation exists and is a file
+	_, err := back.TargetIsFile(targetLocation, true)
+	if err != nil {
+		return err
 	}
+
+	decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
+	if err != nil {
+		return errors.New("unable to decrypt entry: " + err.Error())
+	}
+	var copySubject string // will store data to be copied
+
+	// ensure field exists in entry
+	if len(decryptedEntry) > field {
+
+		// ensure field is not empty
+		if decryptedEntry[field] == "" {
+			return errors.New("field is empty")
+		}
+
+		if field != 2 {
+			copySubject = decryptedEntry[field]
+		} else { // TOTP mode
+			var secret string // stores secret for TOTP generation
+			var forSteam bool // indicates whether to generate TOTP in Steam format
+
+			if strings.HasPrefix(decryptedEntry[2], "steam@") {
+				secret = decryptedEntry[2][6:]
+				forSteam = true
+			} else {
+				secret = decryptedEntry[2]
+			}
+
+			fmt.Println("Clipboard will be kept up to date with the current TOTP code until this process is closed")
+
+			for { // keep token copied to clipboard, refresh on 30-second intervals
+				currentTime := time.Now()
+				token, err := GenTOTP(secret, currentTime, forSteam)
+				if err != nil {
+					return err
+				}
+				err = copyString(true, token)
+				if err != nil {
+					return err
+				}
+				// sleep until next 30-second interval
+				time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
+			}
+		}
+	} else {
+		return errors.New("field does not exist in entry")
+	}
+
+	// copy field to clipboard, launch clipboard clearing process
+	err = copyString(false, copySubject)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

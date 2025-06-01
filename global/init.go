@@ -24,7 +24,7 @@ func DirInit(preserveOldConfigDir bool) (string, error) {
 
 	// remove existing config directory (if it exists and not in append mode)
 	if !preserveOldConfigDir {
-		_, isAccessible, _ := back.TargetIsFile(ConfigDir, false, 1) // error is ignored because errorOnFail is false
+		isAccessible, _ := back.TargetIsFile(ConfigDir, false) // error is ignored because dir/file status is irrelevant
 		if isAccessible {
 			err = os.RemoveAll(ConfigDir)
 			if err != nil {
