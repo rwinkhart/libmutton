@@ -60,7 +60,7 @@ end:
 // It can safely be called in offline mode, as well, so this is the intended
 // interface for renaming (RenameLocal should only be used directly by the server binary).
 func RenameRemoteFromClient(oldLocationIncomplete, newLocationIncomplete string) error {
-	err := synccommon.RenameLocal(oldLocationIncomplete, newLocationIncomplete, false) // move the target on the local system
+	err := synccommon.RenameLocal(oldLocationIncomplete, newLocationIncomplete) // move the target on the local system
 	if err != nil {
 		return errors.New("unable to rename target locally: " + err.Error())
 	}

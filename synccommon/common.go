@@ -89,17 +89,10 @@ func ShearLocal(targetLocationIncomplete, clientDeviceID string) (string, bool, 
 
 // RenameLocal renames oldLocationIncomplete to newLocationIncomplete on the local system.
 // This function should only be used directly by the server binary.
-func RenameLocal(oldLocationIncomplete, newLocationIncomplete string, verifyOldLocationExists bool) error {
+func RenameLocal(oldLocationIncomplete, newLocationIncomplete string) error {
 	// get full paths for both locations
 	oldLocation := global.TargetLocationFormat(oldLocationIncomplete)
 	newLocation := global.TargetLocationFormat(newLocationIncomplete)
-
-	if verifyOldLocationExists {
-		isAccessible, _ := back.TargetIsFile(oldLocation, true) // error is ignored because dir/file status is irrelevant
-		if !isAccessible {
-			return errors.New("old target (" + oldLocation + ") does not exist")
-		}
-	}
 
 	// ensure newLocation does not exist
 	isAccessible, _ := back.TargetIsFile(newLocation, true) // error is ignored because dir/file status is irrelevant
