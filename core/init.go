@@ -16,8 +16,21 @@ import (
 // LibmuttonInit creates the libmutton config structure based on user input.
 // rcwPassphrase and clientSpecificIniData can be left blank if not needed.
 func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][3]string, rcwPassphrase []byte, preserveOldConfigDir bool) error {
-	r := strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (y/N)"))
-	if len(r) > 0 && r[0] == 'y' {
+	r := strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (Y/n)"))
+	if len(r) > 0 && r[0] == 'n' {
+		// initialize libmutton directories
+		_, err := global.DirInit(preserveOldConfigDir)
+		if err != nil {
+			return errors.New("unable to initialize libmutton directories: " + err.Error())
+		}
+		// write config file
+		if len(clientSpecificIniData) > 0 {
+			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
+			if err != nil {
+				return errors.New("unable to write config file: " + err.Error())
+			}
+		}
+	} else {
 		// ensure ssh key file exists (and is a file)
 		fallbackSSHKey := back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "id_ed25519"
 		sshKeyPath := cmp.Or(back.ExpandPathWithHome(inputCB(back.AnsiBold+"Note:"+back.AnsiReset+" Only key-based authentication is supported (keys may optionally be passphrase-protected).\n      The remote server must already be in your ~"+global.PathSeparator+".ssh"+global.PathSeparator+"known_hosts file.\n\nSSH private identity file path (falls back to \""+fallbackSSHKey+"\"):")), fallbackSSHKey)
@@ -66,19 +79,6 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
 		if err != nil {
 			return errors.New("unable to write config file: " + err.Error())
-		}
-	} else {
-		// initialize libmutton directories
-		_, err := global.DirInit(preserveOldConfigDir)
-		if err != nil {
-			return errors.New("unable to initialize libmutton directories: " + err.Error())
-		}
-		// write config file
-		if len(clientSpecificIniData) > 0 {
-			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
-			if err != nil {
-				return errors.New("unable to write config file: " + err.Error())
-			}
 		}
 	}
 	// generate rcw sanity check file (if requested)
