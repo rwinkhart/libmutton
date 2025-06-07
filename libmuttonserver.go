@@ -66,11 +66,12 @@ func main() {
 			// remove the old device ID file
 			_ = os.RemoveAll(global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1])
 			// carry over deletions from the old device ID to the new one
-			deletionsList, _ := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
+			deletionsDirRoot := global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator
+			deletionsList, _ := os.ReadDir(deletionsDirRoot)
 			for _, deletion := range deletionsList {
 				affectedIDTargetLocationIncomplete := strings.Split(deletion.Name(), global.FSSpace)
 				if affectedIDTargetLocationIncomplete[0] == stdin[1] {
-					_ = os.Rename(deletion.Name(), stdin[0]+global.FSSpace+affectedIDTargetLocationIncomplete[1])
+					_ = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDTargetLocationIncomplete[1])
 				}
 			}
 		}
