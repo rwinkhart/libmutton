@@ -12,7 +12,7 @@ import (
 
 // clipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
 // assignedContents can be omitted to clear the clipboard immediately and unconditionally.
-func clipClearProcess(assignedContents string) {
+func clipClearProcess(assignedContents string) error {
 	clearClipboard := func() {
 		clipboard.Write(clipboard.FmtText, []byte(""))
 		back.Exit(0)
@@ -21,7 +21,7 @@ func clipClearProcess(assignedContents string) {
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
 	if assignedContents == "" {
 		clearClipboard()
-		return
+		return nil
 	}
 
 	// wait 30 seconds before checking clipboard contents
@@ -32,4 +32,5 @@ func clipClearProcess(assignedContents string) {
 	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {
 		clearClipboard()
 	}
+	return nil
 }
