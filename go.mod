@@ -5,10 +5,10 @@ go 1.24.4
 require (
 	github.com/pkg/sftp v1.13.9
 	github.com/pquerna/otp v1.5.0
-	github.com/rwinkhart/go-boilerplate v0.0.0-20250601205829-83b0be1379fd
-	github.com/rwinkhart/rcw v0.2.0
+	github.com/rwinkhart/go-boilerplate v0.1.0
+	github.com/rwinkhart/rcw v0.2.1
 	golang.design/x/clipboard v0.7.1 // only for Android builds
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.39.0
 	gopkg.in/ini.v1 v1.67.0
 )
 
