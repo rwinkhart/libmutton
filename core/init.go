@@ -26,9 +26,11 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		// write config file
 		if len(clientSpecificIniData) > 0 {
 			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
-			if err != nil {
-				return errors.New("unable to write config file: " + err.Error())
-			}
+		} else {
+			err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "offlineMode", "true"}}, nil, false)
+		}
+		if err != nil {
+			return errors.New("unable to write config file: " + err.Error())
 		}
 	} else {
 		// ensure ssh key file exists (and is a file)
