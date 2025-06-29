@@ -1,4 +1,4 @@
-//go:build !windows && !darwin && !android && !termux && !wsl
+//go:build !windows && !darwin && !android && !ios && !termux && !wsl
 
 package core
 

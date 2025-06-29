@@ -1,4 +1,4 @@
-//go:build !windows && !darwin && !android && !termux && !wsl && interactive
+//go:build !windows && !darwin && !android && !ios && !termux && !wsl && interactive
 
 package core
 
