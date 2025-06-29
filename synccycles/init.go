@@ -34,7 +34,7 @@ func DeviceIDGen(oldDeviceID string) (string, string, error) {
 
 	cleanupOnFail := func() {
 		// remove new device ID file
-		os.RemoveAll(newDeviceIDPath)
+		_ = os.RemoveAll(newDeviceIDPath)
 		if oldDeviceID != global.FSMisc {
 			// restore old device ID file (if it existed and has already been removed due to DirInit)
 			if isAccessible, _ := back.TargetIsFile(oldDeviceIDPath, true); !isAccessible {

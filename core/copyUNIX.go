@@ -24,7 +24,7 @@ func copyString(continuous bool, copySubject string) error {
 		return errors.New("clipboard platform could not be determined")
 	}
 
-	back.WriteToStdin(cmdCopy, copySubject)
+	_ = back.WriteToStdin(cmdCopy, copySubject)
 	err := cmdCopy.Run()
 	if err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
