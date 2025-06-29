@@ -1,4 +1,4 @@
-//go:build !android || termux
+//go:build (!android && !ios) || termux
 
 package core
 
