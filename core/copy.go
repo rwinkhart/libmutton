@@ -32,7 +32,7 @@ func CopyArgument(targetLocation string, field int) error {
 	if len(decryptedEntry) > field {
 
 		// ensure field is not empty
-		if decryptedEntry[field] == "" {
+		if field > -1 && decryptedEntry[field] == "" {
 			return errors.New("field is empty")
 		}
 
