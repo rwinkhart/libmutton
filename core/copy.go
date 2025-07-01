@@ -14,6 +14,7 @@ import (
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
+// If field is -1, it will not continuously update the clipboard (one-time copy).
 func CopyArgument(targetLocation string, field int) error {
 	// ensure targetLocation exists and is a file
 	_, err := back.TargetIsFile(targetLocation, true)
@@ -35,7 +36,7 @@ func CopyArgument(targetLocation string, field int) error {
 			return errors.New("field is empty")
 		}
 
-		if field != 2 {
+		if field != 2 && field != -1 {
 			copySubject = decryptedEntry[field]
 		} else { // TOTP mode
 			var secret string // stores secret for TOTP generation
@@ -59,6 +60,9 @@ func CopyArgument(targetLocation string, field int) error {
 				err = copyString(true, token)
 				if err != nil {
 					return err
+				}
+				if field == -1 {
+					return nil // return early (for interactive clients)
 				}
 				// sleep until next 30-second interval
 				time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
