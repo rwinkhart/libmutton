@@ -16,12 +16,14 @@ import (
 // DeviceIDGen generates a new client device ID and registers it with the server (will replace existing one).
 // Device IDs are only needed for online synchronization.
 // Device IDs are guaranteed unique as the current UNIX time is appended to them.
+// Leave prefix empty to use the current hostname as the prefix.
 // Returns: the remote EntryRoot and OS type indicator.
-func DeviceIDGen(oldDeviceID string) (string, string, error) {
+func DeviceIDGen(oldDeviceID, prefix string) (string, string, error) {
 	// generate new device ID
-	deviceIDPrefix, _ := os.Hostname()
-	deviceIDSuffix := StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
-	newDeviceID := deviceIDPrefix + "-" + deviceIDSuffix
+	if prefix == "" {
+		prefix, _ = os.Hostname()
+	}
+	newDeviceID := prefix + "-" + StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 
 	// create new device ID file (locally)
 	newDeviceIDPath := global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID
