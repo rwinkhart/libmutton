@@ -28,16 +28,24 @@ func CopyArgument(targetLocation string, field int) error {
 	}
 	var copySubject string // will store data to be copied
 
+	// handle non-persistent TOTP copy
+	var realField int
+	if field == -1 {
+		realField = 2
+	} else {
+		realField = field
+	}
+
 	// ensure field exists in entry
-	if len(decryptedEntry) > field {
+	if len(decryptedEntry) > realField {
 
 		// ensure field is not empty
-		if field > -1 && decryptedEntry[field] == "" {
+		if decryptedEntry[realField] == "" {
 			return errors.New("field is empty")
 		}
 
-		if field != 2 && field != -1 {
-			copySubject = decryptedEntry[field]
+		if realField != 2 {
+			copySubject = decryptedEntry[realField]
 		} else { // TOTP mode
 			var secret string // stores secret for TOTP generation
 			var forSteam bool // indicates whether to generate TOTP in Steam format
