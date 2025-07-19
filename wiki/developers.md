@@ -46,3 +46,15 @@ If creating a third-party client that requires extra configuration to be stored,
 configKey = <value>
 ```
 This ensures that a user can use multiple client applications with the same configuration while avoiding conflicts.
+
+## Entry Format
+A decrypted libmutton entry is a plaintext file where each line indicates a new field in the entry.
+
+These fields are as follows:
+```
+0/first line: password
+1/second line: username
+2/third line: TOTP secret
+3/fourth line: URL
+4+/fifth line+: notes
+```
