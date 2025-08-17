@@ -12,11 +12,8 @@ libmutton is a library for building simple, SSH-synchronized password managers i
 See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/developers.md).
 
 # Roadmap
-#### Release v0.4.0
-- [x] Swap to native (cascade) encryption
-- [ ] Add refresh/re-encrypt functionality
 #### Release v0.5.0
-- [ ] Implement "netpin" (quick-unlock) with new encryption
+- [ ] Implement "netpin" (quick-unlock)
 - [ ] Password aging support
     - [ ] Append UNIX timestamp to entry names
 #### Release v1.0.0
