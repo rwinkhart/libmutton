@@ -23,7 +23,7 @@ import (
 // offlineMode (whether the client is in offline mode).
 // sshIsWindows (whether the remote server is running Windows),
 // sshEntryRoot (the root directory for entries on the remote server),
-// Only supports key-based authentication (passphrases are supported for CLI-based implementations).
+// Only supports key-based authentication (passwords are supported for CLI-based implementations).
 func GetSSHClient() (*ssh.Client, bool, bool, string, error) {
 	// get SSH config info
 	sshUserConfig, err := cfg.ParseConfig([][2]string{{"LIBMUTTON", "offlineMode"}, {"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshIsWindows"}})
@@ -70,7 +70,7 @@ func GetSSHClient() (*ssh.Client, bool, bool, string, error) {
 	if keyFileProtected != "true" {
 		parsedKey, err = ssh.ParsePrivateKey(key)
 	} else {
-		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassphrase("Enter passphrase for your SSH keyfile:"))
+		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassword("Enter password for your SSH keyfile:"))
 	}
 	if err != nil {
 		return nil, false, false, "", errors.New("unable to parse private key: " + keyFile)

@@ -16,12 +16,12 @@ These are as follows:
 - `termux`: Allows creating an Android binary that can interact with the Termux clipboard (for Android)
 
 ## Required Global Variable Manipulation
-- `global.GetPassphrase` must be set to allow for different types of clients (CLI, GUI, TUI) to prompt for the passphrase in the most appropriate way.
-- `crypt.Daemonize`, true by default, determines whether to make use of the RCW daemon for passphrase caching. This may be best to disable for interactive clients.
+- `global.GetPassword` must be set to allow for different types of clients (CLI, GUI, TUI) to prompt for the password in the most appropriate way.
+- `crypt.Daemonize`, true by default, determines whether to make use of the RCW daemon for password caching. This may be best to disable for interactive clients.
 
 ## Required Arguments
 - `clipclear`: Should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `core.ClipClearArgument()`.
-- `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passphrases. Please accept a `startrcwd` argument that calls `core.RCWDArgument()`.
+- `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `core.RCWDArgument()`.
 
 ## Configuration
 libmutton-based password manager clients should all share the same INI configuration file.

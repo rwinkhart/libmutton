@@ -14,15 +14,15 @@ import (
 )
 
 var Daemonize = true
-var RetryPassphrase = true
+var RetryPassword = true
 
-// RCWDArgument reads the passphrase from stdin and caches it via an RCW daemon.
+// RCWDArgument reads the password from stdin and caches it via an RCW daemon.
 func RCWDArgument() {
-	passphrase := back.ReadFromStdin()
-	if passphrase == "" {
+	password := back.ReadFromStdin()
+	if password == "" {
 		os.Exit(0)
 	}
-	daemon.Start([]byte(passphrase))
+	daemon.Start([]byte(password))
 }
 
 // DecryptFileToSlice decrypts an RCW wrapped file and returns the contents as a slice of (trimmed) strings.
@@ -34,14 +34,14 @@ func DecryptFileToSlice(targetLocation string) ([]string, error) {
 	}
 
 	// decrypt data using RCW daemon
-	passphrase := launchRCWDProcess()
-	if passphrase == nil {
+	password := launchRCWDProcess()
+	if password == nil {
 		// if daemon is already running, use it to decrypt the data
 		return strings.Split(string(daemon.GetDec(encBytes)), "\n"), nil
 	}
 	// if the daemon is not already running, use wrappers.Decrypt
 	// directly to avoid waiting for socket file creation
-	decBytes, err := wrappers.Decrypt(encBytes, passphrase)
+	decBytes, err := wrappers.Decrypt(encBytes, password)
 	if err != nil {
 		return nil, errors.New("unable to decrypt \"" + targetLocation + "\": " + err.Error())
 	}
@@ -50,43 +50,43 @@ func DecryptFileToSlice(targetLocation string) ([]string, error) {
 
 // EncryptBytes encrypts a byte slice using RCW and returns the encrypted data.
 func EncryptBytes(decBytes []byte) []byte {
-	passphrase := launchRCWDProcess()
-	if passphrase == nil {
+	password := launchRCWDProcess()
+	if password == nil {
 		// if daemon is already running, use it to encrypt the data
 		return daemon.GetEnc(decBytes)
 	}
 	// if the daemon is not already running, use wrappers.Encrypt
 	// directly to avoid waiting for socket file creation
-	return wrappers.Encrypt(decBytes, passphrase)
+	return wrappers.Encrypt(decBytes, password)
 }
 
-// launchRCWDProcess launches an RCW daemon to cache a passphrase.
+// launchRCWDProcess launches an RCW daemon to cache a password.
 // If the daemon is not already running OR if not running in daemonize mode,
-// it collects and returns the passphrase (otherwise returns nil).
+// it collects and returns the password (otherwise returns nil).
 func launchRCWDProcess() []byte {
 	if Daemonize && daemon.IsOpen() {
 		return nil
 	}
-	var passphrase []byte
-	if RetryPassphrase {
+	var password []byte
+	if RetryPassword {
 		for {
-			passphrase = global.GetPassphrase("RCW Passphrase:")
-			err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", passphrase)
+			password = global.GetPassword("RCW Password:")
+			err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", password)
 			if err == nil {
 				break
 			}
-			fmt.Println(back.AnsiError + "Incorrect passphrase" + back.AnsiReset)
+			fmt.Println(back.AnsiError + "Incorrect password" + back.AnsiReset)
 		}
 	} else {
 		// in this mode, it is up to the client to perform the sanity check
-		passphrase = global.GetPassphrase("RCW Passphrase:")
+		password = global.GetPassword("RCW Password:")
 	}
 
 	if Daemonize {
 		cmd := exec.Command(os.Args[0], "startrcwd")
-		_ = back.WriteToStdin(cmd, string(passphrase))
+		_ = back.WriteToStdin(cmd, string(password))
 		_ = cmd.Start()
 	}
 
-	return passphrase
+	return password
 }

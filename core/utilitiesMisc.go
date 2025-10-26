@@ -21,14 +21,14 @@ func WriteEntry(targetLocation string, decBytes []byte) error {
 	return nil
 }
 
-// EntryRefresh re-encrypts all libmutton entries with a new passphrase
+// EntryRefresh re-encrypts all libmutton entries with a new password
 // and optimizes each entry to ensure they are as slim as possible.
 // This includes stripping trailing whitespace/newlines/carriage returns
 // from each field and running each note through ClampTrailingWhitespace
 // to ensure each note line is optimized as possible without breaking
 // Markdown formatting.
-// Be sure to verify passphrases before using as input for this function!!
-func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) error {
+// Be sure to verify passwords before using as input for this function!!
+func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) error {
 	// ensure global.EntryRoot+"-new" and global.EntryRoot-"old" do not exist
 	dirEnds := []string{"-new", "-old"}
 	for i, dirEnd := range dirEnds {
@@ -63,7 +63,7 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 		if err != nil {
 			return errors.New("unable to open \"" + targetLocation + "\" for decryption: " + err.Error())
 		}
-		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassphrase)
+		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassword)
 		decryptedEntry := strings.Split(string(decBytes), "\n")
 		if err != nil {
 			return err
@@ -91,8 +91,8 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 			decryptedEntry = append(fieldsMain, fieldsNote...)
 		}
 
-		// re-encrypt the entry with the new passphrase
-		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassphrase)
+		// re-encrypt the entry with the new password
+		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassword)
 
 		// write the entry to the new directory
 		err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(entryName, "/", global.PathSeparator), encBytes, 0600)
@@ -101,7 +101,7 @@ func EntryRefresh(oldRCWPassphrase, newRCWPassphrase []byte, removeOldDir bool) 
 		}
 
 		// generate new sanity check file
-		err = RCWSanityCheckGen(newRCWPassphrase)
+		err = RCWSanityCheckGen(newRCWPassword)
 		if err != nil {
 			return err
 		}

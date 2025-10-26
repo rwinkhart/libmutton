@@ -3,7 +3,7 @@ package global
 type ByteInputFetcher func(prompt string) []byte
 
 var (
-	GetPassphrase ByteInputFetcher // Clients should set this to a function that fetches hidden input from the user
+	GetPassword ByteInputFetcher // Clients should set this to a function that fetches hidden input from the user
 )
 
 const (
