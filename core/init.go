@@ -15,8 +15,13 @@ import (
 
 // LibmuttonInit creates the libmutton config structure based on user input.
 // rcwPassword and clientSpecificIniData can be left blank if not needed.
-func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][3]string, rcwPassword []byte, preserveOldConfigDir bool) error {
-	r := strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (Y/n)"))
+func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][3]string, rcwPassword []byte, preserveOldConfigDir bool, forceOfflineMode bool) error {
+	var r string
+	if !forceOfflineMode {
+		r = strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (Y/n)"))
+	} else {
+		r = "n"
+	}
 	if len(r) > 0 && r[0] == 'n' {
 		// initialize libmutton directories
 		_, err := global.DirInit(preserveOldConfigDir)
