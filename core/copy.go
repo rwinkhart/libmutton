@@ -14,7 +14,8 @@ import (
 )
 
 // CopyArgument copies a field from an entry to the clipboard.
-// If field is -1, it will not continuously update the clipboard (one-time copy).
+// If field is -1, it will one-time copy the TOTP code
+// (instead of keeping the clipboard up-to-date).
 func CopyArgument(targetLocation string, field int) error {
 	// ensure targetLocation exists and is a file
 	_, err := back.TargetIsFile(targetLocation, true)
