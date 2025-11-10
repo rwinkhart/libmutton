@@ -1,6 +1,6 @@
 //go:build windows || (linux && wsl)
 
-package core
+package clip
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-// copyString copies a string to the clipboard.
-func copyString(continuous bool, copySubject string) error {
+// CopyString copies a string to the clipboard.
+func CopyString(continuous bool, copySubject string) error {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {

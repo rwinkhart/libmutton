@@ -1,36 +1,51 @@
-//go:build (android && !termux) || ios
+//go:build (!android && !ios) || termux
 
-package core
+package clip
 
 import (
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"golang.design/x/clipboard"
 )
 
 // clipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
 // assignedContents can be omitted to clear the clipboard immediately and unconditionally.
 func clipClearProcess(assignedContents string) error {
-	clearClipboard := func() {
-		clipboard.Write(clipboard.FmtText, []byte(""))
+	cmdPaste, cmdClear := getClipCommands()
+
+	clearClipboard := func() error {
+		err := cmdClear.Run()
+		if err != nil {
+			return errors.New("unable to clear clipboard")
+		}
 		back.Exit(0)
+		return nil
 	}
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
 	if assignedContents == "" {
-		clearClipboard()
+		err := clearClipboard()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
 	// wait 30 seconds before checking clipboard contents
 	time.Sleep(30 * time.Second)
 
-	newContents := clipboard.Read(clipboard.FmtText)
+	newContents, err := cmdPaste.Output()
+	if err != nil {
+		return errors.New("unable to read clipboard contents")
+	}
 
 	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {
-		clearClipboard()
+		err := clearClipboard()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

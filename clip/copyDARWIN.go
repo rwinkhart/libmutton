@@ -1,6 +1,6 @@
-//go:build android && termux
+//go:build darwin && !ios
 
-package core
+package clip
 
 import (
 	"errors"
@@ -9,9 +9,9 @@ import (
 	"github.com/rwinkhart/go-boilerplate/back"
 )
 
-// copyString copies a string to the clipboard.
-func copyString(continuous bool, copySubject string) error {
-	cmd := exec.Command("termux-clipboard-set")
+// CopyString copies a string to the clipboard.
+func CopyString(continuous bool, copySubject string) error {
+	cmd := exec.Command("pbcopy")
 	_ = back.WriteToStdin(cmd, copySubject)
 	err := cmd.Run()
 	if err != nil {
@@ -25,7 +25,7 @@ func copyString(continuous bool, copySubject string) error {
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
 func getClipCommands() (*exec.Cmd, *exec.Cmd) {
-	cmdClear := exec.Command("termux-clipboard-set")
+	cmdClear := exec.Command("pbcopy")
 	_ = back.WriteToStdin(cmdClear, "")
-	return exec.Command("termux-clipboard-get"), cmdClear
+	return exec.Command("pbpaste"), cmdClear
 }

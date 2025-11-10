@@ -1,6 +1,6 @@
 //go:build !windows && !darwin && !android && !ios && !termux && !wsl && interactive
 
-package core
+package clip
 
 import (
 	"os"

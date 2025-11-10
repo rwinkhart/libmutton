@@ -1,6 +1,6 @@
 //go:build !windows && !darwin && !android && !ios && !termux && !wsl
 
-package core
+package clip
 
 import (
 	"errors"
@@ -10,8 +10,8 @@ import (
 	"github.com/rwinkhart/go-boilerplate/back"
 )
 
-// copyString copies a string to the clipboard.
-func copyString(continuous bool, copySubject string) error {
+// CopyString copies a string to the clipboard.
+func CopyString(continuous bool, copySubject string) error {
 	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	var envSet, isWayland bool // track whether environment variables are set
 	var cmdCopy *exec.Cmd

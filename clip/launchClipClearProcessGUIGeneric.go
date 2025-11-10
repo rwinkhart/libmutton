@@ -1,6 +1,6 @@
 //go:build (windows || darwin || android || ios || termux || wsl) && interactive
 
-package core
+package clip
 
 // LaunchClipClearProcess launches the timed clipboard clearing process.
 // For interactive GUI/TUI implementations, the clipboard clearing process is launched as a goroutine.
