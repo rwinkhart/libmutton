@@ -5,7 +5,7 @@ go 1.25.4
 require (
 	github.com/pkg/sftp v1.13.10
 	github.com/pquerna/otp v1.5.0
-	github.com/rwinkhart/go-boilerplate v0.1.0
+	github.com/rwinkhart/go-boilerplate v0.1.1-0.20251110055016-10ee4f91fcb6
 	github.com/rwinkhart/rcw v0.2.3
 	golang.design/x/clipboard v0.7.1 // only for mobile builds
 	golang.org/x/crypto v0.43.0

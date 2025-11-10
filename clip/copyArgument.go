@@ -40,14 +40,15 @@ func CopyArgument(targetLocation string, field int) error {
 		}
 
 		if realField == 2 { // TOTP mode
-			if field != -1 {
-				fmt.Println("Clipboard refreshing with the current TOTP code until this process is closed")
-			}
+			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
 			errorChan := make(chan error)
 			go TOTPCopier(decSlice[2], field, errorChan, nil) // "done" is not needed because the process runs until the program is killed
 			err = <-errorChan
 			if err != nil { // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
+			}
+			if field != -1 {
+				fmt.Println(back.AnsiGreen + "[Started]" + back.AnsiReset + " TOTP clipboard refresher\n\nService will run until the process is exited")
 			}
 			select {} // block indefinitely
 		} else { // other

@@ -225,7 +225,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	for _, entryName := range downloadList {
 		filesTransferred = true // set a flag to indicate that files have been downloaded (used to determine whether to print a gap between download and upload messages)
 
-		fmt.Println("Downloading " + synccommon.AnsiDownload + entryName + back.AnsiReset)
+		fmt.Println("Downloading " + back.AnsiGreen + entryName + back.AnsiReset)
 
 		// store path to remote entry
 		remoteEntryFullPath := targetLocationFormatSFTP(entryName, sshEntryRoot, sshIsWindows)
@@ -281,7 +281,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 	for _, entryName := range uploadList {
 		filesTransferred = true // set a flag to indicate that files have been uploaded (used to determine whether to print a gap between upload and sync complete messages)
 
-		fmt.Println("Uploading " + synccommon.AnsiUpload + entryName + back.AnsiReset)
+		fmt.Println("Uploading " + back.AnsiBlue + entryName + back.AnsiReset)
 
 		// store path to local entry
 		localEntryFullPath := global.TargetLocationFormat(entryName)
@@ -353,23 +353,23 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows, timeSyn
 		if remoteModTime, present := remoteEntryModMap[entry]; present {
 			// entry exists on both client and server, compare mod times
 			if remoteModTime > localModTime {
-				fmt.Println(synccommon.AnsiDownload+entry+back.AnsiReset, "is newer on server, adding to download list")
+				fmt.Println(back.AnsiGreen+entry+back.AnsiReset, "is newer on server, adding to download list")
 				downloadList = append(downloadList, entry)
 			} else if remoteModTime < localModTime {
-				fmt.Println(synccommon.AnsiUpload+entry+back.AnsiReset, "is newer on client, adding to upload list")
+				fmt.Println(back.AnsiBlue+entry+back.AnsiReset, "is newer on client, adding to upload list")
 				uploadList = append(uploadList, entry)
 			}
 			// remove entry from remoteEntryModMap (process of elimination)
 			delete(remoteEntryModMap, entry)
 		} else {
-			fmt.Println(synccommon.AnsiUpload+entry+back.AnsiReset, "does not exist on server, adding to upload list")
+			fmt.Println(back.AnsiBlue+entry+back.AnsiReset, "does not exist on server, adding to upload list")
 			uploadList = append(uploadList, entry)
 		}
 	}
 
 	// iterate over remaining entries in remoteEntryModMap
 	for entry := range remoteEntryModMap {
-		fmt.Println(synccommon.AnsiDownload+entry+back.AnsiReset, "does not exist on client, adding to download list")
+		fmt.Println(back.AnsiGreen+entry+back.AnsiReset, "does not exist on client, adding to download list")
 		downloadList = append(downloadList, entry)
 	}
 

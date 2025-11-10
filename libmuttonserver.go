@@ -14,8 +14,6 @@ import (
 	"github.com/rwinkhart/libmutton/syncserver"
 )
 
-const ansiBold = "\033[1m"
-
 func main() {
 	args := os.Args
 	if len(args) < 2 {
@@ -93,13 +91,13 @@ func main() {
 }
 
 func helpServer() {
-	fmt.Print(ansiBold + "\nlibmuttonserver | Copyright (c) 2024-2025 Randall Winkhart\n" + back.AnsiReset + `
+	fmt.Print(back.AnsiBold + "\nlibmuttonserver | Copyright (c) 2024-2025 Randall Winkhart\n" + back.AnsiReset + `
 This software exists under the MIT license; you may redistribute it under certain conditions.
 This program comes with absolutely no warranty; type "libmuttonserver version" for details.
 
-` + ansiBold + "Usage:" + back.AnsiReset + ` libmuttonserver <argument>
+` + back.AnsiBold + "Usage:" + back.AnsiReset + ` libmuttonserver <argument>
 
-` + ansiBold + "Arguments (user):" + back.AnsiReset + `
+` + back.AnsiBold + "Arguments (user):" + back.AnsiReset + `
  help                    Bring up this menu
  version                 Display version and license information
  init                    Create the necessary directories for libmuttonserver to function` + "\n\n")
@@ -107,7 +105,7 @@ This program comes with absolutely no warranty; type "libmuttonserver version" f
 }
 
 func versionServer() {
-	fmt.Print(ansiBold + "\n                    MIT License" + back.AnsiReset + `
+	fmt.Print(back.AnsiBold + "\n                    MIT License" + back.AnsiReset + `
 
   Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
@@ -132,5 +130,5 @@ ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
            OR OTHER DEALINGS IN THE SOFTWARE.` + "\n\n---------------------------------------------------------")
-	fmt.Print(ansiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + global.LibmuttonVersion + "\n\n        Copyright (c) 2024-2025: Randall Winkhart" + "\n\n")
+	fmt.Print(back.AnsiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + global.LibmuttonVersion + "\n\n        Copyright (c) 2024-2025: Randall Winkhart" + "\n\n")
 }

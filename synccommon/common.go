@@ -12,9 +12,7 @@ import (
 
 // ANSI color constants used only in this file
 const (
-	AnsiDelete   = "\033[38;5;1m"
-	AnsiDownload = "\033[38;5;2m"
-	AnsiUpload   = "\033[38;5;4m"
+	AnsiDelete = "\033[38;5;1m"
 )
 
 var RootLength = len(global.EntryRoot) // length of global.EntryRoot string
@@ -119,7 +117,7 @@ func AddFolderLocal(targetLocationIncomplete string) error {
 	err := os.Mkdir(targetLocationComplete, 0700)
 	if err != nil {
 		if os.IsExist(err) {
-			fmt.Println(AnsiUpload + "Directory already exists - libmutton will still ensure it exists on the server")
+			fmt.Println(back.AnsiBlue + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {
 			return errors.New("unable to create directory: " + err.Error())
 		}
