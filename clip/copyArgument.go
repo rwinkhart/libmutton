@@ -46,9 +46,10 @@ func CopyArgument(targetLocation string, field int) error {
 			errorChan := make(chan error)
 			go TOTPCopier(decSlice[2], field, errorChan, nil) // "done" is not needed because the process runs until the program is killed
 			err = <-errorChan
-			if err != nil { // block until first successful copy
+			if err != nil { // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
 			}
+			select {} // block indefinitely
 		} else { // other
 			copySubject = decSlice[realField]
 		}
