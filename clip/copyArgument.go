@@ -48,7 +48,7 @@ func CopyArgument(targetLocation string, field int) error {
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
 			}
 			if field != -1 {
-				fmt.Println(back.AnsiGreen + "[Started]" + back.AnsiReset + " TOTP clipboard refresher\n\nService will run until the process is exited")
+				fmt.Println(back.AnsiGreen + "[Started]" + back.AnsiReset + " TOTP clipboard refresher\n\nService will run until this process is killed")
 			}
 			select {} // block indefinitely
 		} else { // other
