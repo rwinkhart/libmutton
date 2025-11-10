@@ -10,9 +10,9 @@ import (
 	"golang.design/x/clipboard"
 )
 
-// clipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
+// ClipClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
 // assignedContents can be omitted to clear the clipboard immediately and unconditionally.
-func clipClearProcess(assignedContents string) error {
+func ClipClearProcess(assignedContents string) error {
 	clearClipboard := func() {
 		clipboard.Write(clipboard.FmtText, []byte(""))
 		back.Exit(0)

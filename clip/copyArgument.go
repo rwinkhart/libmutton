@@ -71,6 +71,6 @@ func ClipClearArgument() error {
 	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
-	err := clipClearProcess(assignedContents)
+	err := ClipClearProcess(assignedContents)
 	return err
 }
