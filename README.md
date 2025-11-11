@@ -13,9 +13,11 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v0.5.0
-- [ ] Implement "netpin" (quick-unlock)
+- [ ] Clipboard refactor
+#### Release v0.6.0
 - [ ] Password aging support
-    - [ ] Append UNIX timestamp to entry names
+#### Release v0.7.0
+- [ ] Implement "netpin" (quick-unlock)
 #### Release v1.0.0
 - [ ] Create packaging scripts (libmuttonserver)
     - [ ] Stable source PKGBUILD
