@@ -3,10 +3,6 @@
 
 libmutton was designed to be usable as a library for building other compatible password managers off of. [MUTN](https://github.com/rwinkhart/MUTN) is the official reference CLI password manager, however libmutton can be implemented in many other unique ways.
 
-All functionality in the `core` and `sync` packages are designed to be used in other implementations.
-
-If any functionality in these two packages proves to be difficult to implement in a third-party client, please open an issue so that it can be addressed.
-
 ## Build Tags
 Custom build tags can (and sometimes must) be used to achieve desired results.
 
@@ -18,10 +14,11 @@ These are as follows:
 ## Required Global Variable Manipulation
 - `global.GetPassword` must be set to allow for different types of clients (CLI, GUI, TUI) to prompt for the password in the most appropriate way.
 - `crypt.Daemonize`, true by default, determines whether to make use of the RCW daemon for password caching. This may be best to disable for interactive clients.
+- `crypt.RetryPassword`, true by default, determines whether the crypt package should verify user-typed passwords and re-prompt if needed. Turn this off to handle this uniquely in the client.
 
 ## Required Arguments
-- `clipclear`: Should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `core.ClipClearArgument()`.
-- `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `core.RCWDArgument()`.
+- `clipclear`: Should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `clip.ClipClearArgument()`.
+- `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `crypt.RCWDArgument()`.
 
 ## Configuration
 libmutton-based password manager clients should all share the same INI configuration file.
