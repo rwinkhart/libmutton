@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"syscall"
 
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/global"
@@ -85,7 +84,7 @@ func launchRCWDProcess() []byte {
 
 	if Daemonize {
 		cmd := exec.Command(os.Args[0], "startrcwd")
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+		cmd.SysProcAttr = global.GetSysProcAttr()
 		_ = back.WriteToStdin(cmd, string(password))
 		_ = cmd.Start()
 	}
