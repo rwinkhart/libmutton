@@ -12,5 +12,5 @@ import (
 // copySubject can be omitted to clear the clipboard immediately and unconditionally.
 func LaunchClipClearProcess(copySubject string, isWayland bool) {
 	os.Args = []string{os.Args[0], "", strconv.FormatBool(isWayland)}
-	go clipClearProcess(copySubject)
+	go ClipClearProcess(copySubject)
 }
