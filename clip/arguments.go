@@ -35,7 +35,7 @@ func CopyShortcut(targetLocation string, field int) error {
 		if field == 2 { // TOTP mode
 			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
 			errorChan := make(chan error)
-			go TOTPCopier(decSlice[2], field, errorChan, nil) // "done" is not needed because the process runs until the program is killed
+			go TOTPCopier(decSlice[2], errorChan, nil) // "done" is not needed because the process runs until the program is killed
 			err = <-errorChan
 			if err != nil { // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())

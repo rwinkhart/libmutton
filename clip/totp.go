@@ -31,7 +31,7 @@ func GenTOTP(secret string, time time.Time, forSteam bool) (string, error) {
 
 // TOTPCopier is meant to be run as a goroutine to keep
 // the clipboard up-to-date with the latest TOTP token.
-func TOTPCopier(secret string, oneTime int, errorChan chan<- error, done <-chan bool) error {
+func TOTPCopier(secret string, errorChan chan<- error, done <-chan bool) {
 	var forSteam bool
 	if strings.HasPrefix(secret, "steam@") {
 		secret = secret[6:]
@@ -43,25 +43,21 @@ func TOTPCopier(secret string, oneTime int, errorChan chan<- error, done <-chan 
 		token, err := GenTOTP(secret, currentTime, forSteam)
 		if err != nil {
 			errorChan <- err
-			return err // return for when not used as goroutine; should exit on error regardless
 		}
 		err = CopyString(false, token)
 		if err != nil {
 			errorChan <- err
-			return err // return for when not used as goroutine; should exit on error regardless
 		}
-		if oneTime != -1 {
-			errorChan <- err
-			time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
-		} else {
-			return nil
-		}
+
+		errorChan <- nil // indicate that first copy was successful
+
+		// sleep till next 30-second interval
+		time.Sleep(time.Duration(30-(currentTime.Second()%30)) * time.Second)
 
 		// exit after sleep if indicated (will not update clipboard again)
 		select {
 		case <-done:
-			errorChan <- err
-			return nil
+			return
 		default:
 		}
 	}
