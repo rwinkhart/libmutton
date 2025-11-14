@@ -11,7 +11,7 @@ import (
 )
 
 // CopyString copies a string to the clipboard.
-func CopyString(continuous bool, copySubject string) error {
+func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	var envSet, isWayland bool // track whether environment variables are set
 	var cmdCopy *exec.Cmd
@@ -29,7 +29,7 @@ func CopyString(continuous bool, copySubject string) error {
 	if err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
-	if !continuous {
+	if clearClipboardAutomatically {
 		LaunchClipClearProcess(copySubject, isWayland)
 	}
 	return nil

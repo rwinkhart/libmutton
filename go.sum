@@ -12,8 +12,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/otp v1.5.0 h1:NMMR+WrmaqXU4EzdGJEE1aUUI0AMRzsp96fFFWNPwxs=
 github.com/pquerna/otp v1.5.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
-github.com/rwinkhart/go-boilerplate v0.1.0 h1:EzlVj6R7Bxtl79Nl7R5zRcg6s+Cf2FAqGIzR4giWTQg=
-github.com/rwinkhart/go-boilerplate v0.1.0/go.mod h1:cnzIF45I0FCOvE4YIB+26pLCUx2kWyY2llKYZruNaRY=
 github.com/rwinkhart/go-boilerplate v0.1.1-0.20251110055016-10ee4f91fcb6 h1:tGGtw5Wr4laDrU7Ooe95g4E+O6c+oY18atamcMPaMY8=
 github.com/rwinkhart/go-boilerplate v0.1.1-0.20251110055016-10ee4f91fcb6/go.mod h1:cnzIF45I0FCOvE4YIB+26pLCUx2kWyY2llKYZruNaRY=
 github.com/rwinkhart/go-winio v0.1.0 h1:b72agLW+dETGmhR3VbcbwnStfgKfc5AfgJOXBJDkaHg=
@@ -28,16 +26,8 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-golang.design/x/clipboard v0.7.1 h1:OEG3CmcYRBNnRwpDp7+uWLiZi3hrMRJpE9JkkkYtz2c=
-golang.design/x/clipboard v0.7.1/go.mod h1:i5SiIqj0wLFw9P/1D7vfILFK0KHMk7ydE72HRrUIgkg=
 golang.org/x/crypto v0.43.0 h1:dduJYIi3A3KOfdGOHX8AVZ/jGiyPa3IbBozJ5kNuE04=
 golang.org/x/crypto v0.43.0/go.mod h1:BFbav4mRNlXJL4wNeejLpWxB7wMbc79PdRGhWKncxR0=
-golang.org/x/exp/shiny v0.0.0-20251017212417-90e834f514db h1:NmsmaSkEAq6A8r0Q78WxD0IygJNCs6J3uYDgNuPkXYM=
-golang.org/x/exp/shiny v0.0.0-20251017212417-90e834f514db/go.mod h1:QMAAUorQ8fzCK0C6mr4X4XV9BEp7Al6+jlejJvfYKw4=
-golang.org/x/image v0.32.0 h1:6lZQWq75h7L5IWNk0r+SCpUJ6tUVd3v4ZHnbRKLkUDQ=
-golang.org/x/image v0.32.0/go.mod h1:/R37rrQmKXtO6tYXAjtDLwQgFLHmhW+V6ayXlxzP2Pc=
-golang.org/x/mobile v0.0.0-20251021151156-188f512ec823 h1:M0DtBf/UvJoTH+tk6tgHT2NVxNEJCYhVu1g/xeD+GEk=
-golang.org/x/mobile v0.0.0-20251021151156-188f512ec823/go.mod h1:3QSlP0AtP6HPTLbsxfgfefGN76jpIB9yBsMqB8UY37I=
 golang.org/x/term v0.36.0 h1:zMPR+aF8gfksFprF/Nc/rd1wRS1EI6nDBGyWAvDzx2Q=
 golang.org/x/term v0.36.0/go.mod h1:Qu394IJq6V6dCBRgwqshf3mPF85AqzYEzofzRdZkWss=
 gopkg.in/ini.v1 v1.67.0 h1:Dgnx+6+nfE+IfzjUEISNeydPJh9AXNNsWbGP9KzCsOA=

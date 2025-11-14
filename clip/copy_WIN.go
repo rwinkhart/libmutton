@@ -10,13 +10,13 @@ import (
 )
 
 // CopyString copies a string to the clipboard.
-func CopyString(continuous bool, copySubject string) error {
+func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
 	err := cmd.Run()
 	if err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
-	if !continuous {
+	if clearClipboardAutomatically {
 		LaunchClipClearProcess(copySubject)
 	}
 	return nil

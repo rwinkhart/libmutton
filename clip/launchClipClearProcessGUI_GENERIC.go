@@ -1,4 +1,4 @@
-//go:build (windows || darwin || android || ios || termux || wsl) && interactive
+//go:build (windows || wsl || (darwin && !ios) || (android && termux)) && interactive
 
 package clip
 
