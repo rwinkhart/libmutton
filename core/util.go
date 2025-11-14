@@ -4,7 +4,10 @@ import (
 	"errors"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/crypt"
 	"github.com/rwinkhart/libmutton/global"
@@ -177,4 +180,23 @@ func EntryIsNotEmpty(entryData []string) bool {
 		}
 	}
 	return false
+}
+
+// GenTOTP generates a TOTP token from a secret.
+// Prefix `secret` with "steam@" for Steam TOTP format.
+func GenTOTP(secret string, time time.Time) (string, error) {
+	var totpToken string
+	var err error
+
+	if strings.HasPrefix(secret, "steam@") {
+		totpToken, err = totp.GenerateCodeCustom(secret[6:], time, totp.ValidateOpts{Period: 30, Digits: 5, Encoder: otp.EncoderSteam})
+	} else {
+		totpToken, err = totp.GenerateCode(secret, time)
+	}
+
+	if err != nil {
+		return "", errors.New("unable to generate TOTP token: " + err.Error())
+	}
+
+	return totpToken, nil
 }
