@@ -1,3 +1,5 @@
+//go:build (!android && !ios) || termux
+
 package clip
 
 import (
@@ -9,37 +11,28 @@ import (
 	"github.com/rwinkhart/libmutton/crypt"
 )
 
-// CopyArgument copies a field from an entry to the clipboard.
-// If field is -1, it will one-time copy the TOTP code
-// (instead of keeping the clipboard up-to-date).
-func CopyArgument(targetLocation string, field int) error {
+// CopyShortcut, given a path, decrypts an
+// entry and copies a field to the clipboard.
+func CopyShortcut(targetLocation string, field int) error {
 	// ensure targetLocation exists and is a file
 	_, err := back.TargetIsFile(targetLocation, true)
 	if err != nil {
 		return err
 	}
 
+	// decrypt entry
 	decSlice, err := crypt.DecryptFileToSlice(targetLocation)
 	if err != nil {
 		return errors.New("unable to decrypt entry: " + err.Error())
 	}
 
-	// handle non-persistent TOTP copy
-	var copySubject string
-	var realField int
-	if field == -1 {
-		realField = 2
-	} else {
-		realField = field
-	}
-
 	// if field exists in entry...
-	if len(decSlice) > realField {
-		if decSlice[realField] == "" {
+	if len(decSlice) > field {
+		if decSlice[field] == "" {
 			return errors.New("field is empty")
 		}
 
-		if realField == 2 { // TOTP mode
+		if field == 2 { // TOTP mode
 			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
 			errorChan := make(chan error)
 			go TOTPCopier(decSlice[2], field, errorChan, nil) // "done" is not needed because the process runs until the program is killed
@@ -52,19 +45,16 @@ func CopyArgument(targetLocation string, field int) error {
 			}
 			select {} // block indefinitely
 		} else { // other
-			copySubject = decSlice[realField]
+			// copy field to clipboard; launch clipboard clearing process
+			err = CopyString(true, decSlice[field])
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 	} else {
 		return errors.New("field does not exist in entry")
 	}
-
-	// copy field to clipboard; launch clipboard clearing process
-	err = CopyString(false, copySubject)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.

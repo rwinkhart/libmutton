@@ -21,7 +21,7 @@ These are as follows:
 - `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `crypt.RCWDArgument()`.
 
 ## Mobile Clipboard Management
-In an effort to reduce dependencies not needed in most environments, libmutton no longer provides clipboard management for mobile platforms. This should be handled by your GUI toolkit/framework.
+In an effort to reduce dependencies not needed in most environments, libmutton no longer provides clipboard management for mobile platforms (except for Termux). This should be handled by your GUI toolkit/framework.
 
 ## Configuration
 libmutton-based password manager clients should all share the same INI configuration file.
