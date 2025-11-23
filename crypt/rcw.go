@@ -84,6 +84,7 @@ func launchRCWDProcess() []byte {
 
 	if Daemonize {
 		cmd := exec.Command(os.Args[0], "startrcwd")
+		cmd.SysProcAttr = global.GetSysProcAttr()
 		_ = back.WriteToStdin(cmd, string(password))
 		_ = cmd.Start()
 	}
