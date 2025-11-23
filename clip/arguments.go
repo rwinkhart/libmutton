@@ -13,15 +13,15 @@ import (
 
 // CopyShortcut, given a path, decrypts an
 // entry and copies a field to the clipboard.
-func CopyShortcut(targetLocation string, field int) error {
-	// ensure targetLocation exists and is a file
-	_, err := back.TargetIsFile(targetLocation, true)
+func CopyShortcut(realPath string, field int) error {
+	// ensure realPath exists and is a file
+	_, err := back.TargetIsFile(realPath, true)
 	if err != nil {
 		return err
 	}
 
 	// decrypt entry
-	decSlice, err := crypt.DecryptFileToSlice(targetLocation)
+	decSlice, err := crypt.DecryptFileToSlice(realPath)
 	if err != nil {
 		return errors.New("unable to decrypt entry: " + err.Error())
 	}

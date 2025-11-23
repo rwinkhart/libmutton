@@ -13,11 +13,10 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v0.5.0
-- [ ] Clipboard refactor
+- Clipboard refactor
+- Password aging support
 #### Release v0.6.0
-- [ ] Password aging support
-#### Release v0.7.0
-- [ ] Implement "netpin" (quick-unlock)
+- Implement "netpin" (quick-unlock)
 #### Release v1.0.0
 - [ ] Create packaging scripts (libmuttonserver)
     - [ ] Stable source PKGBUILD

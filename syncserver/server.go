@@ -17,6 +17,13 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 	entryList, dirList, _ := synccommon.WalkEntryDir()
 	modList := synccommon.GetModTimes(entryList)
 	deletionsList, _ := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
+	vanityPathsToTimestamps, _ := synccommon.GetEntryAges()
+	var ageVanityPaths []string
+	var ageTimestamps []int64
+	for vanityPath, timestamp := range vanityPathsToTimestamps {
+		ageVanityPaths = append(ageVanityPaths, vanityPath)
+		ageTimestamps = append(ageTimestamps, timestamp)
+	}
 
 	// print the current UNIX timestamp to stdout
 	fmt.Print(time.Now().Unix())
@@ -35,6 +42,19 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 		fmt.Print(mod)
 	}
 
+	// age file list
+	fmt.Print(global.FSSpace)
+	for _, file := range ageVanityPaths {
+		fmt.Print(global.FSMisc + file)
+	}
+
+	// age file timestamp list
+	fmt.Print(global.FSSpace)
+	for _, timestamp := range ageTimestamps {
+		fmt.Print(global.FSMisc)
+		fmt.Print(timestamp)
+	}
+
 	// directory/folder list
 	fmt.Print(global.FSSpace)
 	for _, dir := range dirList {
@@ -44,13 +64,13 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 	// deletions list
 	fmt.Print(global.FSSpace)
 	for _, deletion := range deletionsList {
-		// print deletion if it is relevant to the current client device
-		affectedIDTargetLocationIncomplete := strings.Split(deletion.Name(), global.FSSpace)
-		if affectedIDTargetLocationIncomplete[0] == clientDeviceID {
-			fmt.Print(global.FSMisc + strings.ReplaceAll(affectedIDTargetLocationIncomplete[1], global.FSPath, "/"))
+		// perform deletion if it is relevant to the current client device
+		affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
+		if affectedIDVanityPath[0] == clientDeviceID {
+			fmt.Print(global.FSMisc + strings.ReplaceAll(affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2], global.FSPath, "/"))
 
 			// assume successful client deletion and remove deletions file (if assumption is somehow false, worst case scenario is that the client will re-upload the deleted entry)
-			_ = os.Remove(global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
+			_ = os.RemoveAll(global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
 		}
 	}
 }

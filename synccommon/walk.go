@@ -1,5 +1,3 @@
-//go:build windows
-
 package synccommon
 
 import (
@@ -7,21 +5,20 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/rwinkhart/libmutton/global"
 )
 
-// WalkEntryDir walks the entry directory and returns lists of all files and directories found (two separate lists).
+// WalkEntryDir walks the entry directory and returns lists of all files and
+// directories found (two separate lists) relative to the libmutton entry root.
 // Regardless of platform, all paths are stored with forward slashes (UNIX-style).
 func WalkEntryDir() ([]string, []string, error) {
 	// define file/directory containing slices so that they may be accessed by the anonymous WalkDir function
-	var fileList []string
-	var dirList []string
+	var fileList, dirList []string
 
 	// walk entry directory
 	err := filepath.WalkDir(global.EntryRoot,
-		func(fullPath string, entry fs.DirEntry, err error) error {
+		func(realPath string, entry fs.DirEntry, err error) error {
 
 			// check for errors encountered while walking directory
 			if err != nil {
@@ -33,13 +30,13 @@ func WalkEntryDir() ([]string, []string, error) {
 			}
 
 			// trim root path from each path before storing and replace backslashes with forward slashes
-			trimmedPath := strings.ReplaceAll(fullPath[RootLength:], "\\", "/")
+			vanityPath := global.GetVanityPath(realPath)
 
 			// append the path to the appropriate slice
 			if !entry.IsDir() {
-				fileList = append(fileList, trimmedPath)
+				fileList = append(fileList, vanityPath)
 			} else {
-				dirList = append(dirList, trimmedPath)
+				dirList = append(dirList, vanityPath)
 			}
 
 			return nil

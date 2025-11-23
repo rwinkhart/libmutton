@@ -39,5 +39,11 @@ func DirInit(preserveOldConfigDir bool) (string, error) {
 		return "", errors.New("unable to create \"" + ConfigDir + "\": " + err.Error())
 	}
 
+	// create password aging directory
+	err = os.MkdirAll(AgeDir, 0700)
+	if err != nil {
+		return "", errors.New("unable to create \"" + AgeDir + "\": " + err.Error())
+	}
+
 	return oldDeviceID, nil
 }

@@ -26,11 +26,11 @@ func RCWDArgument() {
 }
 
 // DecryptFileToSlice decrypts an RCW wrapped file and returns the contents as a slice of (trimmed) strings.
-func DecryptFileToSlice(targetLocation string) ([]string, error) {
+func DecryptFileToSlice(realPath string) ([]string, error) {
 	// read encrypted file
-	encBytes, err := os.ReadFile(targetLocation)
+	encBytes, err := os.ReadFile(realPath)
 	if err != nil {
-		return nil, errors.New("unable to open \"" + targetLocation + "\" for decryption: " + err.Error())
+		return nil, errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
 	}
 
 	// decrypt data using RCW daemon
@@ -43,7 +43,7 @@ func DecryptFileToSlice(targetLocation string) ([]string, error) {
 	// directly to avoid waiting for socket file creation
 	decBytes, err := wrappers.Decrypt(encBytes, password)
 	if err != nil {
-		return nil, errors.New("unable to decrypt \"" + targetLocation + "\": " + err.Error())
+		return nil, errors.New("unable to decrypt \"" + realPath + "\": " + err.Error())
 	}
 	return strings.Split(string(decBytes), "\n"), nil
 }

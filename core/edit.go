@@ -10,15 +10,15 @@ import (
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
 // This is a wrapper around the DecryptFileToSlice function that ensures all required lines are present in the returned slice.
 // This makes it ideal for editing entries, as it guarantees at least a baseline slice length.
-func GetOldEntryData(targetLocation string, field int) ([]string, error) {
-	// ensure targetLocation exists and is a file
-	_, err := back.TargetIsFile(targetLocation, true)
+func GetOldEntryData(realPath string, field int) ([]string, error) {
+	// ensure realPath exists and is a file
+	_, err := back.TargetIsFile(realPath, true)
 	if err != nil {
 		return nil, err
 	}
 
 	// read old entry data
-	decryptedEntry, err := crypt.DecryptFileToSlice(targetLocation)
+	decryptedEntry, err := crypt.DecryptFileToSlice(realPath)
 	if err != nil {
 		return nil, errors.New("unable to decrypt entry: " + err.Error())
 	}

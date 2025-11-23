@@ -74,16 +74,17 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 				{"LIBMUTTON", "sshKey", sshKeyPath},
 				{"LIBMUTTON", "sshKeyProtected", strconv.FormatBool(sshKeyProtected)},
 				{"LIBMUTTON", "sshEntryRoot", "null"},
+				{"LIBMUTTON", "sshAgeDir", "null"},
 				{"LIBMUTTON", "sshIsWindows", "false"}}...), nil, false)
 		if err != nil {
 			return errors.New("unable to write config file: " + err.Error())
 		}
 		// generate and register device ID
-		sshEntryRoot, sshIsWindows, err := synccycles.DeviceIDGen(oldDeviceID, "")
+		sshEntryRoot, sshAgeDir, sshIsWindows, err := synccycles.DeviceIDGen(oldDeviceID, "")
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
-		err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
+		err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshAgeDir", sshAgeDir}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
 		if err != nil {
 			return errors.New("unable to write config file: " + err.Error())
 		}

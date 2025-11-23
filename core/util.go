@@ -9,18 +9,38 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/libmutton/age"
 	"github.com/rwinkhart/libmutton/crypt"
 	"github.com/rwinkhart/libmutton/global"
+	"github.com/rwinkhart/libmutton/syncclient"
 	"github.com/rwinkhart/libmutton/synccommon"
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
-// WriteEntry writes entryData to an encrypted file at targetLocation.
-func WriteEntry(targetLocation string, decBytes []byte) error {
-	err := os.WriteFile(targetLocation, crypt.EncryptBytes(decBytes), 0600)
+// WriteEntry writes entryData to an encrypted file at realPath.
+// If the entry contains an updated password, an aging file is also created.
+func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
+	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(decSlice, "\n"))), 0600)
 	if err != nil {
 		return errors.New("unable to write to file: " + err.Error())
 	}
+
+	if decSlice != nil {
+		if passwordIsNew { // update aging data when password changes
+			if decSlice[0] != "" { // if the password change was NOT a removal, update the aging file
+				err = age.AgeEntry(global.GetVanityPath(realPath), time.Now().Unix())
+				if err != nil {
+					return errors.New("unable to update aging data: " + err.Error())
+				}
+			} else { // if the password change was a removal, remove the associated aging file
+				err = syncclient.ShearRemoteFromClient(global.GetVanityPath(realPath), true)
+				if err != nil {
+					return errors.New("unable to remove aging data: " + err.Error())
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -60,11 +80,11 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 	}
 
 	// decrypt, optimize, and re-encrypt each entry
-	for _, entryName := range entries {
-		targetLocation := global.TargetLocationFormat(entryName)
-		encBytes, err := os.ReadFile(targetLocation)
+	for _, vanityPath := range entries {
+		realPath := global.GetRealPath(vanityPath)
+		encBytes, err := os.ReadFile(realPath)
 		if err != nil {
-			return errors.New("unable to open \"" + targetLocation + "\" for decryption: " + err.Error())
+			return errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
 		}
 		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassword)
 		decryptedEntry := strings.Split(string(decBytes), "\n")
@@ -98,7 +118,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassword)
 
 		// write the entry to the new directory
-		err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(entryName, "/", global.PathSeparator), encBytes, 0600)
+		err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(vanityPath, "/", global.PathSeparator), encBytes, 0600)
 		if err != nil {
 			return errors.New("unable to write to file: " + err.Error())
 		}
@@ -155,16 +175,16 @@ func ClampTrailingWhitespace(note []string) {
 }
 
 // EntryAddPrecheck ensures the directory meant to contain a new
-// entry exists and that the target entry location is not already used.
-// Returns: statusCode (0 = success, 1 = target location already exists, 2 = containing directory is invalid).
-func EntryAddPrecheck(targetLocation string) (uint8, error) {
-	// ensure target location does not already exist
-	isAccessible, _ := back.TargetIsFile(targetLocation, false) // error is ignored because dir/file status is irrelevant
+// entry exists and that realPath is not already used.
+// Returns: statusCode (0 = success, 1 = realPath already exists, 2 = containing directory is invalid).
+func EntryAddPrecheck(realPath string) (uint8, error) {
+	// ensure realPath does not already exist
+	isAccessible, _ := back.TargetIsFile(realPath, false) // error is ignored because dir/file status is irrelevant
 	if isAccessible {
 		return 1, errors.New("target location already exists")
 	}
 	// ensure target containing directory exists and is not a file
-	containingDir := targetLocation[:strings.LastIndex(targetLocation, global.PathSeparator)]
+	containingDir := realPath[:strings.LastIndex(realPath, global.PathSeparator)]
 	_, err := back.TargetIsFile(containingDir, false)
 	if err != nil {
 		return 2, errors.New("\"" + containingDir + "\" is not a valid containing directory: " + err.Error())

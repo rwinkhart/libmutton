@@ -17,8 +17,8 @@ import (
 // Device IDs are only needed for online synchronization.
 // Device IDs are guaranteed unique as the current UNIX time is appended to them.
 // Leave prefix empty to use the current hostname as the prefix.
-// Returns: the remote EntryRoot and OS type indicator.
-func DeviceIDGen(oldDeviceID, prefix string) (string, string, error) {
+// Returns: the remote EntryRoot, the remote AgeDir, and OS type indicator.
+func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 	// generate new device ID
 	if prefix == "" {
 		prefix, _ = os.Hostname()
@@ -30,7 +30,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, error) {
 	oldDeviceIDPath := global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID
 	f, err := os.OpenFile(newDeviceIDPath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return "", "", errors.New("unable to create local device ID file: " + err.Error())
+		return "", "", "", errors.New("unable to create local device ID file: " + err.Error())
 	}
 	_ = f.Close() // error ignored; if the file could be created, it can probably be closed
 
@@ -49,24 +49,24 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, error) {
 	// register new device ID with server and fetch remote EntryRoot and OS type
 	// also removes the old device ID file (remotely)
 	// if registration fails, remove the new device ID file locally and return before removing the old one
-	sshClient, _, _, _, err := syncclient.GetSSHClient()
+	sshClient, _, _, _, _, err := syncclient.GetSSHClient()
 	if err != nil {
 		cleanupOnFail()
-		return "", "", errors.New("unable to connect to SSH client: " + err.Error())
+		return "", "", "", errors.New("unable to connect to SSH client: " + err.Error())
 	}
 	output, err := syncclient.GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID)
 	if err != nil {
 		cleanupOnFail()
-		return "", "", errors.New("unable to register device ID with server: " + err.Error())
+		return "", "", "", errors.New("unable to register device ID with server: " + err.Error())
 	}
-	sshEntryRootSSHIsWindows := strings.Split(output, global.FSSpace)
+	sshEntryRootSSHAgeDirSSHIsWindows := strings.Split(output, global.FSSpace)
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(oldDeviceIDPath)
 	if err != nil {
-		return "", "", errors.New("unable to remove old device ID file (locally): " + err.Error())
+		return "", "", "", errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}
 
-	return sshEntryRootSSHIsWindows[0], sshEntryRootSSHIsWindows[1], nil
+	return sshEntryRootSSHAgeDirSSHIsWindows[0], sshEntryRootSSHAgeDirSSHIsWindows[1], sshEntryRootSSHAgeDirSSHIsWindows[2], nil
 }
