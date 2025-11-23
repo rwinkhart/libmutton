@@ -587,6 +587,5 @@ func RunJob(returnLists bool) ([3][]string, error) {
 	if err != nil {
 		return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 	}
-	back.Exit(0)      // exit program if running non-interactively
 	return lists, nil // dummy return for when not returning lists
 }
