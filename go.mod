@@ -7,7 +7,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/rwinkhart/go-boilerplate v0.1.1-0.20251110055016-10ee4f91fcb6
 	github.com/rwinkhart/rcw v0.2.3
-	golang.org/x/crypto v0.43.0
+	golang.org/x/crypto v0.45.0
 	gopkg.in/ini.v1 v1.67.0
 )
 
