@@ -15,8 +15,8 @@ import (
 // It can safely be called in offline mode, as well, so this is
 // the intended interface for shearing (ShearLocal should only
 // be used directly by the server binary).
-func ShearRemoteFromClient(vanityPath string, onlyShearAgingFile bool) error {
-	deviceID, isDir, err := synccommon.ShearLocal(vanityPath, "", onlyShearAgingFile) // remove the target from the local system and get the device ID of the client
+func ShearRemoteFromClient(vanityPath string, onlyShearAgeFile bool) error {
+	deviceID, isDir, err := synccommon.ShearLocal(vanityPath, "", onlyShearAgeFile) // remove the target from the local system and get the device ID of the client
 	if err != nil {
 		return errors.New("unable to shear target locally: " + err.Error())
 	}
@@ -39,7 +39,7 @@ func ShearRemoteFromClient(vanityPath string, onlyShearAgingFile bool) error {
 	}
 
 	// call the server to remotely shear the target and add it to the deletions list
-	if onlyShearAgingFile {
+	if onlyShearAgeFile {
 		modifier = "-age"
 	}
 	_, err = GetSSHOutput(sshClient, "libmuttonserver shear"+modifier, deviceID+"\n"+strings.ReplaceAll(vanityPath, global.PathSeparator, global.FSPath))

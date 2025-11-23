@@ -51,7 +51,7 @@ func main() {
 		// stdin[1] is expected to be the vanityPath with FSPath representing path separators - Always pass in UNIX format
 		_, _, _ = synccommon.ShearLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), stdin[0], false)
 	case "shear-age":
-		// shear ONLY the aging file associated with an entry from the server and add it to the deletions directory
+		// shear ONLY the age file associated with an entry from the server and add it to the deletions directory
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the vanityPath with FSPath representing path separators - Always pass in UNIX format
 		_, _, _ = synccommon.ShearLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), stdin[0], true)

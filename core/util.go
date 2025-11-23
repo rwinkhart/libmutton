@@ -18,7 +18,7 @@ import (
 )
 
 // WriteEntry writes entryData to an encrypted file at realPath.
-// If the entry contains an updated password, an aging file is also created.
+// If the entry contains an updated password, an age file is also created.
 func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
 	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(decSlice, "\n"))), 0600)
 	if err != nil {
@@ -26,16 +26,16 @@ func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
 	}
 
 	if decSlice != nil {
-		if passwordIsNew { // update aging data when password changes
-			if decSlice[0] != "" { // if the password change was NOT a removal, update the aging file
+		if passwordIsNew { // update age data when password changes
+			if decSlice[0] != "" { // if the password change was NOT a removal, update the age file
 				err = age.AgeEntry(global.GetVanityPath(realPath), time.Now().Unix())
 				if err != nil {
-					return errors.New("unable to update aging data: " + err.Error())
+					return errors.New("unable to update age data: " + err.Error())
 				}
-			} else { // if the password change was a removal, remove the associated aging file
+			} else { // if the password change was a removal, remove the associated age file
 				err = syncclient.ShearRemoteFromClient(global.GetVanityPath(realPath), true)
 				if err != nil {
-					return errors.New("unable to remove aging data: " + err.Error())
+					return errors.New("unable to remove age data: " + err.Error())
 				}
 			}
 		}

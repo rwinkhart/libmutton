@@ -32,7 +32,7 @@ func GetModTimes(entryList []string) []int64 {
 // isDir (only on client; for use in ShearRemoteFromClient).
 // If the local system is a server, it will also add the target to the deletions list for all clients (except the requesting client).
 // This function should only be used directly by the server binary.
-func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgingFile bool) (string, bool, error) {
+func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgeFile bool) (string, bool, error) {
 	// determine if running on a server
 	var onServer bool
 	if clientDeviceID != "" {
@@ -48,7 +48,7 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgingFile bool) (str
 	if onServer {
 		for _, device := range deviceIDList {
 			if device.Name() != clientDeviceID {
-				if !onlyShearAgingFile {
+				if !onlyShearAgeFile {
 					f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"entry"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 					if err != nil {
 						// do not print error as there is currently no way of seeing server-side errors
@@ -80,7 +80,7 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgingFile bool) (str
 			isFile = true
 		}
 	}
-	if !onlyShearAgingFile {
+	if !onlyShearAgeFile {
 		err = os.RemoveAll(realPath)
 		if err != nil {
 			return "", false, errors.New("unable to remove local entry (" + vanityPath + "): " + err.Error())
@@ -109,12 +109,12 @@ func ShearAgeFileLocal(vanityPath string) error {
 	return nil
 }
 
-// GetEntryAges reads the aging directory and returns a
+// GetEntryAges reads the age directory and returns a
 // map of vanity paths to their corresponding age timestamps.
 func GetEntryAges() (map[string]int64, error) {
 	contents, err := os.ReadDir(global.AgeDir)
 	if err != nil {
-		return nil, errors.New("unable to read aging directory contents: " + err.Error())
+		return nil, errors.New("unable to read age directory contents: " + err.Error())
 	}
 
 	var vanityPathsToTimestamps = make(map[string]int64)
@@ -123,7 +123,7 @@ func GetEntryAges() (map[string]int64, error) {
 			vanityPath := strings.ReplaceAll(dirEntry.Name(), global.FSPath, "/")
 			info, err := dirEntry.Info()
 			if err != nil {
-				return nil, errors.New("unable to read aging file modtime for " + vanityPath + ": " + err.Error())
+				return nil, errors.New("unable to read age file modtime for " + vanityPath + ": " + err.Error())
 			}
 			vanityPathsToTimestamps[vanityPath] = info.ModTime().Unix()
 		}

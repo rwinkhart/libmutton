@@ -8,7 +8,7 @@ var (
 	EntryRoot  = back.Home + "\\AppData\\Local\\libmutton\\entries" // Path to libmutton entry directory
 	ConfigDir  = back.Home + "\\AppData\\Local\\libmutton\\config"  // Path to libmutton configuration directory
 	ConfigPath = ConfigDir + "\\libmutton.ini"                      // Path to libmutton configuration file
-	AgeDir     = ConfigDir + "\\aging"                              // Path to libmutton password aging database
+	AgeDir     = ConfigDir + "\\age"                                // Path to libmutton password age directory
 )
 
 const (

@@ -29,7 +29,7 @@ func AgeEntry(vanityPath string, timestamp int64) error {
 	return nil
 }
 
-// AgeAllPasswordEntries adds aging data for all un-aged entries containing passwords.
+// AgeAllPasswordEntries adds age data for all un-aged entries containing passwords.
 // Each entry is aged with a random timestamp from within the last year to prevent
 // all entries having their passwords expire at the same time.
 func AgeAllPasswordEntries(forceReage bool) error {
@@ -39,7 +39,7 @@ func AgeAllPasswordEntries(forceReage bool) error {
 	}
 
 	for _, vanityPath := range allVanityPaths {
-		// ensure entry is not already aged (unless forcing re-aging)
+		// ensure entry is not already aged (unless forcing re-age)
 		if !forceReage {
 			// ignore error; we only care if we can access the path or not
 			isAccessible, _ := back.TargetIsFile(global.AgeDir+global.PathSeparator+strings.ReplaceAll(vanityPath, "/", global.FSPath), true)
@@ -68,7 +68,7 @@ func AgeAllPasswordEntries(forceReage bool) error {
 }
 
 // TranslateAgeTimestamp returns a uint8 value indicating
-// the interpreted age status of an aging timestamp associated
+// the interpreted age status of an age timestamp associated
 // with an entry.
 // Magic number legend:
 // 0 -> no age, 1 -> fresh, 2 -> expiring soon (within a month), 3 -> expired
@@ -86,6 +86,3 @@ func TranslateAgeTimestamp(timestamp int64) uint8 {
 		return 1 // fresh
 	}
 }
-
-// TODO
-// 1. Add sync support for the aging directory
