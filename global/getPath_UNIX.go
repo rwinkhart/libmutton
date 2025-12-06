@@ -9,5 +9,5 @@ func GetRealPath(vanityPath string) string {
 
 // GetVanityPath returns a vanityPath given a realPath
 func GetVanityPath(realPath string) string {
-	return realPath[rootLength:]
+	return realPath[RootLength:]
 }

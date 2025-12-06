@@ -4,7 +4,7 @@ type ByteInputFetcher func(prompt string) []byte
 
 var (
 	GetPassword ByteInputFetcher // Clients should set this to a function that fetches hidden input from the user
-	rootLength  = len(EntryRoot) // length of global.EntryRoot string
+	RootLength  = len(EntryRoot) // length of global.EntryRoot string
 )
 
 const (

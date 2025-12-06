@@ -13,5 +13,5 @@ func GetRealPath(vanityPath string) string {
 
 // GetVanityPath returns a vanityPath given a realPath
 func GetVanityPath(realPath string) string {
-	return strings.ReplaceAll(realPath[rootLength:], "\\", "/")
+	return strings.ReplaceAll(realPath[RootLength:], "\\", "/")
 }

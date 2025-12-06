@@ -1,6 +1,6 @@
 module github.com/rwinkhart/libmutton
 
-go 1.25.4
+go 1.25.5
 
 require (
 	github.com/pkg/sftp v1.13.10
