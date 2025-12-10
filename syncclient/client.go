@@ -561,5 +561,6 @@ func RunJob(returnLists bool) ([3][]string, error) {
 	if err != nil {
 		return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 	}
-	return lists, nil // dummy return for when not returning lists
+	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
+	return lists, nil     // dummy return for when not returning lists
 }

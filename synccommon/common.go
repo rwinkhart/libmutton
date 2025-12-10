@@ -16,23 +16,29 @@ const (
 	AnsiDelete = "\033[38;5;1m"
 )
 
-// FetchResponse defines the structure of responses from `libmuttonserver fetch`.
+// FetchResp defines the structure of responses from `libmuttonserver fetch`.
 type FetchResp struct {
 	ErrMsg           *string            `json:"errMsg"` // nil if no error occurred
 	ServerTime       int64              `json:"serverTime"`
 	Deletions        []Deletion         `json:"deletions"`
 	FoldersToEntries map[string][]Entry `json:"folders"`
 }
-
 type Deletion struct {
 	VanityPath string `json:"vanityPath"`
 	IsAgeFile  bool   `json:"isAgeFile"`
 }
-
 type Entry struct {
 	VanityPath   string `json:"vanityPath"`
 	ModTime      int64  `json:"modTime"`
 	AgeTimestamp *int64 `json:"ageTimestamp"` // nil if no age file is present (non-password entry)
+}
+
+// RegisterResp defines the structure of responses from `libmuttonserver register`
+type RegisterResp struct {
+	ErrMsg    *string `json:"errMsg"` // nil if no error occurred
+	EntryRoot string  `json:"entryRoot"`
+	AgeDir    string  `json:"ageDir"`
+	IsWindows bool    `json:"isWindows"`
 }
 
 // GetModTimes returns a list of all entry modification times.
@@ -70,17 +76,15 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgeFile bool) (strin
 				if !onlyShearAgeFile {
 					f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"entry"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 					if err != nil {
-						// do not print error as there is currently no way of seeing server-side errors
 						// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
-						os.Exit(back.ErrorWrite)
+						return "", false, err
 					}
 					_ = f.Close() // error ignored; if the file could be created, it can probably be closed
 				}
 				f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"age"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 				if err != nil {
-					// do not print error as there is currently no way of seeing server-side errors
 					// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
-					os.Exit(back.ErrorWrite)
+					return "", false, err
 				}
 				_ = f.Close() // error ignored; if the file could be created, it can probably be closed
 			}

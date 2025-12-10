@@ -1,16 +1,17 @@
 package synccycles
 
 import (
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/syncclient"
+	"github.com/rwinkhart/libmutton/synccommon"
 )
 
 // DeviceIDGen generates a new client device ID and registers it with the server (will replace existing one).
@@ -59,7 +60,15 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 		cleanupOnFail()
 		return "", "", "", errors.New("unable to register device ID with server: " + err.Error())
 	}
-	sshEntryRootSSHAgeDirSSHIsWindows := strings.Split(string(output), global.FSSpace)
+	var registerResp synccommon.RegisterResp
+	err = json.Unmarshal(output, &registerResp)
+	if err != nil {
+		cleanupOnFail()
+		return "", "", "", errors.New("unable to unmarshal server register response: " + err.Error())
+	}
+	if registerResp.ErrMsg != nil {
+		return "", "", "", errors.New("unable to complete register; server-side error occurred: " + *registerResp.ErrMsg)
+	}
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
 	// remove old device ID file (locally; may not exist)
@@ -68,5 +77,5 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 		return "", "", "", errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}
 
-	return sshEntryRootSSHAgeDirSSHIsWindows[0], sshEntryRootSSHAgeDirSSHIsWindows[1], sshEntryRootSSHAgeDirSSHIsWindows[2], nil
+	return registerResp.EntryRoot, registerResp.AgeDir, strconv.FormatBool(registerResp.IsWindows), nil
 }

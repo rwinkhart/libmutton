@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
@@ -110,8 +110,15 @@ func main() {
 				}
 			}
 		}
+
 		// print EntryRoot, AgeDir and bool indicating OS type to stdout for client to store in config
-		fmt.Print(global.EntryRoot + global.FSSpace + global.AgeDir + global.FSSpace + strconv.FormatBool(global.IsWindows))
+		registerResp := synccommon.RegisterResp{EntryRoot: global.EntryRoot, AgeDir: global.AgeDir, IsWindows: global.IsWindows}
+		registerRespBytes, err := json.Marshal(registerResp)
+		if err != nil {
+			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+			return
+		}
+		fmt.Print(string(registerRespBytes))
 	case "init":
 		// create the necessary directories for libmuttonserver to function
 		_, err := global.DirInit(false)

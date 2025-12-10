@@ -22,6 +22,7 @@ func ShearRemoteFromClient(vanityPath string, onlyShearAgeFile bool) error {
 	}
 
 	var modifier string
+	var output []byte
 	sshClient, offlineMode, _, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
@@ -42,9 +43,12 @@ func ShearRemoteFromClient(vanityPath string, onlyShearAgeFile bool) error {
 	if onlyShearAgeFile {
 		modifier = "-age"
 	}
-	_, err = GetSSHOutput(sshClient, "libmuttonserver shear"+modifier, deviceID+"\n"+strings.ReplaceAll(vanityPath, global.PathSeparator, global.FSPath))
+	output, err = GetSSHOutput(sshClient, "libmuttonserver shear"+modifier, deviceID+"\n"+strings.ReplaceAll(vanityPath, global.PathSeparator, global.FSPath))
 	if err != nil {
 		return errors.New("unable to shear target remotely: " + err.Error())
+	}
+	if len(output) > 11 {
+		return errors.New("unable to complete shear; server-side error occurred: " + string(output)[11:len(output)-2])
 	}
 
 	// close the SSH client
@@ -78,6 +82,7 @@ func RenameRemoteFromClient(oldVanityPath, newVanityPath string) error {
 	}
 
 	// create an SSH client
+	var output []byte
 	sshClient, offlineMode, _, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
@@ -87,12 +92,15 @@ func RenameRemoteFromClient(oldVanityPath, newVanityPath string) error {
 	}
 
 	// call the server to move the target on the remote system and add the old target to the deletions list
-	_, err = GetSSHOutput(sshClient, "libmuttonserver rename",
+	output, err = GetSSHOutput(sshClient, "libmuttonserver rename",
 		(deviceIDList)[0].Name()+"\n"+
 			strings.ReplaceAll(oldVanityPath, global.PathSeparator, global.FSPath)+"\n"+
 			strings.ReplaceAll(newVanityPath, global.PathSeparator, global.FSPath))
 	if err != nil {
 		return errors.New("unable to rename target remotely: " + err.Error())
+	}
+	if len(output) > 11 {
+		return errors.New("unable to complete rename; server-side error occurred: " + string(output)[11:len(output)-2])
 	}
 
 	// close the SSH client
@@ -118,6 +126,7 @@ func AddFolderRemoteFromClient(vanityPath string) error {
 	}
 
 	// create an SSH client
+	var output []byte
 	sshClient, offlineMode, _, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
@@ -127,9 +136,12 @@ func AddFolderRemoteFromClient(vanityPath string) error {
 	}
 
 	// call the server to create the folder remotely
-	_, err = GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(vanityPath, global.PathSeparator, global.FSPath)) // call the server to create the folder remotely
+	output, err = GetSSHOutput(sshClient, "libmuttonserver addfolder", strings.ReplaceAll(vanityPath, global.PathSeparator, global.FSPath)) // call the server to create the folder remotely
 	if err != nil {
 		return errors.New("unable to add folder remotely: " + err.Error())
+	}
+	if len(output) > 11 {
+		return errors.New("unable to complete addfolder; server-side error occurred: " + string(output)[11:len(output)-2])
 	}
 
 	// close the SSH client
