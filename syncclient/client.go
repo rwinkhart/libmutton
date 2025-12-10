@@ -550,6 +550,7 @@ func RunJob(returnLists bool) ([3][]string, error) {
 		if err != nil {
 			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 		}
+		lists[0] = []string{} // initialize deletions list
 		for _, deletion := range deletions {
 			if !deletion.IsAgeFile {
 				lists[0] = append(lists[0], deletion.VanityPath)
