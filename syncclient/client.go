@@ -1,6 +1,7 @@
 package syncclient
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -106,11 +107,11 @@ func GetSSHClient() (*ssh.Client, bool, bool, string, string, error) {
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
-func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) (string, error) {
+func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) ([]byte, error) {
 	// create a session
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		return "", errors.New("unable to establish SSH session: " + err.Error())
+		return nil, errors.New("unable to establish SSH session: " + err.Error())
 	}
 
 	// provide stdin data for session
@@ -120,22 +121,19 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) (string, error) {
 	var output []byte
 	output, err = sshSession.CombinedOutput(cmd)
 	if err != nil {
-		return "", errors.New("unable to run SSH command: " + err.Error())
+		return nil, errors.New("unable to run SSH command: " + err.Error())
 	}
 
-	// convert the output to a string and remove leading/trailing whitespace
-	outputString := string(output)
-	outputString = strings.TrimSpace(outputString)
-
-	return outputString, nil
+	return output, nil
 }
 
 // getRemoteDataFromClient returns:
 // a map of remote entries to their modification times,
-// a list of remote age files to their timestamps,
-// a list of remote folders, a list of queued deletions,
+// a map of remote entries to their timestamps,
+// a list of remote folders,
+// a list of queued deletions,
 // and the current server&client times as UNIX timestamps.
-func getRemoteDataFromClient(sshClient *ssh.Client) (map[string]int64, map[string]int64, []string, []string, int64, int64, error) {
+func getRemoteDataFromClient(sshClient *ssh.Client) (map[string]int64, map[string]int64, []string, []synccommon.Deletion, int64, int64, error) {
 	// get remote output over SSH
 	deviceIDList, err := global.GenDeviceIDList()
 	if err != nil {
@@ -150,57 +148,30 @@ func getRemoteDataFromClient(sshClient *ssh.Client) (map[string]int64, map[strin
 		return nil, nil, nil, nil, 0, 0, errors.New("unable to run remote command: " + err.Error())
 	}
 
-	// split output into slice based on occurrences of FSSpace
-	outputSlice := strings.Split(output, global.FSSpace)
-
-	// parse output/re-form lists
-	if len(outputSlice) != 7 { // ensure information from server is complete
-		return nil, nil, nil, nil, 0, 0, errors.New("unable to run remote command; server returned an unexpected response")
-	}
-	serverTime, err := strconv.ParseInt(outputSlice[0], 10, 64)
+	var fetchResp synccommon.FetchResp
+	err = json.Unmarshal(output, &fetchResp)
 	if err != nil {
-		return nil, nil, nil, nil, 0, 0, errors.New("unable to parse server time: " + err.Error())
+		fmt.Println(string(output))
+		return nil, nil, nil, nil, 0, 0, errors.New("unable to unmarshal server fetch response: " + err.Error())
 	}
-	entries := strings.Split(outputSlice[1], global.FSMisc)[1:]
-	modsStrings := strings.Split(outputSlice[2], global.FSMisc)[1:]
-	ageFiles := strings.Split(outputSlice[3], global.FSMisc)[1:]
-	ageFilesTimestampStrings := strings.Split(outputSlice[4], global.FSMisc)[1:]
-	folders := strings.Split(outputSlice[5], global.FSMisc)[1:]
-	deletions := strings.Split(outputSlice[6], global.FSMisc)[1:]
-
-	// convert the mod times+age timestamps to int64
-	var mods []int64
-	var mod int64
-	for _, modString := range modsStrings {
-		mod, err = strconv.ParseInt(modString, 10, 64)
-		if err != nil {
-			return nil, nil, nil, nil, 0, 0, errors.New("unable to parse mod time: " + err.Error())
-		}
-		mods = append(mods, mod)
-	}
-	var timestamps []int64
-	var timestamp int64
-	for _, ageFilesTimestampString := range ageFilesTimestampStrings {
-		timestamp, err = strconv.ParseInt(ageFilesTimestampString, 10, 64)
-		if err != nil {
-			return nil, nil, nil, nil, 0, 0, errors.New("unable to parse age timestamp: " + err.Error())
-		}
-		timestamps = append(timestamps, timestamp)
+	if fetchResp.ErrMsg != nil {
+		return nil, nil, nil, nil, 0, 0, errors.New("unable to complete fetch; server-side error occurred: " + *fetchResp.ErrMsg)
 	}
 
-	// map remote entries to their modification times
 	entryModMap := make(map[string]int64)
-	for i, entry := range entries {
-		entryModMap[entry] = mods[i]
-	}
-
-	// map remote age files to their timestamps
 	ageTimestampMap := make(map[string]int64)
-	for i, ageFile := range ageFiles {
-		ageTimestampMap[ageFile] = timestamps[i]
+	var folders []string
+	for folderName, containedEntries := range fetchResp.FoldersToEntries {
+		folders = append(folders, folderName)
+		for _, entry := range containedEntries {
+			entryModMap[entry.VanityPath] = entry.ModTime
+			if entry.AgeTimestamp != nil {
+				ageTimestampMap[entry.VanityPath] = *entry.AgeTimestamp
+			}
+		}
 	}
 
-	return entryModMap, ageTimestampMap, folders, deletions, serverTime, clientTime, nil
+	return entryModMap, ageTimestampMap, folders, fetchResp.Deletions, fetchResp.ServerTime, clientTime, nil
 }
 
 // getLocalData returns a map of local entries to their modification times.
@@ -478,20 +449,19 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindo
 }
 
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
-func deletionSync(deletions []string) error {
+func deletionSync(deletions []synccommon.Deletion) error {
 	var entryDeleted bool
 	for _, deletion := range deletions {
-		deletionSplit := strings.Split(deletion, global.FSSpace)
-		if deletionSplit[0] == "entry" {
+		if !deletion.IsAgeFile {
 			entryDeleted = true // set a flag to indicate that at least one entry has been deleted (used to determine whether to print a gap between deletion and other messages)
-			fmt.Println(synccommon.AnsiDelete+deletionSplit[1]+back.AnsiReset, "has been sheared, removing locally (if it exists)")
+			fmt.Println(synccommon.AnsiDelete+deletion.VanityPath+back.AnsiReset, "has been sheared, removing locally (if it exists)")
 		}
-		err := os.RemoveAll(global.GetRealPath(deletionSplit[1]))
+		err := os.RemoveAll(global.GetRealPath(deletion.VanityPath))
 		if err != nil {
-			if deletionSplit[0] == "entry" {
-				return errors.New("unable to shear " + deletionSplit[1] + " locally: " + err.Error())
+			if !deletion.IsAgeFile {
+				return errors.New("unable to shear " + deletion.VanityPath + " locally: " + err.Error())
 			}
-			return errors.New("unable to shear age file for " + deletionSplit[1] + " locally: " + err.Error())
+			return errors.New("unable to shear age file for " + deletion.VanityPath + " locally: " + err.Error())
 		}
 	}
 	if entryDeleted {
@@ -580,7 +550,11 @@ func RunJob(returnLists bool) ([3][]string, error) {
 		if err != nil {
 			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 		}
-		lists[0] = deletions
+		for _, deletion := range deletions {
+			if !deletion.IsAgeFile {
+				lists[0] = append(lists[0], deletion.VanityPath)
+			}
+		}
 		return lists, nil
 	}
 	_, err = syncLists(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap, localAgeTimestampMap, remoteAgeTimestampMap)

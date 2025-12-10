@@ -1,6 +1,7 @@
 package syncserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -14,63 +15,71 @@ import (
 // Lists in output are separated by FSSpace.
 // Output is meant to be captured over SSH for interpretation by the client.
 func GetRemoteDataFromServer(clientDeviceID string) {
-	entryList, dirList, _ := synccommon.WalkEntryDir()
+	entryList, dirList, err := synccommon.WalkEntryDir()
+	if err != nil {
+		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+		return
+	}
 	modList := synccommon.GetModTimes(entryList)
-	deletionsList, _ := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
-	vanityPathsToTimestamps, _ := synccommon.GetEntryAges()
-	var ageVanityPaths []string
-	var ageTimestamps []int64
-	for vanityPath, timestamp := range vanityPathsToTimestamps {
-		ageVanityPaths = append(ageVanityPaths, vanityPath)
-		ageTimestamps = append(ageTimestamps, timestamp)
+	deletionsList, err := os.ReadDir(global.ConfigDir + global.PathSeparator + "deletions")
+	if err != nil {
+		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+		return
+	}
+	vanityPathsToTimestamps, err := synccommon.GetEntryAges()
+	if err != nil {
+		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+		return
+	}
+	var fetchResp synccommon.FetchResp
+
+	// server time
+	fetchResp.ServerTime = time.Now().Unix()
+
+	// folders (initialize keys in map)
+	fetchResp.FoldersToEntries = make(map[string][]synccommon.Entry)
+	for _, folder := range dirList {
+		if _, exists := fetchResp.FoldersToEntries[folder]; !exists {
+			fetchResp.FoldersToEntries[folder] = []synccommon.Entry{}
+		}
 	}
 
-	// print the current UNIX timestamp to stdout
-	fmt.Print(time.Now().Unix())
-
-	// print the lists to stdout
-	// entry list
-	fmt.Print(global.FSSpace)
-	for _, entry := range entryList {
-		fmt.Print(global.FSMisc + entry)
+	// entries
+	var folder string
+	for i := range entryList {
+		var ageTimestamp *int64
+		if timestamp, exists := vanityPathsToTimestamps[entryList[i]]; exists {
+			ageTimestamp = &timestamp
+		}
+		folder = entryList[i][:strings.LastIndex(entryList[i], "/")]
+		fetchResp.FoldersToEntries[folder] = append(fetchResp.FoldersToEntries[folder], synccommon.Entry{VanityPath: entryList[i], ModTime: modList[i], AgeTimestamp: ageTimestamp})
 	}
 
-	// modification time list
-	fmt.Print(global.FSSpace)
-	for _, mod := range modList {
-		fmt.Print(global.FSMisc)
-		fmt.Print(mod)
-	}
-
-	// age file list
-	fmt.Print(global.FSSpace)
-	for _, file := range ageVanityPaths {
-		fmt.Print(global.FSMisc + file)
-	}
-
-	// age file timestamp list
-	fmt.Print(global.FSSpace)
-	for _, timestamp := range ageTimestamps {
-		fmt.Print(global.FSMisc)
-		fmt.Print(timestamp)
-	}
-
-	// directory/folder list
-	fmt.Print(global.FSSpace)
-	for _, dir := range dirList {
-		fmt.Print(global.FSMisc + dir)
-	}
-
-	// deletions list
-	fmt.Print(global.FSSpace)
+	// deletions
 	for _, deletion := range deletionsList {
 		// perform deletion if it is relevant to the current client device
 		affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
 		if affectedIDVanityPath[0] == clientDeviceID {
-			fmt.Print(global.FSMisc + strings.ReplaceAll(affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2], global.FSPath, "/"))
+			var isAgeFile bool
+			if affectedIDVanityPath[1] == "age" {
+				isAgeFile = true
+			}
+			fetchResp.Deletions = append(fetchResp.Deletions, synccommon.Deletion{VanityPath: strings.ReplaceAll(affectedIDVanityPath[2], global.FSPath, "/"), IsAgeFile: isAgeFile})
 
 			// assume successful client deletion and remove deletions file (if assumption is somehow false, worst case scenario is that the client will re-upload the deleted entry)
-			_ = os.RemoveAll(global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
+			err = os.RemoveAll(global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
+			if err != nil {
+				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+				return
+			}
 		}
 	}
+
+	// marshal and print response to send to client
+	fetchRespBytes, err := json.Marshal(fetchResp)
+	if err != nil {
+		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+		return
+	}
+	fmt.Print(string(fetchRespBytes))
 }

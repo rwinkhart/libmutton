@@ -59,7 +59,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 		cleanupOnFail()
 		return "", "", "", errors.New("unable to register device ID with server: " + err.Error())
 	}
-	sshEntryRootSSHAgeDirSSHIsWindows := strings.Split(output, global.FSSpace)
+	sshEntryRootSSHAgeDirSSHIsWindows := strings.Split(string(output), global.FSSpace)
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
 	// remove old device ID file (locally; may not exist)

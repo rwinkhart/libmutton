@@ -16,6 +16,25 @@ const (
 	AnsiDelete = "\033[38;5;1m"
 )
 
+// FetchResponse defines the structure of responses from `libmuttonserver fetch`.
+type FetchResp struct {
+	ErrMsg           *string            `json:"errMsg"` // nil if no error occurred
+	ServerTime       int64              `json:"serverTime"`
+	Deletions        []Deletion         `json:"deletions"`
+	FoldersToEntries map[string][]Entry `json:"folders"`
+}
+
+type Deletion struct {
+	VanityPath string `json:"vanityPath"`
+	IsAgeFile  bool   `json:"isAgeFile"`
+}
+
+type Entry struct {
+	VanityPath   string `json:"vanityPath"`
+	ModTime      int64  `json:"modTime"`
+	AgeTimestamp *int64 `json:"ageTimestamp"` // nil if no age file is present (non-password entry)
+}
+
 // GetModTimes returns a list of all entry modification times.
 func GetModTimes(entryList []string) []int64 {
 	var modList []int64
