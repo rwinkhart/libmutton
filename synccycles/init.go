@@ -67,6 +67,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 		return "", "", "", errors.New("unable to unmarshal server register response: " + err.Error())
 	}
 	if registerResp.ErrMsg != nil {
+		cleanupOnFail()
 		return "", "", "", errors.New("unable to complete register; server-side error occurred: " + *registerResp.ErrMsg)
 	}
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
@@ -74,6 +75,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 	// remove old device ID file (locally; may not exist)
 	err = os.RemoveAll(oldDeviceIDPath)
 	if err != nil {
+		cleanupOnFail()
 		return "", "", "", errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}
 
