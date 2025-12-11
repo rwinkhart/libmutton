@@ -48,7 +48,7 @@ func ShearRemoteFromClient(vanityPath string, onlyShearAgeFile bool) error {
 		return errors.New("unable to shear target remotely: " + err.Error())
 	}
 	if len(output) > 11 {
-		return errors.New("unable to complete shear; server-side error occurred: " + string(output)[11:len(output)-2])
+		return errors.New("unable to complete shear; server-side error occurred: " + strings.ReplaceAll(string(output)[11:len(output)-2], global.FSSpace, "\n"))
 	}
 
 	// close the SSH client
@@ -100,7 +100,7 @@ func RenameRemoteFromClient(oldVanityPath, newVanityPath string) error {
 		return errors.New("unable to rename target remotely: " + err.Error())
 	}
 	if len(output) > 11 {
-		return errors.New("unable to complete rename; server-side error occurred: " + string(output)[11:len(output)-2])
+		return errors.New("unable to complete rename; server-side error occurred: " + strings.ReplaceAll(string(output)[11:len(output)-2], global.FSSpace, "\n"))
 	}
 
 	// close the SSH client
@@ -141,7 +141,7 @@ func AddFolderRemoteFromClient(vanityPath string) error {
 		return errors.New("unable to add folder remotely: " + err.Error())
 	}
 	if len(output) > 11 {
-		return errors.New("unable to complete addfolder; server-side error occurred: " + string(output)[11:len(output)-2])
+		return errors.New("unable to complete addfolder; server-side error occurred: " + strings.ReplaceAll(string(output)[11:len(output)-2], global.FSSpace, "\n"))
 	}
 
 	// close the SSH client

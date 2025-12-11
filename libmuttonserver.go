@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
@@ -32,6 +33,14 @@ func main() {
 			stdin = append(stdin, scanner.Text())
 		}
 	}
+
+	// allow reporting panic details to clients
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("{\"errMsg\":\"SERVER-SIDE PANIC OCCURRED!%sARGS: (%v)%sSTDIN: (%v)%sSTACK TRACE: %s\"}", global.FSSpace, os.Args, global.FSSpace, stdin, global.FSSpace, strings.ReplaceAll(strings.ReplaceAll(string(debug.Stack()), "\n", global.FSSpace), "\t", ""))
+			return
+		}
+	}()
 
 	switch args[1] {
 	case "fetch":

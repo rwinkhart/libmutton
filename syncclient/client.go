@@ -155,7 +155,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client) (map[string]int64, map[strin
 		return nil, nil, nil, nil, 0, 0, errors.New("unable to unmarshal server fetch response: " + err.Error())
 	}
 	if fetchResp.ErrMsg != nil {
-		return nil, nil, nil, nil, 0, 0, errors.New("unable to complete fetch; server-side error occurred: " + *fetchResp.ErrMsg)
+		return nil, nil, nil, nil, 0, 0, errors.New("unable to complete fetch; server-side error occurred: " + strings.ReplaceAll(*fetchResp.ErrMsg, global.FSSpace, "\n"))
 	}
 
 	entryModMap := make(map[string]int64)

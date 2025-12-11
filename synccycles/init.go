@@ -6,9 +6,11 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/go-boilerplate/stringy"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/syncclient"
 	"github.com/rwinkhart/libmutton/synccommon"
@@ -24,7 +26,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 	if prefix == "" {
 		prefix, _ = os.Hostname()
 	}
-	newDeviceID := prefix + "-" + StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+	newDeviceID := prefix + "-" + stringy.StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 
 	// create new device ID file (locally)
 	newDeviceIDPath := global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID
@@ -68,7 +70,7 @@ func DeviceIDGen(oldDeviceID, prefix string) (string, string, string, error) {
 	}
 	if registerResp.ErrMsg != nil {
 		cleanupOnFail()
-		return "", "", "", errors.New("unable to complete register; server-side error occurred: " + *registerResp.ErrMsg)
+		return "", "", "", errors.New("unable to complete register; server-side error occurred: " + strings.ReplaceAll(*registerResp.ErrMsg, global.FSSpace, "\n"))
 	}
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
