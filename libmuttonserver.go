@@ -37,7 +37,16 @@ func main() {
 	// allow reporting panic details to clients
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Printf("{\"errMsg\":\"SERVER-SIDE PANIC OCCURRED!%sARGS: (%v)%sSTDIN: (%v)%sSTACK TRACE: %s\"}", global.FSSpace, os.Args, global.FSSpace, stdin, global.FSSpace, strings.ReplaceAll(strings.ReplaceAll(string(debug.Stack()), "\n", global.FSSpace), "\t", ""))
+			fmt.Printf(
+				"{\"errMsg\":\"SERVER-SIDE PANIC OCCURRED: %v%sARGS: %v%sSTDIN: %v%sSTACK TRACE: %s\"}",
+				r,
+				global.FSSpace+global.FSSpace,
+				global.FSSpace+strings.Join(os.Args, global.FSSpace),
+				global.FSSpace+global.FSSpace,
+				global.FSSpace+strings.Join(stdin, global.FSSpace),
+				global.FSSpace+global.FSSpace,
+				global.FSSpace+strings.ReplaceAll(strings.ReplaceAll(string(debug.Stack()), "\n", global.FSSpace), "\t", ""),
+			)
 			return
 		}
 	}()
