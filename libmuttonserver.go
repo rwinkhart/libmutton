@@ -120,7 +120,7 @@ func main() {
 			for _, deletion := range deletionsList {
 				affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
 				if affectedIDVanityPath[0] == stdin[1] {
-					err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDVanityPath[1])
+					err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2])
 					if err != nil {
 						fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 						return
