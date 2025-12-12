@@ -33,7 +33,7 @@ func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
 					return errors.New("unable to update age data: " + err.Error())
 				}
 			} else { // if the password change was a removal, remove the associated age file
-				err = syncclient.ShearRemoteFromClient(global.GetVanityPath(realPath), true)
+				err = syncclient.ShearRemote(global.GetVanityPath(realPath), true)
 				if err != nil {
 					return errors.New("unable to remove age data: " + err.Error())
 				}

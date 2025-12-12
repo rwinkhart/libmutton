@@ -80,7 +80,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 			return errors.New("unable to write config file: " + err.Error())
 		}
 		// generate and register device ID
-		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.DeviceIDGenFromClient(oldDeviceID, "")
+		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, "")
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}

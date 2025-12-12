@@ -15,13 +15,13 @@ import (
 	"github.com/rwinkhart/libmutton/synccommon"
 )
 
-// ShearRemoteFromClient removes the target file or directory from
+// ShearRemote removes the target file or directory from
 // the local system and calls the server to remove it remotely and
 // add it to the deletions list.
 // It can safely be called in offline mode, as well, so this is
 // the intended interface for shearing (ShearLocal should only
 // be used directly by the server binary).
-func ShearRemoteFromClient(vanityPath string, onlyShearAgeFile bool) error {
+func ShearRemote(vanityPath string, onlyShearAgeFile bool) error {
 	deviceID, isDir, err := synccommon.ShearLocal(vanityPath, "", onlyShearAgeFile) // remove the target from the local system and get the device ID of the client
 	if err != nil {
 		return errors.New("unable to shear target locally: " + err.Error())
@@ -73,7 +73,7 @@ end:
 // old target to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended
 // interface for renaming (RenameLocal should only be used directly by the server binary).
-func RenameRemoteFromClient(oldVanityPath, newVanityPath string) error {
+func RenameRemote(oldVanityPath, newVanityPath string) error {
 	err := synccommon.RenameLocal(oldVanityPath, newVanityPath) // move the target on the local system
 	if err != nil {
 		return errors.New("unable to rename target locally: " + err.Error())
@@ -125,7 +125,7 @@ end:
 // It can safely be called in offline mode, as well, so this is the
 // intended interface for adding folders (AddFolderLocal should only be
 // used directly by the server binary).
-func AddFolderRemoteFromClient(vanityPath string) error {
+func AddFolderRemote(vanityPath string) error {
 	err := synccommon.AddFolderLocal(vanityPath) // add the folder on the local system
 	if err != nil {
 		return errors.New("unable to add folder locally: " + err.Error())
@@ -161,13 +161,13 @@ end:
 	return nil
 }
 
-// DeviceIDGenFromClient generates a new client device ID
+// GenDeviceID generates a new client device ID
 // and registers it with the server (will replace existing one).
 // Device IDs are only needed for online synchronization.
 // Device IDs are guaranteed unique as the current UNIX time is appended to them.
 // Leave prefix empty to use the current hostname as the prefix.
 // Returns: the remote EntryRoot, the remote AgeDir, and OS type indicator.
-func DeviceIDGenFromClient(oldDeviceID, prefix string) (string, string, string, error) {
+func GenDeviceID(oldDeviceID, prefix string) (string, string, string, error) {
 	// generate new device ID
 	if prefix == "" {
 		prefix, _ = os.Hostname()
