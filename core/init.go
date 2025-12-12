@@ -9,7 +9,7 @@ import (
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/cfg"
 	"github.com/rwinkhart/libmutton/global"
-	"github.com/rwinkhart/libmutton/synccycles"
+	"github.com/rwinkhart/libmutton/syncclient"
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
@@ -80,7 +80,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 			return errors.New("unable to write config file: " + err.Error())
 		}
 		// generate and register device ID
-		sshEntryRoot, sshAgeDir, sshIsWindows, err := synccycles.DeviceIDGen(oldDeviceID, "")
+		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.DeviceIDGenFromClient(oldDeviceID, "")
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
