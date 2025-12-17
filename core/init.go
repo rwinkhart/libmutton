@@ -3,7 +3,7 @@ package core
 import (
 	"cmp"
 	"errors"
-	"strconv"
+	"maps"
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
@@ -15,7 +15,15 @@ import (
 
 // LibmuttonInit creates the libmutton config structure based on user input.
 // rcwPassword and clientSpecificIniData can be left blank if not needed.
-func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][3]string, rcwPassword []byte, preserveOldConfigDir bool, forceOfflineMode bool) error {
+func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map[string]any, rcwPassword []byte, preserveOldConfigDir bool, forceOfflineMode bool) error {
+	// handle clientSpecificIniData
+	newCfg := &cfg.CfgT{}
+	if clientSpecificIniData != nil {
+		newThirdPartyMap := make(map[string]any)
+		maps.Copy(newThirdPartyMap, clientSpecificIniData)
+		newCfg.ThirdParty = &newThirdPartyMap
+	}
+
 	var r string
 	if !forceOfflineMode {
 		r = strings.ToLower(inputCB("Configure SSH settings (for synchronization)? (Y/n)"))
@@ -28,14 +36,13 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 		if err != nil {
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
+
 		// write config file
-		if len(clientSpecificIniData) > 0 {
-			err = cfg.WriteConfig(append(clientSpecificIniData, [][3]string{{"LIBMUTTON", "offlineMode", "true"}}...), nil, false)
-		} else {
-			err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "offlineMode", "true"}}, nil, false)
-		}
+		offlineMode := true
+		newCfg.Libmutton.OfflineMode = &offlineMode
+		err = cfg.WriteConfig(newCfg, false)
 		if err != nil {
-			return errors.New("unable to write config file: " + err.Error())
+			return err
 		}
 	} else {
 		// ensure ssh key file exists (and is a file)
@@ -63,30 +70,29 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData [][
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
 		//// write config file
-		//// temporarily assign sshEntryRoot and sshIsWindows to null to pass initial device ID registration
-		err = cfg.WriteConfig(append(
-			clientSpecificIniData,
-			[][3]string{
-				{"LIBMUTTON", "offlineMode", "false"},
-				{"LIBMUTTON", "sshUser", sshUser},
-				{"LIBMUTTON", "sshIP", sshIP},
-				{"LIBMUTTON", "sshPort", sshPort},
-				{"LIBMUTTON", "sshKey", sshKeyPath},
-				{"LIBMUTTON", "sshKeyProtected", strconv.FormatBool(sshKeyProtected)},
-				{"LIBMUTTON", "sshEntryRoot", "null"},
-				{"LIBMUTTON", "sshAgeDir", "null"},
-				{"LIBMUTTON", "sshIsWindows", "false"}}...), nil, false)
+		//// temporarily leave sshEntryRoot, sshAgeDir, and sshIsWindows as nil to pass initial device ID registration
+		newCfg.Libmutton.OfflineMode = &forceOfflineMode // forceOfflineMode must be false to reach this point, so we can avoid the extra declaration
+		newCfg.Libmutton.SSHUser = &sshUser
+		newCfg.Libmutton.SSHIP = &sshIP
+		newCfg.Libmutton.SSHPort = &sshPort
+		newCfg.Libmutton.SSHKeyPath = &sshKeyPath
+		newCfg.Libmutton.SSHKeyProtected = &sshKeyProtected
+		err = cfg.WriteConfig(newCfg, false)
 		if err != nil {
-			return errors.New("unable to write config file: " + err.Error())
+			return err
 		}
 		// generate and register device ID
 		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, "")
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
-		err = cfg.WriteConfig([][3]string{{"LIBMUTTON", "sshEntryRoot", sshEntryRoot}, {"LIBMUTTON", "sshAgeDir", sshAgeDir}, {"LIBMUTTON", "sshIsWindows", sshIsWindows}}, nil, true)
+		// update config file
+		newCfg.Libmutton.SSHEntryRootPath = &sshEntryRoot
+		newCfg.Libmutton.SSHAgeDirPath = &sshAgeDir
+		newCfg.Libmutton.SSHIsWindows = &sshIsWindows
+		err = cfg.WriteConfig(newCfg, true)
 		if err != nil {
-			return errors.New("unable to write config file: " + err.Error())
+			return err
 		}
 	}
 	// generate rcw sanity check file (if requested)

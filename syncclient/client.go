@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -26,70 +25,43 @@ import (
 // sshEntryRoot (the root directory for entries on the remote server),
 // sshAgeDir (the directory housing age files on the remote server),
 // Only supports key-based authentication (passwords are supported for CLI-based implementations).
-func GetSSHClient() (*ssh.Client, bool, bool, string, string, error) {
+func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 	// get SSH config info
-	sshUserConfig, err := cfg.ParseConfig([][2]string{{"LIBMUTTON", "offlineMode"}, {"LIBMUTTON", "sshUser"}, {"LIBMUTTON", "sshIP"}, {"LIBMUTTON", "sshPort"}, {"LIBMUTTON", "sshKey"}, {"LIBMUTTON", "sshKeyProtected"}, {"LIBMUTTON", "sshEntryRoot"}, {"LIBMUTTON", "sshAgeDir"}, {"LIBMUTTON", "sshIsWindows"}})
-	if len(sshUserConfig) == 1 {
-		// offline mode is enabled
-		return nil, true, false, "", "", nil
-	}
+	cfg, err := cfg.LoadConfig()
 	if err != nil {
-		return nil, false, false, "", "", errors.New("unable to parse SSH config: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to parse SSH config: " + err.Error())
 	}
-
-	var user, ip, port, keyFile, keyFileProtected, entryRoot, ageDir string
-	var isWindows bool
-	for i, key := range sshUserConfig {
-		switch i {
-		case 1:
-			user = key
-		case 2:
-			ip = key
-		case 3:
-			port = key
-		case 4:
-			keyFile = key
-		case 5:
-			keyFileProtected = key
-		case 6:
-			entryRoot = key
-		case 7:
-			ageDir = key
-		case 8:
-			isWindows, err = strconv.ParseBool(key)
-			if err != nil {
-				return nil, false, false, "", "", errors.New("unable to parse server OS type: " + err.Error())
-			}
-		}
+	if *cfg.Libmutton.OfflineMode {
+		return nil, true, nil, nil, nil, nil
 	}
 
 	// read private key
-	key, err := os.ReadFile(keyFile)
+	key, err := os.ReadFile(*cfg.Libmutton.SSHKeyPath)
 	if err != nil {
-		return nil, false, false, "", "", errors.New("unable to read private key: " + keyFile)
+		return nil, false, nil, nil, nil, errors.New("unable to read private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// parse private key
 	var parsedKey ssh.Signer
-	if keyFileProtected != "true" {
+	if !*cfg.Libmutton.SSHKeyProtected {
 		parsedKey, err = ssh.ParsePrivateKey(key)
 	} else {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassword("Enter password for your SSH keyfile:"))
 	}
 	if err != nil {
-		return nil, false, false, "", "", errors.New("unable to parse private key: " + keyFile)
+		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
 	hostKeyCallback, err = knownhosts.New(back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "known_hosts")
 	if err != nil {
-		return nil, false, false, "", "", errors.New("unable to read known hosts file: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to read known hosts file: " + err.Error())
 	}
 
 	// configure SSH client
 	sshConfig := &ssh.ClientConfig{
-		User: user,
+		User: *cfg.Libmutton.SSHUser,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(parsedKey),
 		},
@@ -98,12 +70,12 @@ func GetSSHClient() (*ssh.Client, bool, bool, string, string, error) {
 	}
 
 	// connect to SSH server
-	sshClient, err := ssh.Dial("tcp", ip+":"+port, sshConfig)
+	sshClient, err := ssh.Dial("tcp", *cfg.Libmutton.SSHIP+":"+*cfg.Libmutton.SSHPort, sshConfig)
 	if err != nil {
-		return nil, false, false, "", "", errors.New("unable to connect to remote server: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to connect to remote server: " + err.Error())
 	}
 
-	return sshClient, false, isWindows, entryRoot, ageDir, nil
+	return sshClient, false, cfg.Libmutton.SSHIsWindows, cfg.Libmutton.SSHEntryRootPath, cfg.Libmutton.SSHAgeDirPath, nil
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
@@ -546,7 +518,7 @@ func RunJob(returnLists bool) ([3][]string, error) {
 	// sync new and updated entries
 	var lists [3][]string
 	if returnLists {
-		lists, err = syncLists(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap, localAgeTimestampMap, remoteAgeTimestampMap)
+		lists, err = syncLists(sshClient, *sshEntryRoot, *sshAgeDir, *sshIsWindows, timeSynced, true, localEntryModMap, remoteEntryModMap, localAgeTimestampMap, remoteAgeTimestampMap)
 		if err != nil {
 			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 		}
@@ -558,7 +530,7 @@ func RunJob(returnLists bool) ([3][]string, error) {
 		}
 		return lists, nil
 	}
-	_, err = syncLists(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap, localAgeTimestampMap, remoteAgeTimestampMap)
+	_, err = syncLists(sshClient, *sshEntryRoot, *sshAgeDir, *sshIsWindows, timeSynced, false, localEntryModMap, remoteEntryModMap, localAgeTimestampMap, remoteAgeTimestampMap)
 	if err != nil {
 		return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 	}
