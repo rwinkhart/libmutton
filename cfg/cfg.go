@@ -42,6 +42,7 @@ func LoadConfig() (*ConfigT, error) {
 // If used in append mode, any nil values in the
 // input cfg will be substituted with the existing values.
 func WriteConfig(cfg *ConfigT, appendMode bool) error {
+start:
 	if appendMode {
 		// check if any fields are nil
 		var hasNilFields bool
@@ -58,7 +59,9 @@ func WriteConfig(cfg *ConfigT, appendMode bool) error {
 		if hasNilFields {
 			oldCfg, err := LoadConfig()
 			if err != nil {
-				return err
+				// failed to load config, leave append mode
+				appendMode = false
+				goto start
 			}
 			oldValue := reflect.ValueOf(&oldCfg.Libmutton).Elem()
 			for i := 0; i < cfgValue.NumField(); i++ {
