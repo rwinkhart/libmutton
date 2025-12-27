@@ -13,7 +13,10 @@ import (
 // ClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
 // assignedContents can be omitted to clear the clipboard immediately and unconditionally.
 func ClearProcess(assignedContents string) error {
-	cmdPaste, cmdClear := getClipCommands()
+	cmdPaste, cmdClear, err := getClipCommands()
+	if err != nil {
+		return errors.New("unable to determine clipboard platform: " + err.Error())
+	}
 
 	clearClipboard := func() error {
 		err := cmdClear.Run()
