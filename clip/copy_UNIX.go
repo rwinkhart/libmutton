@@ -30,7 +30,7 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
 	if clearClipboardAutomatically {
-		LaunchClipClearProcess(copySubject, sessionIsWayland)
+		LaunchClipClearProcess(copySubject)
 	}
 	return nil
 }
