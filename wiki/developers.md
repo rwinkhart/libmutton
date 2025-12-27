@@ -7,7 +7,7 @@ libmutton was designed to be usable as a library for building other compatible p
 Custom build tags can (and sometimes must) be used to achieve desired results.
 
 These are as follows:
-- `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN. Currently, most errors will result in the program exiting **even with this build tag**. Specific types of errors (such as config parsing/SSH dialing errors) have been made exempt from this behavior.
+- `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN.
 - `wsl`: Allows creating a Linux binary that can interact with the Windows clipboard (for WSL)
 - `termux`: Allows creating an Android binary that can interact with the Termux clipboard (for Android)
 
@@ -17,34 +17,19 @@ These are as follows:
 - `crypt.RetryPassword`, true by default, determines whether the crypt package should verify user-typed passwords and re-prompt if needed. Turn this off to handle this uniquely in the client.
 
 ## Required Arguments
-- `clipclear`: Should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `clip.ClipClearArgument()`.
+- `clipclear`: Should be accepted by all non-interactive CLI libmutton implementations (not required for interactive GUI/TUI implementations). In order to clear the clipboard on a timer, non-interactive libmutton-based password managers call another instance of their executable with the `clipclear` argument (e.g. `mutn clipclear`) with the intended clipboard contents provided via STDIN. If after 30 seconds the clipboard contents have not changed, they are cleared. Please accept a `clipclear` argument that calls `clip.ClearArgument()`.
 - `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `crypt.RCWDArgument()`.
 
 ## Mobile Clipboard Management
 In an effort to reduce dependencies not needed in most environments, libmutton no longer provides clipboard management for mobile platforms (except for Termux). This should be handled by your GUI toolkit/framework.
 
 ## Configuration
-libmutton-based password manager clients should all share the same INI configuration file.
+libmutton-based password manager clients should all share the same JSON configuration file.
 
-On UNIX-like systems, this is located at `~/.config/libmutton/libmutton.ini`. On Windows, it is located at `~\AppData\Local\libmutton\config\libmutton.ini`.
+On UNIX-like systems, this is located at `~/.config/libmutton/libmuttoncfg.json`. On Windows, it is located at `~\AppData\Local\libmutton\config\libmuttoncfg.json`.
 
-### Base `libmutton.ini` Layout
-The current base layout of `libmutton.ini` will change leading up to release v1.0.0. As of right now, the specification is as follows:
-```
-[LIBMUTTON]
-sshUser = <remote user>
-sshIP = <remote ip>
-sshPort = <remote ssh port>
-sshKey = <ssh private key identity file path>
-sshKeyProtected = <true/false>
-sshEntryRoot = <remote entry root>
-sshIsWindows = <true/false>
-```
-If creating a third-party client that requires extra configuration to be stored, please use the same file and create a new INI section for your application-specific configuration, e.g.:
-```
-[THIRD-PARTY-CLIENT-NAME]
-configKey = <value>
-```
+If creating a third-party client that requires extra configuration to be stored, please use the `ThirdParty` map in the `cfg.ConfigT` type (as used by `cfg.WriteConfig()`) to save your application-specific configuration.
+
 This ensures that a user can use multiple client applications with the same configuration while avoiding conflicts.
 
 ## Entry Format

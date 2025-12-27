@@ -1,9 +1,7 @@
 package global
 
-type ByteInputFetcher func(prompt string) []byte
-
 var (
-	GetPassword ByteInputFetcher // Clients should set this to a function that fetches hidden input from the user
+	GetPassword func(prompt string) []byte // Clients should set this to a function that fetches hidden input from the user
 	RootLength  = len(EntryRoot)
 )
 

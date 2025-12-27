@@ -10,9 +10,9 @@ import (
 	"github.com/rwinkhart/libmutton/global"
 )
 
-// LaunchClipClearProcess launches the timed clipboard clearing process.
+// LaunchClearProcess launches the timed clipboard clearing process.
 // For non-interactive CLI implementations, an entirely separate process is created for this purpose.
-func LaunchClipClearProcess(copySubject string) {
+func LaunchClearProcess(copySubject string) {
 	cmd := exec.Command(os.Args[0], "clipclear")
 	cmd.SysProcAttr = global.GetSysProcAttr()
 	_ = back.WriteToStdin(cmd, copySubject)
