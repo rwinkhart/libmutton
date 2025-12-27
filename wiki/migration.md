@@ -1,5 +1,4 @@
 ## Migrating From Other Password Managers
-**Important Notice**: The libmutton entry format is not final and has two [breaking changes planned prior to release v1.0.0](https://github.com/rwinkhart/libmutton/blob/main/wiki/breaking.md). This guide will be updated accordingly.
 ### pass
 Current libmutton-based password managers use a custom, embedded cryptography agent ([RCW](https://github.com/rwinkhart/rcw)). GPG-encrypted entries (from `pass` or libmutton releases prior to v0.4.0) can simply be decrypted and re-encrypted with RCW. A [conversion program](https://github.com/rwinkhart/sshyp-labs/releases/tag/v2.0.0) has been published for this purpose.
 ### sshyp
