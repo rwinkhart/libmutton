@@ -74,14 +74,14 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgeFile bool) (strin
 		for _, device := range deviceIDList {
 			if device.Name() != clientDeviceID {
 				if !onlyShearAgeFile {
-					f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"entry"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
+					f, err := os.OpenFile(global.CfgDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"entry"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 					if err != nil {
 						// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
 						return "", false, err
 					}
 					_ = f.Close() // error ignored; if the file could be created, it can probably be closed
 				}
-				f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"age"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
+				f, err := os.OpenFile(global.CfgDir+global.PathSeparator+"deletions"+global.PathSeparator+device.Name()+global.FSSpace+"age"+global.FSSpace+strings.ReplaceAll(vanityPath, "/", global.FSPath), os.O_CREATE|os.O_WRONLY, 0600)
 				if err != nil {
 					// failure to add the target to the deletions list will exit the program and result in a client re-uploading the target (non-critical)
 					return "", false, err

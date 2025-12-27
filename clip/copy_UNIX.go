@@ -54,7 +54,6 @@ func isWayland() (bool, error) {
 		return true, nil
 	} else if _, envSet = os.LookupEnv("DISPLAY"); envSet {
 		return false, nil
-	} else {
-		return false, errors.New("unable to detect Wayland or X11 session")
 	}
+	return false, errors.New("unable to detect Wayland or X11 session")
 }

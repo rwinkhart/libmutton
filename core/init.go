@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/cfg"
+	"github.com/rwinkhart/libmutton/config"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/syncclient"
 	"github.com/rwinkhart/rcw/wrappers"
@@ -15,9 +15,9 @@ import (
 
 // LibmuttonInit creates the libmutton config structure based on user input.
 // rcwPassword and clientSpecificIniData can be left blank if not needed.
-func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map[string]any, rcwPassword []byte, preserveOldConfigDir bool, forceOfflineMode bool) error {
+func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map[string]any, rcwPassword []byte, preserveOldCfgDir bool, forceOfflineMode bool) error {
 	// handle clientSpecificIniData
-	newCfg := &cfg.ConfigT{}
+	newCfg := &config.CfgT{}
 	if clientSpecificIniData != nil {
 		newThirdPartyMap := make(map[string]any)
 		maps.Copy(newThirdPartyMap, clientSpecificIniData)
@@ -32,7 +32,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 	}
 	if len(r) > 0 && r[0] == 'n' {
 		// initialize libmutton directories
-		_, err := global.DirInit(preserveOldConfigDir)
+		_, err := global.DirInit(preserveOldCfgDir)
 		if err != nil {
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
@@ -40,7 +40,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 		// write config file
 		offlineMode := true
 		newCfg.Libmutton.OfflineMode = &offlineMode
-		err = cfg.WriteConfig(newCfg, false)
+		err = config.Write(newCfg, false)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 
 		// perform operations based on collected user input
 		//// initialize libmutton directories
-		oldDeviceID, err := global.DirInit(preserveOldConfigDir)
+		oldDeviceID, err := global.DirInit(preserveOldCfgDir)
 		if err != nil {
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
@@ -77,7 +77,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 		newCfg.Libmutton.SSHPort = &sshPort
 		newCfg.Libmutton.SSHKeyPath = &sshKeyPath
 		newCfg.Libmutton.SSHKeyProtected = &sshKeyProtected
-		err = cfg.WriteConfig(newCfg, false)
+		err = config.Write(newCfg, false)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 		newCfg.Libmutton.SSHEntryRootPath = &sshEntryRoot
 		newCfg.Libmutton.SSHAgeDirPath = &sshAgeDir
 		newCfg.Libmutton.SSHIsWindows = &sshIsWindows
-		err = cfg.WriteConfig(newCfg, true)
+		err = config.Write(newCfg, true)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 
 // RCWSanityCheckGen generates the RCW sanity check file for libmutton.
 func RCWSanityCheckGen(password []byte) error {
-	err := wrappers.GenSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", password)
+	err := wrappers.GenSanityCheck(global.CfgDir+global.PathSeparator+"sanity.rcw", password)
 	if err != nil {
 		return errors.New("unable to generate sanity check file: " + err.Error())
 	}

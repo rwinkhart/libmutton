@@ -71,7 +71,7 @@ func launchRCWDProcess() []byte {
 	if RetryPassword {
 		for {
 			password = global.GetPassword("RCW Password:")
-			err := wrappers.RunSanityCheck(global.ConfigDir+global.PathSeparator+"sanity.rcw", password)
+			err := wrappers.RunSanityCheck(global.CfgDir+global.PathSeparator+"sanity.rcw", password)
 			if err == nil {
 				break
 			}

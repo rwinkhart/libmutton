@@ -97,7 +97,7 @@ func main() {
 		// register a new device ID
 		// stdin[0] is expected to be the device ID
 		// stdin[1] is expected to be the old device ID (for removal)
-		f, err := os.OpenFile(global.ConfigDir+global.PathSeparator+"devices"+global.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600)
+		f, err := os.OpenFile(global.CfgDir+global.PathSeparator+"devices"+global.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 			return
@@ -105,13 +105,13 @@ func main() {
 		_ = f.Close()
 		if stdin[1] != global.FSMisc { // FSMisc is used to indicate that no device ID is being replaced
 			// remove the old device ID file
-			err = os.RemoveAll(global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1])
+			err = os.RemoveAll(global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1])
 			if err != nil {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 				return
 			}
 			// carry over deletions from the old device ID to the new one
-			deletionsDirRoot := global.ConfigDir + global.PathSeparator + "deletions" + global.PathSeparator
+			deletionsDirRoot := global.CfgDir + global.PathSeparator + "deletions" + global.PathSeparator
 			deletionsList, err := os.ReadDir(deletionsDirRoot)
 			if err != nil {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
@@ -143,7 +143,7 @@ func main() {
 		if err != nil {
 			other.PrintError("Failed to initialize libmuttonserver directories: "+err.Error(), back.ErrorWrite)
 		}
-		_ = os.MkdirAll(global.ConfigDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
+		_ = os.MkdirAll(global.CfgDir+global.PathSeparator+"deletions", 0700) // error ignored; failure would have occurred by this point in core.DirInit
 		fmt.Println("libmuttonserver directories initialized")
 	case "version":
 		versionServer()

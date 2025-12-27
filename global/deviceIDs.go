@@ -26,7 +26,7 @@ func GetCurrentDeviceID() (string, error) {
 // Requires: errorOnFail (set to true to throw an error if the devices directory cannot be read/does not exist)
 func GenDeviceIDList() ([]fs.DirEntry, error) {
 	// create a slice of all registered devices
-	deviceIDList, err := os.ReadDir(ConfigDir + PathSeparator + "devices")
+	deviceIDList, err := os.ReadDir(CfgDir + PathSeparator + "devices")
 	if err != nil {
 		return nil, errors.New("unable to read devices directory: " + err.Error())
 	}

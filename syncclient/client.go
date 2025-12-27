@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/sftp"
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/libmutton/cfg"
+	"github.com/rwinkhart/libmutton/config"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
 	"golang.org/x/crypto/ssh"
@@ -27,29 +27,29 @@ import (
 // Only supports key-based authentication (passwords are supported for CLI-based implementations).
 func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 	// get SSH config info
-	config, err := cfg.LoadConfig()
+	cfg, err := config.Load()
 	if err != nil {
 		return nil, false, nil, nil, nil, errors.New("unable to parse SSH config: " + err.Error())
 	}
-	if *config.Libmutton.OfflineMode {
+	if *cfg.Libmutton.OfflineMode {
 		return nil, true, nil, nil, nil, nil
 	}
 
 	// read private key
-	key, err := os.ReadFile(*config.Libmutton.SSHKeyPath)
+	key, err := os.ReadFile(*cfg.Libmutton.SSHKeyPath)
 	if err != nil {
-		return nil, false, nil, nil, nil, errors.New("unable to read private key: " + *config.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, errors.New("unable to read private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// parse private key
 	var parsedKey ssh.Signer
-	if !*config.Libmutton.SSHKeyProtected {
+	if !*cfg.Libmutton.SSHKeyProtected {
 		parsedKey, err = ssh.ParsePrivateKey(key)
 	} else {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassword("Enter password for your SSH keyfile:"))
 	}
 	if err != nil {
-		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + *config.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// read known hosts file
@@ -60,8 +60,8 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 	}
 
 	// configure SSH client
-	sshConfig := &ssh.ClientConfig{
-		User: *config.Libmutton.SSHUser,
+	sshCfg := &ssh.ClientConfig{
+		User: *cfg.Libmutton.SSHUser,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(parsedKey),
 		},
@@ -70,12 +70,12 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 	}
 
 	// connect to SSH server
-	sshClient, err := ssh.Dial("tcp", *config.Libmutton.SSHIP+":"+*config.Libmutton.SSHPort, sshConfig)
+	sshClient, err := ssh.Dial("tcp", *cfg.Libmutton.SSHIP+":"+*cfg.Libmutton.SSHPort, sshCfg)
 	if err != nil {
 		return nil, false, nil, nil, nil, errors.New("unable to connect to remote server: " + err.Error())
 	}
 
-	return sshClient, false, config.Libmutton.SSHIsWindows, config.Libmutton.SSHEntryRootPath, config.Libmutton.SSHAgeDirPath, nil
+	return sshClient, false, cfg.Libmutton.SSHIsWindows, cfg.Libmutton.SSHEntryRootPath, cfg.Libmutton.SSHAgeDirPath, nil
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.

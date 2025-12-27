@@ -175,8 +175,8 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	newDeviceID := prefix + "-" + stringy.StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 
 	// create new device ID file (locally)
-	newDeviceIDPath := global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID
-	oldDeviceIDPath := global.ConfigDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID
+	newDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID
+	oldDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID
 	f, err := os.OpenFile(newDeviceIDPath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return "", "", false, errors.New("unable to create local device ID file: " + err.Error())

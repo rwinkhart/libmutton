@@ -9,7 +9,7 @@ import (
 
 // DirInit creates the libmutton directories.
 // Returns: oldDeviceID (from before the directory reset; will be FSMisc if there is no pre-existing ID).
-func DirInit(preserveOldConfigDir bool) (string, error) {
+func DirInit(preserveOldCfgDir bool) (string, error) {
 	// create EntryRoot
 	err := os.MkdirAll(EntryRoot, 0700)
 	if err != nil {
@@ -23,10 +23,10 @@ func DirInit(preserveOldConfigDir bool) (string, error) {
 	}
 
 	// remove existing config directory (if it exists and not in append mode)
-	if !preserveOldConfigDir {
-		isAccessible, _ := back.TargetIsFile(ConfigDir, false) // error is ignored because dir/file status is irrelevant
+	if !preserveOldCfgDir {
+		isAccessible, _ := back.TargetIsFile(CfgDir, false) // error is ignored because dir/file status is irrelevant
 		if isAccessible {
-			err = os.RemoveAll(ConfigDir)
+			err = os.RemoveAll(CfgDir)
 			if err != nil {
 				return "", errors.New("unable to remove existing config directory: " + err.Error())
 			}
@@ -34,9 +34,9 @@ func DirInit(preserveOldConfigDir bool) (string, error) {
 	}
 
 	// create config directory w/devices subdirectory
-	err = os.MkdirAll(ConfigDir+PathSeparator+"devices", 0700)
+	err = os.MkdirAll(CfgDir+PathSeparator+"devices", 0700)
 	if err != nil {
-		return "", errors.New("unable to create \"" + ConfigDir + "\": " + err.Error())
+		return "", errors.New("unable to create \"" + CfgDir + "\": " + err.Error())
 	}
 
 	// create password age directory
