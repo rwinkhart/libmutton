@@ -23,6 +23,6 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 }
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
-func getClipCommands() (*exec.Cmd, *exec.Cmd) {
-	return exec.Command("powershell.exe", "-c", "Get-Clipboard"), exec.Command("powershell.exe", "-c", "Set-Clipboard")
+func getClipCommands() (*exec.Cmd, *exec.Cmd, error) {
+	return exec.Command("powershell.exe", "-c", "Get-Clipboard"), exec.Command("powershell.exe", "-c", "Set-Clipboard"), nil
 }

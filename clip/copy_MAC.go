@@ -24,8 +24,8 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 }
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
-func getClipCommands() (*exec.Cmd, *exec.Cmd) {
+func getClipCommands() (*exec.Cmd, *exec.Cmd, error) {
 	cmdClear := exec.Command("pbcopy")
 	_ = back.WriteToStdin(cmdClear, "")
-	return exec.Command("pbpaste"), cmdClear
+	return exec.Command("pbpaste"), cmdClear, nil
 }

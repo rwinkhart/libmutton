@@ -24,8 +24,8 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 }
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
-func getClipCommands() (*exec.Cmd, *exec.Cmd) {
+func getClipCommands() (*exec.Cmd, *exec.Cmd, error) {
 	cmdClear := exec.Command("termux-clipboard-set")
 	_ = back.WriteToStdin(cmdClear, "")
-	return exec.Command("termux-clipboard-get"), cmdClear
+	return exec.Command("termux-clipboard-get"), cmdClear, nil
 }
