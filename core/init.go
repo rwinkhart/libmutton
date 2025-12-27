@@ -70,7 +70,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
 		//// write config file
-		//// temporarily leave sshEntryRoot, sshAgeDir, and sshIsWindows as nil to pass initial device ID registration
+		//// temporarily leave sshEntryRootPath, sshAgeDirPath, and sshIsWindows as nil to pass initial device ID registration
 		newCfg.Libmutton.OfflineMode = &forceOfflineMode // forceOfflineMode must be false to reach this point, so we can avoid the extra declaration
 		newCfg.Libmutton.SSHUser = &sshUser
 		newCfg.Libmutton.SSHIP = &sshIP
