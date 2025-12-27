@@ -28,7 +28,7 @@ func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
 	if decSlice != nil {
 		if passwordIsNew { // update age data when password changes
 			if decSlice[0] != "" { // if the password change was NOT a removal, update the age file
-				err = age.AgeEntry(global.GetVanityPath(realPath), time.Now().Unix())
+				err = age.Entry(global.GetVanityPath(realPath), time.Now().Unix())
 				if err != nil {
 					return errors.New("unable to update age data: " + err.Error())
 				}

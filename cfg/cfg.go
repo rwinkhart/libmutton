@@ -9,7 +9,7 @@ import (
 	"github.com/rwinkhart/libmutton/global"
 )
 
-type CfgT struct {
+type ConfigT struct {
 	Libmutton struct {
 		OfflineMode      *bool   `json:"offlineMode"`
 		SSHUser          *string `json:"sshUser"`
@@ -25,12 +25,12 @@ type CfgT struct {
 }
 
 // LoadConfig loads libmuttoncfg.json and returns the configuration.
-func LoadConfig() (*CfgT, error) {
+func LoadConfig() (*ConfigT, error) {
 	cfgBytes, err := os.ReadFile(global.ConfigPath)
 	if err != nil {
 		return nil, errors.New("unable to load libmuttoncfg.json: " + err.Error())
 	}
-	var cfg CfgT
+	var cfg ConfigT
 	err = json.Unmarshal(cfgBytes, &cfg)
 	if err != nil {
 		return nil, errors.New("unable to unmarshal libmuttoncfg.json: " + err.Error())
@@ -41,7 +41,7 @@ func LoadConfig() (*CfgT, error) {
 // WriteConfig writes cfg to libmuttoncfg.json.
 // If used in append mode, any nil values in the
 // input cfg will be substituted with the existing values.
-func WriteConfig(cfg *CfgT, appendMode bool) error {
+func WriteConfig(cfg *ConfigT, appendMode bool) error {
 	if appendMode {
 		// check if any fields are nil
 		var hasNilFields bool

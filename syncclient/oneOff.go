@@ -68,7 +68,7 @@ end:
 	return nil
 }
 
-// RenameRemoteFromClient renames oldVanityPath to newVanityPath on
+// RenameRemote renames oldVanityPath to newVanityPath on
 // the local system and calls the server to perform the rename remotely and add the
 // old target to the deletions list.
 // It can safely be called in offline mode, as well, so this is the intended
@@ -120,7 +120,7 @@ end:
 	return nil
 }
 
-// AddFolderRemoteFromClient creates a new entry-containing directory
+// AddFolderRemote creates a new entry-containing directory
 // on the local system and calls the server to create the folder remotely.
 // It can safely be called in offline mode, as well, so this is the
 // intended interface for adding folders (AddFolderLocal should only be

@@ -17,7 +17,7 @@ import (
 // rcwPassword and clientSpecificIniData can be left blank if not needed.
 func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map[string]any, rcwPassword []byte, preserveOldConfigDir bool, forceOfflineMode bool) error {
 	// handle clientSpecificIniData
-	newCfg := &cfg.CfgT{}
+	newCfg := &cfg.ConfigT{}
 	if clientSpecificIniData != nil {
 		newThirdPartyMap := make(map[string]any)
 		maps.Copy(newThirdPartyMap, clientSpecificIniData)

@@ -24,9 +24,8 @@ func WalkEntryDir() ([]string, []string, error) {
 			if err != nil {
 				if os.IsNotExist(err) {
 					return errors.New("entry directory does not exist; initialize libmutton to create it")
-				} else {
-					return errors.New("an unexpected error occurred while generating the entry list: " + err.Error())
 				}
+				return errors.New("an unexpected error occurred while generating the entry list: " + err.Error())
 			}
 
 			// trim root path from each path before storing and replace backslashes with forward slashes

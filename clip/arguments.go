@@ -11,7 +11,7 @@ import (
 	"github.com/rwinkhart/libmutton/crypt"
 )
 
-// CopyShortcut, given a path, decrypts an
+// CopyShortcut (given a path) decrypts an
 // entry and copies a field to the clipboard.
 func CopyShortcut(realPath string, field int) error {
 	// ensure realPath exists and is a file
@@ -40,9 +40,6 @@ func CopyShortcut(realPath string, field int) error {
 			if err != nil { // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
 			}
-			if field != -1 {
-				fmt.Println(back.AnsiGreen + "[Started]" + back.AnsiReset + " TOTP clipboard refresher\n\nService will run until this process is killed")
-			}
 			select {} // block indefinitely
 		} else { // other
 			// copy field to clipboard; launch clipboard clearing process
@@ -57,12 +54,12 @@ func CopyShortcut(realPath string, field int) error {
 	}
 }
 
-// ClipClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
-func ClipClearArgument() error {
+// ClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
+func ClearArgument() error {
 	assignedContents := back.ReadFromStdin()
 	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
-	err := ClipClearProcess(assignedContents)
+	err := ClearProcess(assignedContents)
 	return err
 }

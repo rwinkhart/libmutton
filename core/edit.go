@@ -26,9 +26,8 @@ func GetOldEntryData(realPath string, field int) ([]string, error) {
 	// return the old entry data with all required lines present
 	if field > 0 {
 		return ensureSliceLength(decryptedEntry, field), nil
-	} else {
-		return decryptedEntry, nil
 	}
+	return decryptedEntry, nil
 }
 
 // ensureSliceLength is a utility function that ensures a slice is long enough to contain the specified index.
