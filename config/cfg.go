@@ -21,7 +21,7 @@ type CfgT struct {
 		SSHKeyProtected  *bool   `json:"sshKeyProtected"`
 		SSHIsWindows     *bool   `json:"sshIsWindows"`
 	} `json:"libmutton"`
-	ThirdParty *map[string]any `json:"thirdParty"`
+	ClientSpecific *map[string]any `json:"clientSpecific"`
 }
 
 // Load loads libmuttoncfg.json and returns the configuration.

@@ -14,14 +14,14 @@ import (
 )
 
 // LibmuttonInit creates the libmutton config structure based on user input.
-// rcwPassword and clientSpecificIniData can be left blank if not needed.
-func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map[string]any, rcwPassword []byte, preserveOldCfgDir bool, forceOfflineMode bool) error {
-	// handle clientSpecificIniData
+// rcwPassword and clientSpecificCfg can be left blank/nil if not needed.
+func LibmuttonInit(inputCB func(prompt string) string, clientSpecificCfg map[string]any, rcwPassword []byte, appendMode, forceOfflineMode bool) error {
+	// handle clientSpecificCfg
 	newCfg := &config.CfgT{}
-	if clientSpecificIniData != nil {
-		newThirdPartyMap := make(map[string]any)
-		maps.Copy(newThirdPartyMap, clientSpecificIniData)
-		newCfg.ThirdParty = &newThirdPartyMap
+	if clientSpecificCfg != nil {
+		newClientSpecificMap := make(map[string]any)
+		maps.Copy(newClientSpecificMap, clientSpecificCfg)
+		newCfg.ClientSpecific = &newClientSpecificMap
 	}
 
 	var r string
@@ -32,7 +32,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 	}
 	if len(r) > 0 && r[0] == 'n' {
 		// initialize libmutton directories
-		_, err := global.DirInit(preserveOldCfgDir)
+		_, err := global.DirInit(appendMode)
 		if err != nil {
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
@@ -65,7 +65,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 
 		// perform operations based on collected user input
 		//// initialize libmutton directories
-		oldDeviceID, err := global.DirInit(preserveOldCfgDir)
+		oldDeviceID, err := global.DirInit(appendMode)
 		if err != nil {
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
@@ -77,7 +77,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificIniData map
 		newCfg.Libmutton.SSHPort = &sshPort
 		newCfg.Libmutton.SSHKeyPath = &sshKeyPath
 		newCfg.Libmutton.SSHKeyProtected = &sshKeyProtected
-		err = config.Write(newCfg, false)
+		err = config.Write(newCfg, appendMode) // pass appendMode to allow not completely destroying existing (client-specific) config
 		if err != nil {
 			return err
 		}

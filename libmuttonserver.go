@@ -153,7 +153,7 @@ func main() {
 }
 
 func helpServer() {
-	fmt.Print(back.AnsiBold + "\nlibmuttonserver | Copyright (c) 2024-2025 Randall Winkhart\n" + back.AnsiReset + `
+	fmt.Print(back.AnsiBold + "\nlibmuttonserver | Copyright (c) 2024-2026 Randall Winkhart\n" + back.AnsiReset + `
 This software exists under the MIT license; you may redistribute it under certain conditions.
 This program comes with absolutely no warranty; type "libmuttonserver version" for details.
 
@@ -192,5 +192,5 @@ ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
            OR OTHER DEALINGS IN THE SOFTWARE.` + "\n\n---------------------------------------------------------")
-	fmt.Print(back.AnsiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + global.LibmuttonVersion + "\n\n        Copyright (c) 2024-2025: Randall Winkhart" + "\n\n")
+	fmt.Print(back.AnsiBold + "\n\n              libmuttonserver" + back.AnsiReset + " Version " + global.LibmuttonVersion + "\n\n        Copyright (c) 2024-2026: Randall Winkhart" + "\n\n")
 }
