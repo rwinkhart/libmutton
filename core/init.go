@@ -96,7 +96,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificCfg map[str
 		}
 	}
 	// generate rcw sanity check file (if requested)
-	if len(rcwPassword) > 0 {
+	if rcwPassword != nil {
 		err := RCWSanityCheckGen(rcwPassword)
 		if err != nil {
 			return err

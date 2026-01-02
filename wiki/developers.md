@@ -28,7 +28,7 @@ libmutton-based password manager clients should all share the same JSON configur
 
 On UNIX-like systems, this is located at `~/.config/libmutton/libmuttoncfg.json`. On Windows, it is located at `~\AppData\Local\libmutton\config\libmuttoncfg.json`.
 
-If creating a third-party client that requires extra configuration to be stored, please use the `ClientSpecific` map in the `cfg.ConfigT` type (as used by `cfg.WriteConfig()`) to save your application-specific configuration.
+If creating a third-party client that requires extra configuration to be stored, please use the `ClientSpecific` map in the `config.CfgT` type (as used by `config.Write()`) to save your application-specific configuration.
 
 This ensures that a user can use multiple client applications with the same configuration while avoiding conflicts.
 
