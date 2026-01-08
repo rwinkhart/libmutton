@@ -12,50 +12,21 @@ import (
 )
 
 // GetRemoteDataFromServer prints to stdout the remote entries, mod times, folders, and deletions.
-// Lists in output are separated by FSSpace.
 // Output is meant to be captured over SSH for interpretation by the client.
 func GetRemoteDataFromServer(clientDeviceID string) {
-	entryList, dirList, err := synccommon.WalkEntryDir()
-	if err != nil {
-		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
-		return
-	}
-	modList := synccommon.GetModTimes(entryList)
+	// collect info
+	entryMap, err := synccommon.GetAllEntryData()
 	deletionsList, err := os.ReadDir(global.CfgDir + global.PathSeparator + "deletions")
 	if err != nil {
 		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 		return
 	}
-	vanityPathsToTimestamps, err := synccommon.GetEntryAges()
-	if err != nil {
-		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
-		return
-	}
+
+	// form response
 	var fetchResp synccommon.FetchResp
-
-	// server time
+	//// server time
 	fetchResp.ServerTime = time.Now().Unix()
-
-	// folders (initialize keys in map)
-	fetchResp.FoldersToEntries = make(map[string][]synccommon.Entry)
-	for _, folder := range dirList {
-		if _, exists := fetchResp.FoldersToEntries[folder]; !exists {
-			fetchResp.FoldersToEntries[folder] = []synccommon.Entry{}
-		}
-	}
-
-	// entries
-	var folder string
-	for i := range entryList {
-		var ageTimestamp *int64
-		if timestamp, exists := vanityPathsToTimestamps[entryList[i]]; exists {
-			ageTimestamp = &timestamp
-		}
-		folder = entryList[i][:strings.LastIndex(entryList[i], "/")]
-		fetchResp.FoldersToEntries[folder] = append(fetchResp.FoldersToEntries[folder], synccommon.Entry{VanityPath: entryList[i], ModTime: modList[i], AgeTimestamp: ageTimestamp})
-	}
-
-	// deletions
+	//// deletions
 	for _, deletion := range deletionsList {
 		// perform deletion if it is relevant to the current client device
 		affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
@@ -74,6 +45,8 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 			}
 		}
 	}
+	//// entries
+	fetchResp.Entries = entryMap
 
 	// marshal and print response to send to client
 	fetchRespBytes, err := json.Marshal(fetchResp)

@@ -18,38 +18,57 @@ const (
 
 // FetchResp defines the structure of responses from `libmuttonserver fetch`.
 type FetchResp struct {
-	ErrMsg           *string            `json:"errMsg"` // nil if no error occurred
-	ServerTime       int64              `json:"serverTime"`
-	Deletions        []Deletion         `json:"deletions"`
-	FoldersToEntries map[string][]Entry `json:"folders"`
+	ErrMsg     *string    `json:"errMsg"` // nil if no error occurred
+	ServerTime int64      `json:"serverTime"`
+	Deletions  []Deletion `json:"deletions"`
+	Entries    EntriesMap `json:"entries"`
 }
 type Deletion struct {
 	VanityPath string `json:"vanityPath"`
 	IsAgeFile  bool   `json:"isAgeFile"`
 }
+type EntriesMap map[string]Entry // map vanity paths to containing folders and mod+age timestamps
 type Entry struct {
-	VanityPath   string `json:"vanityPath"`
-	ModTime      int64  `json:"modTime"`
-	AgeTimestamp *int64 `json:"ageTimestamp"` // nil if no age file is present (non-password entry)
+	ContainingFolder string `json:"containingFolder"`
+	ModTime          int64  `json:"modTime"`
+	AgeTimestamp     *int64 `json:"ageTimestamp"` // nil if no age file is present (non-password entry)
 }
 
 // RegisterResp defines the structure of responses from `libmuttonserver register`
 type RegisterResp struct {
 	ErrMsg    *string `json:"errMsg"` // nil if no error occurred
 	EntryRoot string  `json:"entryRoot"`
-	AgeDir    string  `json:"ageDir"`
 	IsWindows bool    `json:"isWindows"`
 }
 
-// GetModTimes returns a list of all entry modification times.
-func GetModTimes(entryList []string) []int64 {
-	var modList []int64
-	for _, file := range entryList {
-		modTime, _ := os.Stat(global.GetRealPath(file))
-		modList = append(modList, modTime.ModTime().Unix())
+// GetAllEntryData returns a map of all vanity paths to
+// their respective containing folders and mod+age timestamps.
+func GetAllEntryData() (EntriesMap, error) {
+	var err error
+	entryList, _, err := WalkEntryDir()
+	if err != nil {
+		return nil, errors.New("unable to walk entry directory: " + err.Error())
 	}
-
-	return modList
+	// initialize vanityPath keys in map
+	outputEntries := make(EntriesMap)
+	var modInfo, ageInfo os.FileInfo
+	for _, vanityPath := range entryList {
+		containingFolder := vanityPath[:strings.LastIndex(vanityPath, "/")]
+		modInfo, err = os.Stat(global.GetRealPath(vanityPath))
+		if err != nil {
+			return nil, errors.New("unable to read mod time for " + vanityPath + ": " + err.Error())
+		}
+		ageInfo, err = os.Stat(global.GetRealAgePath(vanityPath))
+		var ageTimestamp *int64
+		if err == nil {
+			ageTime := ageInfo.ModTime().Unix()
+			ageTimestamp = &ageTime
+		} else if !os.IsNotExist(err) {
+			return nil, errors.New("unable to read age time for " + vanityPath + ": " + err.Error())
+		}
+		outputEntries[vanityPath] = Entry{ContainingFolder: containingFolder, ModTime: modInfo.ModTime().Unix(), AgeTimestamp: ageTimestamp}
+	}
+	return outputEntries, nil
 }
 
 // ShearLocal removes the target file or directory from the local system.
@@ -130,29 +149,6 @@ func ShearAgeFileLocal(vanityPath string) error {
 		return errors.New("unable to remove age file for " + vanityPath + ": " + err.Error())
 	}
 	return nil
-}
-
-// GetEntryAges reads the age directory and returns a
-// map of vanity paths to their corresponding age timestamps.
-func GetEntryAges() (map[string]int64, error) {
-	contents, err := os.ReadDir(global.AgeDir)
-	if err != nil {
-		return nil, errors.New("unable to read age directory contents: " + err.Error())
-	}
-
-	var vanityPathsToTimestamps = make(map[string]int64)
-	for _, dirEntry := range contents {
-		if !dirEntry.IsDir() {
-			vanityPath := strings.ReplaceAll(dirEntry.Name(), global.FSPath, "/")
-			info, err := dirEntry.Info()
-			if err != nil {
-				return nil, errors.New("unable to read age file modtime for " + vanityPath + ": " + err.Error())
-			}
-			vanityPathsToTimestamps[vanityPath] = info.ModTime().Unix()
-		}
-	}
-
-	return vanityPathsToTimestamps, nil
 }
 
 // RenameLocal renames oldLocationIncomplete to newLocationIncomplete on the local system.

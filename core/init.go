@@ -14,8 +14,9 @@ import (
 )
 
 // LibmuttonInit creates the libmutton config structure based on user input.
-// rcwPassword and clientSpecificCfg can be left blank/nil if not needed.
-func LibmuttonInit(inputCB func(prompt string) string, clientSpecificCfg map[string]any, rcwPassword []byte, appendMode, forceOfflineMode bool) error {
+// deviceIDPrefix can be left blank to use the system hostname.
+// clientSpecificCfg can be left nil if not needed.
+func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appendMode, forceOfflineMode bool, deviceIDPrefix string, clientSpecificCfg map[string]any) error {
 	// handle clientSpecificCfg
 	newCfg := &config.CfgT{}
 	if clientSpecificCfg != nil {
@@ -40,8 +41,7 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificCfg map[str
 		// write config file
 		offlineMode := true
 		newCfg.Libmutton.OfflineMode = &offlineMode
-		err = config.Write(newCfg, false)
-		if err != nil {
+		if err = config.Write(newCfg, false); err != nil {
 			return err
 		}
 	} else {
@@ -77,30 +77,24 @@ func LibmuttonInit(inputCB func(prompt string) string, clientSpecificCfg map[str
 		newCfg.Libmutton.SSHPort = &sshPort
 		newCfg.Libmutton.SSHKeyPath = &sshKeyPath
 		newCfg.Libmutton.SSHKeyProtected = &sshKeyProtected
-		err = config.Write(newCfg, appendMode) // pass appendMode to allow not completely destroying existing (client-specific) config
-		if err != nil {
+		if err = config.Write(newCfg, appendMode); err != nil { // pass appendMode to allow not completely destroying existing (client-specific) config
 			return err
 		}
 		// generate and register device ID
-		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, "")
+		sshEntryRoot, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, deviceIDPrefix)
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
 		// update config file
 		newCfg.Libmutton.SSHEntryRootPath = &sshEntryRoot
-		newCfg.Libmutton.SSHAgeDirPath = &sshAgeDir
 		newCfg.Libmutton.SSHIsWindows = &sshIsWindows
-		err = config.Write(newCfg, true)
-		if err != nil {
+		if err = config.Write(newCfg, true); err != nil {
 			return err
 		}
 	}
-	// generate rcw sanity check file (if requested)
-	if rcwPassword != nil {
-		err := RCWSanityCheckGen(rcwPassword)
-		if err != nil {
-			return err
-		}
+	// generate rcw sanity check file
+	if err := RCWSanityCheckGen(rcwPassword); err != nil {
+		return err
 	}
 	return nil
 }

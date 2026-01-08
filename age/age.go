@@ -14,7 +14,7 @@ import (
 	"github.com/rwinkhart/libmutton/synccommon"
 )
 
-// Entry creates updates the age file for a vanity path.
+// Entry creates/updates the age file for a vanity path.
 func Entry(vanityPath string, timestamp int64) error {
 	ageFilePath := global.AgeDir + global.PathSeparator + strings.ReplaceAll(vanityPath, "/", global.FSPath)
 	f, err := os.OpenFile(ageFilePath, os.O_CREATE|os.O_WRONLY, 0600)
@@ -72,11 +72,11 @@ func AllPasswordEntries(forceReage bool) error {
 // with an entry.
 // Magic number legend:
 // 0 -> no age, 1 -> fresh, 2 -> expiring soon (within a month), 3 -> expired
-func TranslateAgeTimestamp(timestamp int64) uint8 {
-	if timestamp == 0 {
+func TranslateAgeTimestamp(timestamp *int64) uint8 {
+	if timestamp == nil {
 		return 0
 	}
-	daysOld := time.Since(time.Unix(timestamp, 0)).Hours() / 24
+	daysOld := time.Since(time.Unix(*timestamp, 0)).Hours() / 24
 	if daysOld >= 365 {
 		return 3 // expired
 	} else if daysOld >= 335 {

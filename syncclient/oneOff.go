@@ -29,7 +29,7 @@ func ShearRemote(vanityPath string, onlyShearAgeFile bool) error {
 
 	var modifier string
 	var output []byte
-	sshClient, offlineMode, _, _, _, err := GetSSHClient()
+	sshClient, offlineMode, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
 	}
@@ -89,7 +89,7 @@ func RenameRemote(oldVanityPath, newVanityPath string) error {
 
 	// create an SSH client
 	var output []byte
-	sshClient, offlineMode, _, _, _, err := GetSSHClient()
+	sshClient, offlineMode, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
 	}
@@ -133,7 +133,7 @@ func AddFolderRemote(vanityPath string) error {
 
 	// create an SSH client
 	var output []byte
-	sshClient, offlineMode, _, _, _, err := GetSSHClient()
+	sshClient, offlineMode, _, _, err := GetSSHClient()
 	if offlineMode {
 		goto end
 	}
@@ -166,8 +166,8 @@ end:
 // Device IDs are only needed for online synchronization.
 // Device IDs are guaranteed unique as the current UNIX time is appended to them.
 // Leave prefix empty to use the current hostname as the prefix.
-// Returns: the remote EntryRoot, the remote AgeDir, and OS type indicator.
-func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
+// Returns: the remote EntryRoot and OS type indicator.
+func GenDeviceID(oldDeviceID, prefix string) (string, bool, error) {
 	// generate new device ID
 	if prefix == "" {
 		prefix, _ = os.Hostname()
@@ -179,7 +179,7 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	oldDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID
 	f, err := os.OpenFile(newDeviceIDPath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return "", "", false, errors.New("unable to create local device ID file: " + err.Error())
+		return "", false, errors.New("unable to create local device ID file: " + err.Error())
 	}
 	_ = f.Close() // error ignored; if the file could be created, it can probably be closed
 
@@ -198,25 +198,25 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	// register new device ID with server and fetch remote EntryRoot and OS type
 	// also removes the old device ID file (remotely)
 	// if registration fails, remove the new device ID file locally and return before removing the old one
-	sshClient, _, _, _, _, err := GetSSHClient()
+	sshClient, _, _, _, err := GetSSHClient()
 	if err != nil {
 		cleanupOnFail()
-		return "", "", false, errors.New("unable to connect to SSH client: " + err.Error())
+		return "", false, errors.New("unable to connect to SSH client: " + err.Error())
 	}
 	output, err := GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID)
 	if err != nil {
 		cleanupOnFail()
-		return "", "", false, errors.New("unable to register device ID with server: " + err.Error())
+		return "", false, errors.New("unable to register device ID with server: " + err.Error())
 	}
 	var registerResp synccommon.RegisterResp
 	err = json.Unmarshal(output, &registerResp)
 	if err != nil {
 		cleanupOnFail()
-		return "", "", false, errors.New("unable to unmarshal server register response: " + err.Error())
+		return "", false, errors.New("unable to unmarshal server register response: " + err.Error())
 	}
 	if registerResp.ErrMsg != nil {
 		cleanupOnFail()
-		return "", "", false, errors.New("unable to complete register; server-side error occurred: " + strings.ReplaceAll(*registerResp.ErrMsg, global.FSSpace, "\n"))
+		return "", false, errors.New("unable to complete register; server-side error occurred: " + strings.ReplaceAll(*registerResp.ErrMsg, global.FSSpace, "\n"))
 	}
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
@@ -224,8 +224,8 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	err = os.RemoveAll(oldDeviceIDPath)
 	if err != nil {
 		cleanupOnFail()
-		return "", "", false, errors.New("unable to remove old device ID file (locally): " + err.Error())
+		return "", false, errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}
 
-	return registerResp.EntryRoot, registerResp.AgeDir, registerResp.IsWindows, nil
+	return registerResp.EntryRoot, registerResp.IsWindows, nil
 }
