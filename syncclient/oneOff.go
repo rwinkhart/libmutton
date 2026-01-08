@@ -58,8 +58,7 @@ func ShearRemote(vanityPath string, onlyShearAgeFile bool) error {
 	}
 
 	// close the SSH client
-	err = sshClient.Close()
-	if err != nil {
+	if err = sshClient.Close(); err != nil {
 		return errors.New("unable to close SSH client: " + err.Error())
 	}
 
@@ -74,8 +73,8 @@ end:
 // It can safely be called in offline mode, as well, so this is the intended
 // interface for renaming (RenameLocal should only be used directly by the server binary).
 func RenameRemote(oldVanityPath, newVanityPath string) error {
-	err := synccommon.RenameLocal(oldVanityPath, newVanityPath) // move the target on the local system
-	if err != nil {
+	// move the target on the local system
+	if err := synccommon.RenameLocal(oldVanityPath, newVanityPath); err != nil {
 		return errors.New("unable to rename target locally: " + err.Error())
 	}
 
@@ -110,8 +109,7 @@ func RenameRemote(oldVanityPath, newVanityPath string) error {
 	}
 
 	// close the SSH client
-	err = sshClient.Close()
-	if err != nil {
+	if err = sshClient.Close(); err != nil {
 		return errors.New("unable to close SSH client: " + err.Error())
 	}
 
@@ -126,8 +124,8 @@ end:
 // intended interface for adding folders (AddFolderLocal should only be
 // used directly by the server binary).
 func AddFolderRemote(vanityPath string) error {
-	err := synccommon.AddFolderLocal(vanityPath) // add the folder on the local system
-	if err != nil {
+	// add the folder on the local system
+	if err := synccommon.AddFolderLocal(vanityPath); err != nil {
 		return errors.New("unable to add folder locally: " + err.Error())
 	}
 
@@ -151,8 +149,7 @@ func AddFolderRemote(vanityPath string) error {
 	}
 
 	// close the SSH client
-	err = sshClient.Close()
-	if err != nil {
+	if err = sshClient.Close(); err != nil {
 		return errors.New("unable to close SSH client: " + err.Error())
 	}
 
@@ -209,8 +206,7 @@ func GenDeviceID(oldDeviceID, prefix string) (string, bool, error) {
 		return "", false, errors.New("unable to register device ID with server: " + err.Error())
 	}
 	var registerResp synccommon.RegisterResp
-	err = json.Unmarshal(output, &registerResp)
-	if err != nil {
+	if err = json.Unmarshal(output, &registerResp); err != nil {
 		cleanupOnFail()
 		return "", false, errors.New("unable to unmarshal server register response: " + err.Error())
 	}
@@ -221,8 +217,7 @@ func GenDeviceID(oldDeviceID, prefix string) (string, bool, error) {
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
 	// remove old device ID file (locally; may not exist)
-	err = os.RemoveAll(oldDeviceIDPath)
-	if err != nil {
+	if err = os.RemoveAll(oldDeviceIDPath); err != nil {
 		cleanupOnFail()
 		return "", false, errors.New("unable to remove old device ID file (locally): " + err.Error())
 	}

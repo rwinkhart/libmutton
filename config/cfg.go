@@ -30,8 +30,7 @@ func Load() (*CfgT, error) {
 		return nil, errors.New("unable to load libmuttoncfg.json: " + err.Error())
 	}
 	var cfg CfgT
-	err = json.Unmarshal(cfgBytes, &cfg)
-	if err != nil {
+	if err = json.Unmarshal(cfgBytes, &cfg); err != nil {
 		return nil, errors.New("unable to unmarshal libmuttoncfg.json: " + err.Error())
 	}
 	return &cfg, nil
@@ -75,8 +74,7 @@ start:
 	if err != nil {
 		return errors.New("unable to marshal new/updated cfg: " + err.Error())
 	}
-	err = os.WriteFile(global.CfgPath, cfgBytes, 0600)
-	if err != nil {
+	if err = os.WriteFile(global.CfgPath, cfgBytes, 0600); err != nil {
 		return errors.New("unable to write new/updated cfg to libmuttoncfg.json: " + err.Error())
 	}
 

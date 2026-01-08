@@ -28,13 +28,11 @@ func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
 	if decSlice != nil {
 		if passwordIsNew { // update age data when password changes
 			if decSlice[0] != "" { // if the password change was NOT a removal, update the age file
-				err = age.Entry(global.GetVanityPath(realPath), time.Now().Unix())
-				if err != nil {
+				if err = age.Entry(global.GetVanityPath(realPath), time.Now().Unix()); err != nil {
 					return errors.New("unable to update age data: " + err.Error())
 				}
 			} else { // if the password change was a removal, remove the associated age file
-				err = syncclient.ShearRemote(global.GetVanityPath(realPath), true)
-				if err != nil {
+				if err = syncclient.ShearRemote(global.GetVanityPath(realPath), true); err != nil {
 					return errors.New("unable to remove age data: " + err.Error())
 				}
 			}
@@ -60,8 +58,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 				return errors.New("unable to refresh entries: \"" + global.EntryRoot + "-old\" already exists")
 			}
 		}
-		err := os.RemoveAll(global.EntryRoot + dirEnd)
-		if err != nil {
+		if err := os.RemoveAll(global.EntryRoot + dirEnd); err != nil {
 			return errors.New("unable to remove \"" + global.EntryRoot + dirEnd + "\": " + err.Error())
 		}
 	}
@@ -73,8 +70,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 	}
 	for _, folder := range folders {
 		fullPath := global.EntryRoot + "-new" + strings.ReplaceAll(folder, "/", global.PathSeparator)
-		err := os.MkdirAll(fullPath, 0700)
-		if err != nil {
+		if err := os.MkdirAll(fullPath, 0700); err != nil {
 			return errors.New("unable to create temporary directory \"" + fullPath + "\": " + err.Error())
 		}
 	}
@@ -118,25 +114,21 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassword)
 
 		// write the entry to the new directory
-		err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(vanityPath, "/", global.PathSeparator), encBytes, 0600)
-		if err != nil {
+		if err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(vanityPath, "/", global.PathSeparator), encBytes, 0600); err != nil {
 			return errors.New("unable to write to file: " + err.Error())
 		}
 
 		// generate new sanity check file
-		err = RCWSanityCheckGen(newRCWPassword)
-		if err != nil {
+		if err = RCWSanityCheckGen(newRCWPassword); err != nil {
 			return err
 		}
 	}
 
 	// swap the new directory with the old one
-	err = os.Rename(global.EntryRoot, global.EntryRoot+"-old")
-	if err != nil {
+	if err = os.Rename(global.EntryRoot, global.EntryRoot+"-old"); err != nil {
 		return errors.New("unable to rename old directory: " + err.Error())
 	}
-	err = os.Rename(global.EntryRoot+"-new", global.EntryRoot)
-	if err != nil {
+	if err = os.Rename(global.EntryRoot+"-new", global.EntryRoot); err != nil {
 		return errors.New("unable to rename new directory: " + err.Error())
 	}
 

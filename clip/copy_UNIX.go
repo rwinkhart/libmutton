@@ -25,8 +25,7 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 	}
 
 	_ = back.WriteToStdin(cmdCopy, copySubject)
-	err = cmdCopy.Run()
-	if err != nil {
+	if err = cmdCopy.Run(); err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
 	if clearClipboardAutomatically {

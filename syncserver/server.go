@@ -16,6 +16,10 @@ import (
 func GetRemoteDataFromServer(clientDeviceID string) {
 	// collect info
 	entryMap, err := synccommon.GetAllEntryData()
+	if err != nil {
+		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+		return
+	}
 	deletionsList, err := os.ReadDir(global.CfgDir + global.PathSeparator + "deletions")
 	if err != nil {
 		fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
@@ -38,8 +42,7 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 			fetchResp.Deletions = append(fetchResp.Deletions, synccommon.Deletion{VanityPath: strings.ReplaceAll(affectedIDVanityPath[2], global.FSPath, "/"), IsAgeFile: isAgeFile})
 
 			// assume successful client deletion and remove deletions file (if assumption is somehow false, worst case scenario is that the client will re-upload the deleted entry)
-			err = os.RemoveAll(global.CfgDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()) // error ignored; function not run from a user-facing argument and thus the error would not be visible
-			if err != nil {
+			if err = os.RemoveAll(global.CfgDir + global.PathSeparator + "deletions" + global.PathSeparator + deletion.Name()); err != nil {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 				return
 			}

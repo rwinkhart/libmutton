@@ -36,15 +36,13 @@ func CopyShortcut(realPath string, field int) error {
 			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
 			errorChan := make(chan error)
 			go TOTPCopier(decSlice[2], errorChan, nil) // "done" is not needed because the process runs until the program is killed
-			err = <-errorChan
-			if err != nil { // handle error from first copy
+			if err = <-errorChan; err != nil {         // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
 			}
 			select {} // block indefinitely
 		} else { // other
 			// copy field to clipboard; launch clipboard clearing process
-			err = CopyString(true, decSlice[field])
-			if err != nil {
+			if err = CopyString(true, decSlice[field]); err != nil {
 				return err
 			}
 			return nil
@@ -60,6 +58,5 @@ func ClearArgument() error {
 	if assignedContents == "" {
 		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
-	err := ClearProcess(assignedContents)
-	return err
+	return ClearProcess(assignedContents)
 }

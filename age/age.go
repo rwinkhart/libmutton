@@ -22,8 +22,7 @@ func Entry(vanityPath string, timestamp int64) error {
 		return errors.New("unable to create age file for " + vanityPath + ": " + err.Error())
 	}
 	_ = f.Close() // error ignored; if the file could be created, it can probably be closed
-	err = os.Chtimes(ageFilePath, time.Now(), time.Unix(timestamp, 0))
-	if err != nil {
+	if err = os.Chtimes(ageFilePath, time.Now(), time.Unix(timestamp, 0)); err != nil {
 		return errors.New("unable to set timestamp on age file for " + vanityPath + ": " + err.Error())
 	}
 	return nil
@@ -57,8 +56,7 @@ func AllPasswordEntries(forceReage bool) error {
 			// calculate random UNIX timestamp from within the last 365 days
 			offsetInt, _ := rand.Int(rand.Reader, big.NewInt(31557600))
 			randomOffset := time.Duration(offsetInt.Int64()) * time.Second
-			err = Entry(vanityPath, time.Now().Add(-randomOffset).Unix())
-			if err != nil {
+			if err = Entry(vanityPath, time.Now().Add(-randomOffset).Unix()); err != nil {
 				return err
 			}
 		}

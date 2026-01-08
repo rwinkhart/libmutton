@@ -61,8 +61,7 @@ func main() {
 		// stdin[0] is evaluated after fallthrough
 		// stdin[1] is expected to be the OLD vanityPath with FSPath representing path separators - Always pass in UNIX format
 		// stdin[2] is expected to be the NEW vanityPath with FSPath representing path separators - Always pass in UNIX format
-		err := synccommon.RenameLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), strings.ReplaceAll(stdin[2], global.FSPath, "/"))
-		if err != nil {
+		if err := synccommon.RenameLocal(strings.ReplaceAll(stdin[1], global.FSPath, "/"), strings.ReplaceAll(stdin[2], global.FSPath, "/")); err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 			return
 		}
@@ -88,8 +87,7 @@ func main() {
 	case "addfolder":
 		// add a new folder to the server
 		// stdin[0] is expected to be the vanityPath with FSPath representing path separators - Always pass in UNIX format
-		err := synccommon.AddFolderLocal(strings.ReplaceAll(stdin[0], global.FSPath, "/"))
-		if err != nil {
+		if err := synccommon.AddFolderLocal(strings.ReplaceAll(stdin[0], global.FSPath, "/")); err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 			return
 		}
@@ -105,8 +103,7 @@ func main() {
 		_ = f.Close()
 		if stdin[1] != global.FSMisc { // FSMisc is used to indicate that no device ID is being replaced
 			// remove the old device ID file
-			err = os.RemoveAll(global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1])
-			if err != nil {
+			if err = os.RemoveAll(global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1]); err != nil {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 				return
 			}
@@ -120,8 +117,7 @@ func main() {
 			for _, deletion := range deletionsList {
 				affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
 				if affectedIDVanityPath[0] == stdin[1] {
-					err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2])
-					if err != nil {
+					if err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2]); err != nil {
 						fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 						return
 					}

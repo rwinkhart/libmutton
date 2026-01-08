@@ -11,8 +11,7 @@ import (
 // Returns: oldDeviceID (from before the directory reset; will be FSMisc if there is no pre-existing ID).
 func DirInit(preserveOldCfgDir bool) (string, error) {
 	// create EntryRoot
-	err := os.MkdirAll(EntryRoot, 0700)
-	if err != nil {
+	if err := os.MkdirAll(EntryRoot, 0700); err != nil {
 		return "", errors.New("unable to create \"" + EntryRoot + "\": " + err.Error())
 	}
 
@@ -26,22 +25,19 @@ func DirInit(preserveOldCfgDir bool) (string, error) {
 	if !preserveOldCfgDir {
 		isAccessible, _ := back.TargetIsFile(CfgDir, false) // error is ignored because dir/file status is irrelevant
 		if isAccessible {
-			err = os.RemoveAll(CfgDir)
-			if err != nil {
+			if err = os.RemoveAll(CfgDir); err != nil {
 				return "", errors.New("unable to remove existing config directory: " + err.Error())
 			}
 		}
 	}
 
 	// create config directory w/devices subdirectory
-	err = os.MkdirAll(CfgDir+PathSeparator+"devices", 0700)
-	if err != nil {
+	if err = os.MkdirAll(CfgDir+PathSeparator+"devices", 0700); err != nil {
 		return "", errors.New("unable to create \"" + CfgDir + "\": " + err.Error())
 	}
 
 	// create password age directory
-	err = os.MkdirAll(AgeDir, 0700)
-	if err != nil {
+	if err = os.MkdirAll(AgeDir, 0700); err != nil {
 		return "", errors.New("unable to create \"" + AgeDir + "\": " + err.Error())
 	}
 

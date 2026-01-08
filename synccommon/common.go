@@ -123,13 +123,11 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgeFile bool) (strin
 		}
 	}
 	if !onlyShearAgeFile {
-		err = os.RemoveAll(realPath)
-		if err != nil {
+		if err = os.RemoveAll(realPath); err != nil {
 			return "", false, errors.New("unable to remove local entry (" + vanityPath + "): " + err.Error())
 		}
 	}
-	err = ShearAgeFileLocal(vanityPath)
-	if err != nil {
+	if err = ShearAgeFileLocal(vanityPath); err != nil {
 		return "", false, err
 	}
 
@@ -144,8 +142,7 @@ func ShearLocal(vanityPath, clientDeviceID string, onlyShearAgeFile bool) (strin
 // ShearAgeFileLocal removes the age file for a vanity path.
 // This function should only be used directly by the server binary.
 func ShearAgeFileLocal(vanityPath string) error {
-	err := os.RemoveAll(global.AgeDir + global.PathSeparator + strings.ReplaceAll(vanityPath, "/", global.FSPath))
-	if err != nil {
+	if err := os.RemoveAll(global.AgeDir + global.PathSeparator + strings.ReplaceAll(vanityPath, "/", global.FSPath)); err != nil {
 		return errors.New("unable to remove age file for " + vanityPath + ": " + err.Error())
 	}
 	return nil
@@ -167,21 +164,17 @@ func RenameLocal(oldVanityPath, newVanityPath string) error {
 	}
 
 	// rename oldLocation to newLocation
-	err := os.Rename(oldRealPath, newRealPath)
-	if err != nil {
+	if err := os.Rename(oldRealPath, newRealPath); err != nil {
 		return errors.New("unable to rename: " + err.Error())
 	}
 
 	// do the same for the age file (if one exists) - also back up timestamp first
-	var fileInfo os.FileInfo
-	fileInfo, err = os.Stat(oldRealAgePath)
+	fileInfo, err := os.Stat(oldRealAgePath)
 	if err == nil { // assume age file does not exist if os.Stat errors
-		err = os.Rename(oldRealAgePath, newRealAgePath)
-		if err != nil {
+		if err = os.Rename(oldRealAgePath, newRealAgePath); err != nil {
 			return errors.New("unable to rename: " + err.Error())
 		}
-		err = os.Chtimes(newRealAgePath, time.Now(), fileInfo.ModTime())
-		if err != nil {
+		if err = os.Chtimes(newRealAgePath, time.Now(), fileInfo.ModTime()); err != nil {
 			return errors.New("unable to set timestamp on age file for " + newVanityPath + ": " + err.Error())
 		}
 	}
@@ -195,8 +188,7 @@ func RenameLocal(oldVanityPath, newVanityPath string) error {
 func AddFolderLocal(vanityPath string) error {
 	// create the target locally
 	realPath := global.GetRealPath(vanityPath)
-	err := os.Mkdir(realPath, 0700)
-	if err != nil {
+	if err := os.Mkdir(realPath, 0700); err != nil {
 		if os.IsExist(err) {
 			fmt.Println(back.AnsiBlue + "Directory already exists - libmutton will still ensure it exists on the server")
 		} else {

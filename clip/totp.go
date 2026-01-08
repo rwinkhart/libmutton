@@ -17,8 +17,7 @@ func TOTPCopier(secret string, errorChan chan<- error, done <-chan bool) {
 		if err != nil {
 			errorChan <- err
 		}
-		err = CopyString(false, token)
-		if err != nil {
+		if err = CopyString(false, token); err != nil {
 			errorChan <- err
 		}
 

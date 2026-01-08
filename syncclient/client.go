@@ -119,8 +119,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client) (synccommon.EntriesMap, []sy
 	}
 
 	var fetchResp synccommon.FetchResp
-	err = json.Unmarshal(output, &fetchResp)
-	if err != nil {
+	if err = json.Unmarshal(output, &fetchResp); err != nil {
 		fmt.Println(string(output))
 		return nil, nil, 0, 0, errors.New("unable to unmarshal server fetch response: " + err.Error())
 	}
@@ -157,8 +156,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		fmt.Println("Downloading " + back.AnsiGreen + vanityPath + back.AnsiReset)
 
 		// store path to remote entry
-		var remoteFileRealPath string
-		remoteFileRealPath = getRealPathSFTP(vanityPath, sshEntryRoot, sshIsWindows)
+		remoteFileRealPath := getRealPathSFTP(vanityPath, sshEntryRoot, sshIsWindows)
 
 		// save modification time of remote file
 		var fileInfo os.FileInfo
@@ -176,8 +174,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		}
 
 		// store path to local file
-		var localFileRealPath string
-		localFileRealPath = global.GetRealPath(vanityPath)
+		localFileRealPath := global.GetRealPath(vanityPath)
 
 		// create local file
 		var localFile *os.File
@@ -197,8 +194,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		_ = localFile.Close()
 
 		// set the modification time of the local file to match the value saved from the remote file (from before the download)
-		err = os.Chtimes(localFileRealPath, time.Now(), modTime)
-		if err != nil {
+		if err = os.Chtimes(localFileRealPath, time.Now(), modTime); err != nil {
 			return errors.New("unable to set local file modification time: " + err.Error())
 		}
 	}
@@ -264,14 +260,12 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		_ = remoteFile.Close()
 
 		// set permissions on remote file
-		err = sftpClient.Chmod(remoteFileRealPath, 0600)
-		if err != nil {
+		if err = sftpClient.Chmod(remoteFileRealPath, 0600); err != nil {
 			return errors.New("unable to set permissions on remote file: " + err.Error())
 		}
 
 		// set the modification time of the remote file to match the value saved from the local file (from before the upload)
-		err = sftpClient.Chtimes(remoteFileRealPath, time.Now(), modTime)
-		if err != nil {
+		if err = sftpClient.Chtimes(remoteFileRealPath, time.Now(), modTime); err != nil {
 			return errors.New("unable to set remote file modification time: " + err.Error())
 		}
 	}
@@ -328,8 +322,7 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, ti
 	// call sftpSync with the download and upload lists
 	if timeSyncedErr == nil && (max(len(downloadList), len(uploadList)) > 0) { // only call sftpSync if there are entries to download or upload
 		fmt.Println() // add a gap between list-add messages and the actual sync messages from sftpSync
-		err := sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList)
-		if err != nil {
+		if err := sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList); err != nil {
 			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 		}
 		fmt.Println("Client is synchronized with server")
@@ -346,8 +339,7 @@ func deletionSync(deletions []synccommon.Deletion) error {
 			entryDeleted = true // set a flag to indicate that at least one entry has been deleted (used to determine whether to print a gap between deletion and other messages)
 			fmt.Println(synccommon.AnsiDelete+deletion.VanityPath+back.AnsiReset, "has been sheared, removing locally (if it exists)")
 		}
-		err := os.RemoveAll(global.GetRealPath(deletion.VanityPath))
-		if err != nil {
+		if err := os.RemoveAll(global.GetRealPath(deletion.VanityPath)); err != nil {
 			if !deletion.IsAgeFile {
 				return errors.New("unable to shear " + deletion.VanityPath + " locally: " + err.Error())
 			}
@@ -382,8 +374,7 @@ func RunJob() ([3][]string, error) {
 	}
 
 	// sync deletions
-	err = deletionSync(deletions)
-	if err != nil {
+	if err = deletionSync(deletions); err != nil {
 		return [3][]string{nil, nil, nil}, errors.New("unable to sync deletions: " + err.Error())
 	}
 

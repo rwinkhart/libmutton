@@ -19,8 +19,7 @@ func ClearProcess(assignedContents string) error {
 	}
 
 	clearClipboard := func() error {
-		err := cmdClear.Run()
-		if err != nil {
+		if err := cmdClear.Run(); err != nil {
 			return errors.New("unable to clear clipboard")
 		}
 		back.Exit(0)
@@ -29,8 +28,7 @@ func ClearProcess(assignedContents string) error {
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
 	if assignedContents == "" {
-		err := clearClipboard()
-		if err != nil {
+		if err := clearClipboard(); err != nil {
 			return err
 		}
 		return nil
