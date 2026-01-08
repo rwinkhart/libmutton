@@ -12,12 +12,9 @@ libmutton is a library for building simple, SSH-synchronized password managers i
 See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/developers.md).
 
 # Roadmap
-#### Release v0.5.0
-- Clipboard refactor
-- Password aging support
-#### Release v0.6.0
-- Implement "netpin" (quick-unlock)
 #### Release v1.0.0
+- [ ] Stabilize API (reduce need for future breaking changes)
+- [ ] Ensure usability as external C library for use in platform-native languages (e.g. Swift, Kotlin)
 - [ ] Create packaging scripts (libmuttonserver)
     - [ ] Stable source PKGBUILD
     - [ ] Stable source APKBUILD
