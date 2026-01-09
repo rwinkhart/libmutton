@@ -20,8 +20,8 @@ import (
 
 type syncListsT struct {
 	Delete   []string
-	Upload   []string
 	Download []string
+	Upload   []string
 }
 
 // GetSSHClient
