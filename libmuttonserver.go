@@ -125,8 +125,8 @@ func main() {
 			}
 		}
 
-		// print EntryRoot and bool indicating OS type to stdout for client to store in config
-		registerResp := synccommon.RegisterResp{EntryRoot: global.EntryRoot, IsWindows: global.IsWindows}
+		// print EntryRoot, AgeDir and bool indicating OS type to stdout for client to store in config
+		registerResp := synccommon.RegisterResp{EntryRoot: global.EntryRoot, AgeDir: global.AgeDir, IsWindows: global.IsWindows}
 		registerRespBytes, err := json.Marshal(registerResp)
 		if err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())

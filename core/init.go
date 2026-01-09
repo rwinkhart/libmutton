@@ -81,12 +81,13 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 			return err
 		}
 		// generate and register device ID
-		sshEntryRoot, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, deviceIDPrefix)
+		sshEntryRoot, sshAgeDir, sshIsWindows, err := syncclient.GenDeviceID(oldDeviceID, deviceIDPrefix)
 		if err != nil {
 			return errors.New("unable to generate device ID: " + err.Error())
 		}
 		// update config file
 		newCfg.Libmutton.SSHEntryRootPath = &sshEntryRoot
+		newCfg.Libmutton.SSHAgeDirPath = &sshAgeDir
 		newCfg.Libmutton.SSHIsWindows = &sshIsWindows
 		if err = config.Write(newCfg, true); err != nil {
 			return err

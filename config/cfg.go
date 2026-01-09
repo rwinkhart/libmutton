@@ -16,6 +16,7 @@ type CfgT struct {
 		SSHIP            *string `json:"sshIP"`
 		SSHPort          *string `json:"sshPort"`
 		SSHEntryRootPath *string `json:"sshEntryRootPath"`
+		SSHAgeDirPath    *string `json:"sshAgeDirPath"`
 		SSHKeyPath       *string `json:"sshKeyPath"`
 		SSHKeyProtected  *bool   `json:"sshKeyProtected"`
 		SSHIsWindows     *bool   `json:"sshIsWindows"`

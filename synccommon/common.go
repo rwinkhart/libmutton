@@ -38,6 +38,7 @@ type Entry struct {
 type RegisterResp struct {
 	ErrMsg    *string `json:"errMsg"` // nil if no error occurred
 	EntryRoot string  `json:"entryRoot"`
+	AgeDir    string  `json:"ageDir"`
 	IsWindows bool    `json:"isWindows"`
 }
 

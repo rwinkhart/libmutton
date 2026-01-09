@@ -25,20 +25,20 @@ import (
 // sshIsWindows (whether the remote server is running Windows),
 // sshEntryRoot (the root directory for entries on the remote server),
 // Only supports key-based authentication (passwords are supported for CLI-based implementations).
-func GetSSHClient() (*ssh.Client, bool, *bool, *string, error) {
+func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 	// get SSH config info
 	cfg, err := config.Load()
 	if err != nil {
-		return nil, false, nil, nil, errors.New("unable to parse SSH config: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to parse SSH config: " + err.Error())
 	}
 	if *cfg.Libmutton.OfflineMode {
-		return nil, true, nil, nil, nil
+		return nil, true, nil, nil, nil, nil
 	}
 
 	// read private key
 	key, err := os.ReadFile(*cfg.Libmutton.SSHKeyPath)
 	if err != nil {
-		return nil, false, nil, nil, errors.New("unable to read private key: " + *cfg.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, errors.New("unable to read private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// parse private key
@@ -49,14 +49,14 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, error) {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassword("Enter password for your SSH keyfile:"))
 	}
 	if err != nil {
-		return nil, false, nil, nil, errors.New("unable to parse private key: " + *cfg.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + *cfg.Libmutton.SSHKeyPath)
 	}
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
 	hostKeyCallback, err = knownhosts.New(back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "known_hosts")
 	if err != nil {
-		return nil, false, nil, nil, errors.New("unable to read known hosts file: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to read known hosts file: " + err.Error())
 	}
 
 	// configure SSH client
@@ -72,10 +72,10 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, error) {
 	// connect to SSH server
 	sshClient, err := ssh.Dial("tcp", *cfg.Libmutton.SSHIP+":"+*cfg.Libmutton.SSHPort, sshCfg)
 	if err != nil {
-		return nil, false, nil, nil, errors.New("unable to connect to remote server: " + err.Error())
+		return nil, false, nil, nil, nil, errors.New("unable to connect to remote server: " + err.Error())
 	}
 
-	return sshClient, false, cfg.Libmutton.SSHIsWindows, cfg.Libmutton.SSHEntryRootPath, nil
+	return sshClient, false, cfg.Libmutton.SSHIsWindows, cfg.Libmutton.SSHEntryRootPath, cfg.Libmutton.SSHAgeDirPath, nil
 }
 
 // GetSSHOutput runs a command over SSH and returns the output as a string.
@@ -138,8 +138,16 @@ func getRealPathSFTP(vanityPath, serverEntryRoot string, serverIsWindows bool) s
 	return serverEntryRoot + strings.ReplaceAll(vanityPath, "/", "\\")
 }
 
+// getRealPathSFTP formats the vanityPath to match the remote server's entry/age file directory and path separator.
+func getRealAgePathSFTP(vanityPath, serverAgeDir string, serverIsWindows bool) string {
+	if !serverIsWindows {
+		return serverAgeDir + "/" + strings.ReplaceAll(vanityPath, "/", global.FSPath)
+	}
+	return serverAgeDir + "\\" + strings.ReplaceAll(vanityPath, "/", global.FSPath)
+}
+
 // sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP.
-func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, downloadList, uploadList []string) error {
+func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, downloadList, uploadList []string) error {
 	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
@@ -240,7 +248,12 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 		}
 
 		// store path to remote entry
-		remoteFileRealPath := getRealPathSFTP(vanityPath, sshEntryRoot, sshIsWindows)
+		var remoteFileRealPath string
+		if isAgeFile {
+			remoteFileRealPath = getRealAgePathSFTP(vanityPath, sshAgeDir, sshIsWindows)
+		} else {
+			remoteFileRealPath = getRealPathSFTP(vanityPath, sshEntryRoot, sshIsWindows)
+		}
 
 		// create remote file
 		var remoteFile *sftp.File
@@ -279,7 +292,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, dow
 
 // syncLists determines which entries need to be downloaded and uploaded
 // for synchronization and calls sftpSync with this information.
-func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, timeSyncedErr error, localEntryMap, remoteEntryMap synccommon.EntriesMap) ([3][]string, error) {
+func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, timeSyncedErr error, localEntryMap, remoteEntryMap synccommon.EntriesMap) ([3][]string, error) {
 	// initialize slices to store entries that need to be downloaded or uploaded
 	var downloadList, uploadList []string
 
@@ -300,12 +313,18 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, ti
 			} else if remoteInfo.ModTime < localInfo.ModTime {
 				fmt.Println(back.AnsiBlue+vanityPath+back.AnsiReset, "is newer on client, adding to upload list")
 				uploadList = append(uploadList, vanityPath)
+				if localInfo.AgeTimestamp != nil && localInfo.AgeTimestamp != remoteInfo.AgeTimestamp {
+					uploadList = append(uploadList, global.FSMisc+vanityPath)
+				}
 			}
 			// remove entry from remote map (process of elimination)
 			delete(remoteEntryMap, vanityPath)
 		} else {
 			fmt.Println(back.AnsiBlue+vanityPath+back.AnsiReset, "does not exist on server, adding to upload list")
 			uploadList = append(uploadList, vanityPath)
+			if localInfo.AgeTimestamp != nil {
+				uploadList = append(uploadList, global.FSMisc+vanityPath)
+			}
 		}
 	}
 
@@ -326,7 +345,7 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, ti
 	// call sftpSync with the download and upload lists
 	if timeSyncedErr == nil && (max(len(downloadList), len(uploadList)) > 0) { // only call sftpSync if there are entries to download or upload
 		fmt.Println() // add a gap between list-add messages and the actual sync messages from sftpSync
-		if err := sftpSync(sshClient, sshEntryRoot, sshIsWindows, downloadList, uploadList); err != nil {
+		if err := sftpSync(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, downloadList, uploadList); err != nil {
 			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
 		}
 		fmt.Println("Client is synchronized with server")
@@ -360,7 +379,7 @@ func deletionSync(deletions []synccommon.Deletion) error {
 // and uploads lists for the client to report to the user.
 func RunJob() ([3][]string, error) {
 	// get SSH client to re-use throughout the sync process
-	sshClient, offlineMode, sshIsWindows, sshEntryRoot, err := GetSSHClient()
+	sshClient, offlineMode, sshIsWindows, sshEntryRoot, sshAgeDir, err := GetSSHClient()
 	if offlineMode {
 		return [3][]string{nil, nil, nil}, nil
 	}
@@ -397,7 +416,7 @@ func RunJob() ([3][]string, error) {
 
 	// sync new and updated entries
 	// if time is not synced, the time sync error and upload/download lists will be returned here
-	lists, err := syncLists(sshClient, *sshEntryRoot, *sshIsWindows, timeSyncedErr, localEntryMap, remoteEntryMap)
+	lists, err := syncLists(sshClient, *sshEntryRoot, *sshAgeDir, *sshIsWindows, timeSyncedErr, localEntryMap, remoteEntryMap)
 	if err != nil {
 		return lists, errors.New("unable to sync entries: " + err.Error())
 	}
