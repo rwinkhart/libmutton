@@ -20,7 +20,7 @@ var RetryPassword = true
 func RCWDArgument() {
 	password := back.ReadFromStdin()
 	if password == "" {
-		os.Exit(0)
+		os.Exit(0) // use os.Exit directly since this function is only intended for non-interactive CLI clients
 	}
 	daemon.Start([]byte(password))
 }

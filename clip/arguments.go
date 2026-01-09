@@ -56,7 +56,7 @@ func CopyShortcut(realPath string, field int) error {
 func ClearArgument() error {
 	assignedContents := back.ReadFromStdin()
 	if assignedContents == "" {
-		os.Exit(0) // use os.Exit instead of core.Exit, as this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
+		os.Exit(0) // use os.Exit directly since this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
 	return ClearProcess(assignedContents)
 }

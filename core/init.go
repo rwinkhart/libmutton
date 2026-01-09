@@ -47,7 +47,7 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 	} else {
 		// ensure ssh key file exists (and is a file)
 		fallbackSSHKey := back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "id_ed25519"
-		sshKeyPath := cmp.Or(back.ExpandPathWithHome(inputCB(back.AnsiBold+"Note:"+back.AnsiReset+" Only key-based authentication is supported (keys may optionally be password-protected).\n      The remote server must already be in your ~"+global.PathSeparator+".ssh"+global.PathSeparator+"known_hosts file.\n\nSSH private identity file path (falls back to \""+fallbackSSHKey+"\"):")), fallbackSSHKey)
+		sshKeyPath := cmp.Or(back.ExpandPathWithHome(inputCB("SSH private identity file path (falls back to \""+fallbackSSHKey+"\"):")), fallbackSSHKey)
 		_, err := back.TargetIsFile(sshKeyPath, true)
 		if err != nil {
 			return errors.New("unable to find SSH identity file: " + err.Error())
