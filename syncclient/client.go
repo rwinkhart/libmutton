@@ -293,7 +293,9 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, ti
 				fmt.Println(back.AnsiGreen+vanityPath+back.AnsiReset, "is newer on server, adding to download list")
 				downloadList = append(downloadList, vanityPath)
 				if remoteInfo.AgeTimestamp != nil {
-					age.Entry(vanityPath, *remoteInfo.AgeTimestamp)
+					if err := age.Entry(vanityPath, *remoteInfo.AgeTimestamp); err != nil {
+						return [3][]string{nil, nil, nil}, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
+					}
 				}
 			} else if remoteInfo.ModTime < localInfo.ModTime {
 				fmt.Println(back.AnsiBlue+vanityPath+back.AnsiReset, "is newer on client, adding to upload list")
@@ -315,7 +317,9 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot string, sshIsWindows bool, ti
 			return [3][]string{nil, nil, nil}, errors.New("unable to create containing folder for " + vanityPath + ": " + err.Error())
 		}
 		if remoteInfo.AgeTimestamp != nil {
-			age.Entry(vanityPath, *remoteInfo.AgeTimestamp)
+			if err := age.Entry(vanityPath, *remoteInfo.AgeTimestamp); err != nil {
+				return [3][]string{nil, nil, nil}, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
+			}
 		}
 	}
 
