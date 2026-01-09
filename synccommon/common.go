@@ -16,26 +16,26 @@ const (
 	AnsiDelete = "\033[38;5;1m"
 )
 
-// FetchResp defines the structure of responses from `libmuttonserver fetch`.
-type FetchResp struct {
+// FetchRespT defines the structure of responses from `libmuttonserver fetch`.
+type FetchRespT struct {
 	ErrMsg     *string    `json:"errMsg"` // nil if no error occurred
 	ServerTime int64      `json:"serverTime"`
 	Deletions  []Deletion `json:"deletions"`
-	Entries    EntriesMap `json:"entries"`
+	Entries    EntryMapT  `json:"entries"`
 }
 type Deletion struct {
 	VanityPath string `json:"vanityPath"`
 	IsAgeFile  bool   `json:"isAgeFile"`
 }
-type EntriesMap map[string]Entry // map vanity paths to containing folders and mod+age timestamps
-type Entry struct {
+type EntryMapT map[string]EntryT // map vanity paths to containing folders and mod+age timestamps
+type EntryT struct {
 	ContainingFolder string `json:"containingFolder"`
 	ModTime          int64  `json:"modTime"`
 	AgeTimestamp     *int64 `json:"ageTimestamp"` // nil if no age file is present (non-password entry)
 }
 
-// RegisterResp defines the structure of responses from `libmuttonserver register`
-type RegisterResp struct {
+// RegisterRespT defines the structure of responses from `libmuttonserver register`
+type RegisterRespT struct {
 	ErrMsg    *string `json:"errMsg"` // nil if no error occurred
 	EntryRoot string  `json:"entryRoot"`
 	AgeDir    string  `json:"ageDir"`
@@ -44,14 +44,14 @@ type RegisterResp struct {
 
 // GetAllEntryData returns a map of all vanity paths to
 // their respective containing folders and mod+age timestamps.
-func GetAllEntryData() (EntriesMap, error) {
+func GetAllEntryData() (EntryMapT, error) {
 	var err error
 	entryList, _, err := WalkEntryDir()
 	if err != nil {
 		return nil, errors.New("unable to walk entry directory: " + err.Error())
 	}
 	// initialize vanityPath keys in map
-	outputEntries := make(EntriesMap)
+	outputEntries := make(EntryMapT)
 	var modInfo, ageInfo os.FileInfo
 	for _, vanityPath := range entryList {
 		containingFolder := vanityPath[:strings.LastIndex(vanityPath, "/")]
@@ -67,7 +67,7 @@ func GetAllEntryData() (EntriesMap, error) {
 		} else if !os.IsNotExist(err) {
 			return nil, errors.New("unable to read age time for " + vanityPath + ": " + err.Error())
 		}
-		outputEntries[vanityPath] = Entry{ContainingFolder: containingFolder, ModTime: modInfo.ModTime().Unix(), AgeTimestamp: ageTimestamp}
+		outputEntries[vanityPath] = EntryT{ContainingFolder: containingFolder, ModTime: modInfo.ModTime().Unix(), AgeTimestamp: ageTimestamp}
 	}
 	return outputEntries, nil
 }

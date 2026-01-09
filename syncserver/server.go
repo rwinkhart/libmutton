@@ -27,7 +27,7 @@ func GetRemoteDataFromServer(clientDeviceID string) {
 	}
 
 	// form response
-	var fetchResp synccommon.FetchResp
+	var fetchResp synccommon.FetchRespT
 	//// server time
 	fetchResp.ServerTime = time.Now().Unix()
 	//// deletions

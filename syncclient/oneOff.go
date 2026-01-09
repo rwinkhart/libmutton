@@ -205,7 +205,7 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 		cleanupOnFail()
 		return "", "", false, errors.New("unable to register device ID with server: " + err.Error())
 	}
-	var registerResp synccommon.RegisterResp
+	var registerResp synccommon.RegisterRespT
 	if err = json.Unmarshal(output, &registerResp); err != nil {
 		cleanupOnFail()
 		return "", "", false, errors.New("unable to unmarshal server register response: " + err.Error())

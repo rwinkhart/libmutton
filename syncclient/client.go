@@ -18,6 +18,12 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
+type syncListsT struct {
+	Delete   []string
+	Upload   []string
+	Download []string
+}
+
 // GetSSHClient
 // Returns:
 // sshClient,
@@ -103,7 +109,7 @@ func GetSSHOutput(sshClient *ssh.Client, cmd, stdin string) ([]byte, error) {
 // a map of remote vanityPaths to their containing folders and mod+age timestamps,
 // a list of queued deletions,
 // and the current server&client times as UNIX timestamps.
-func getRemoteDataFromClient(sshClient *ssh.Client) (synccommon.EntriesMap, []synccommon.Deletion, int64, int64, error) {
+func getRemoteDataFromClient(sshClient *ssh.Client) (synccommon.EntryMapT, []synccommon.Deletion, int64, int64, error) {
 	// get remote output over SSH
 	deviceIDList, err := global.GenDeviceIDList()
 	if err != nil {
@@ -118,7 +124,7 @@ func getRemoteDataFromClient(sshClient *ssh.Client) (synccommon.EntriesMap, []sy
 		return nil, nil, 0, 0, errors.New("unable to run remote command: " + err.Error())
 	}
 
-	var fetchResp synccommon.FetchResp
+	var fetchResp synccommon.FetchRespT
 	if err = json.Unmarshal(output, &fetchResp); err != nil {
 		fmt.Println(string(output))
 		return nil, nil, 0, 0, errors.New("unable to unmarshal server fetch response: " + err.Error())
@@ -147,7 +153,7 @@ func getRealAgePathSFTP(vanityPath, serverAgeDir string, serverIsWindows bool) s
 }
 
 // sftpSync takes two slices of entries (one for downloads and one for uploads) and syncs them between the client and server using SFTP.
-func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, downloadList, uploadList []string) error {
+func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, syncListsV *syncListsT) error {
 	// create an SFTP client from sshClient
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
@@ -159,7 +165,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindow
 
 	// iterate over the download list
 	var filesTransferred bool
-	for _, vanityPath := range downloadList {
+	for _, vanityPath := range syncListsV.Download {
 		filesTransferred = true // set a flag to indicate that files have been downloaded (used to determine whether to print a gap between download and upload messages)
 		fmt.Println("Downloading " + back.AnsiGreen + vanityPath + back.AnsiReset)
 
@@ -213,7 +219,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindow
 
 	// iterate over the upload list
 	filesTransferred = false
-	for _, vanityPath := range uploadList {
+	for _, vanityPath := range syncListsV.Upload {
 		// determine if local file is an age file
 		var isAgeFile bool
 		if strings.HasPrefix(vanityPath, global.FSMisc) {
@@ -292,9 +298,9 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindow
 
 // syncLists determines which entries need to be downloaded and uploaded
 // for synchronization and calls sftpSync with this information.
-func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, timeSyncedErr error, localEntryMap, remoteEntryMap synccommon.EntriesMap) ([3][]string, error) {
+func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindows bool, timeSyncedErr error, localEntryMap, remoteEntryMap synccommon.EntryMapT) (*syncListsT, error) {
 	// initialize slices to store entries that need to be downloaded or uploaded
-	var downloadList, uploadList []string
+	var syncListsV syncListsT
 
 	// iterate over client entries in local map
 	for vanityPath, localInfo := range localEntryMap {
@@ -304,26 +310,26 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindo
 			remoteInfo := remoteEntryMap[vanityPath]
 			if remoteInfo.ModTime > localInfo.ModTime {
 				fmt.Println(back.AnsiGreen+vanityPath+back.AnsiReset, "is newer on server, adding to download list")
-				downloadList = append(downloadList, vanityPath)
+				syncListsV.Download = append(syncListsV.Download, vanityPath)
 				if remoteInfo.AgeTimestamp != nil {
 					if err := age.Entry(vanityPath, *remoteInfo.AgeTimestamp); err != nil {
-						return [3][]string{nil, nil, nil}, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
+						return nil, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
 					}
 				}
 			} else if remoteInfo.ModTime < localInfo.ModTime {
 				fmt.Println(back.AnsiBlue+vanityPath+back.AnsiReset, "is newer on client, adding to upload list")
-				uploadList = append(uploadList, vanityPath)
+				syncListsV.Upload = append(syncListsV.Upload, vanityPath)
 				if localInfo.AgeTimestamp != nil && localInfo.AgeTimestamp != remoteInfo.AgeTimestamp {
-					uploadList = append(uploadList, global.FSMisc+vanityPath)
+					syncListsV.Upload = append(syncListsV.Upload, global.FSMisc+vanityPath)
 				}
 			}
 			// remove entry from remote map (process of elimination)
 			delete(remoteEntryMap, vanityPath)
 		} else {
 			fmt.Println(back.AnsiBlue+vanityPath+back.AnsiReset, "does not exist on server, adding to upload list")
-			uploadList = append(uploadList, vanityPath)
+			syncListsV.Upload = append(syncListsV.Upload, vanityPath)
 			if localInfo.AgeTimestamp != nil {
-				uploadList = append(uploadList, global.FSMisc+vanityPath)
+				syncListsV.Upload = append(syncListsV.Upload, global.FSMisc+vanityPath)
 			}
 		}
 	}
@@ -331,27 +337,27 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindo
 	// iterate over remaining entries in remote map
 	for vanityPath, remoteInfo := range remoteEntryMap {
 		fmt.Println(back.AnsiGreen+vanityPath+back.AnsiReset, "does not exist on client, adding to download list")
-		downloadList = append(downloadList, vanityPath)
+		syncListsV.Download = append(syncListsV.Download, vanityPath)
 		if err := os.MkdirAll(global.GetRealPath(remoteInfo.ContainingFolder), 0700); err != nil {
-			return [3][]string{nil, nil, nil}, errors.New("unable to create containing folder for " + vanityPath + ": " + err.Error())
+			return nil, errors.New("unable to create containing folder for " + vanityPath + ": " + err.Error())
 		}
 		if remoteInfo.AgeTimestamp != nil {
 			if err := age.Entry(vanityPath, *remoteInfo.AgeTimestamp); err != nil {
-				return [3][]string{nil, nil, nil}, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
+				return nil, errors.New("unable to update age timestamp for " + vanityPath + ": " + err.Error())
 			}
 		}
 	}
 
 	// call sftpSync with the download and upload lists
-	if timeSyncedErr == nil && (max(len(downloadList), len(uploadList)) > 0) { // only call sftpSync if there are entries to download or upload
+	if timeSyncedErr == nil && (max(len(syncListsV.Download), len(syncListsV.Upload)) > 0) { // only call sftpSync if there are entries to download or upload
 		fmt.Println() // add a gap between list-add messages and the actual sync messages from sftpSync
-		if err := sftpSync(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, downloadList, uploadList); err != nil {
-			return [3][]string{nil, nil, nil}, errors.New("unable to sync entries: " + err.Error())
+		if err := sftpSync(sshClient, sshEntryRoot, sshAgeDir, sshIsWindows, &syncListsV); err != nil {
+			return nil, errors.New("unable to sync entries: " + err.Error())
 		}
 		fmt.Println("Client is synchronized with server")
 	}
 
-	return [3][]string{nil, downloadList, uploadList}, timeSyncedErr
+	return &syncListsV, timeSyncedErr
 }
 
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
@@ -377,14 +383,14 @@ func deletionSync(deletions []synccommon.Deletion) error {
 
 // RunJob runs the SSH sync job and returns deletions, downloads,
 // and uploads lists for the client to report to the user.
-func RunJob() ([3][]string, error) {
+func RunJob() (*syncListsT, error) {
 	// get SSH client to re-use throughout the sync process
 	sshClient, offlineMode, sshIsWindows, sshEntryRoot, sshAgeDir, err := GetSSHClient()
 	if offlineMode {
-		return [3][]string{nil, nil, nil}, nil
+		return nil, nil
 	}
 	if err != nil {
-		return [3][]string{nil, nil, nil}, errors.New("unable to connect to SSH client: " + err.Error())
+		return nil, errors.New("unable to connect to SSH client: " + err.Error())
 	}
 	defer func(sshClient *ssh.Client) {
 		_ = sshClient.Close()
@@ -393,18 +399,18 @@ func RunJob() ([3][]string, error) {
 	// fetch remote lists
 	remoteEntryMap, deletions, serverTime, clientTime, err := getRemoteDataFromClient(sshClient)
 	if err != nil {
-		return [3][]string{nil, nil, nil}, errors.New("unable to fetch remote data: " + err.Error())
+		return nil, errors.New("unable to fetch remote data: " + err.Error())
 	}
 
 	// sync deletions
 	if err = deletionSync(deletions); err != nil {
-		return [3][]string{nil, nil, nil}, errors.New("unable to sync deletions: " + err.Error())
+		return nil, errors.New("unable to sync deletions: " + err.Error())
 	}
 
 	// fetch local lists
 	localEntryMap, err := synccommon.GetAllEntryData()
 	if err != nil {
-		return [3][]string{nil, nil, nil}, errors.New("unable to fetch local entry data: " + err.Error())
+		return nil, errors.New("unable to fetch local entry data: " + err.Error())
 	}
 
 	// before syncing lists, ensure the client and server clocks are synced within 45 seconds
@@ -416,18 +422,17 @@ func RunJob() ([3][]string, error) {
 
 	// sync new and updated entries
 	// if time is not synced, the time sync error and upload/download lists will be returned here
-	lists, err := syncLists(sshClient, *sshEntryRoot, *sshAgeDir, *sshIsWindows, timeSyncedErr, localEntryMap, remoteEntryMap)
+	syncListsV, err := syncLists(sshClient, *sshEntryRoot, *sshAgeDir, *sshIsWindows, timeSyncedErr, localEntryMap, remoteEntryMap)
 	if err != nil {
-		return lists, errors.New("unable to sync entries: " + err.Error())
+		return syncListsV, errors.New("unable to sync entries: " + err.Error())
 	}
 
 	// add deletions info to sync lists
-	lists[0] = []string{}
 	for _, deletion := range deletions {
 		if !deletion.IsAgeFile {
-			lists[0] = append(lists[0], deletion.VanityPath)
+			syncListsV.Delete = append(syncListsV.Delete, deletion.VanityPath)
 		}
 	}
 
-	return lists, nil
+	return syncListsV, nil
 }
