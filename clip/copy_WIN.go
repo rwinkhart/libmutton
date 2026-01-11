@@ -4,14 +4,15 @@ package clip
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
-	"strings"
+
+	"github.com/rwinkhart/go-boilerplate/back"
 )
 
 // CopyString copies a string to the clipboard.
 func CopyString(clearClipboardAutomatically bool, copySubject string) error {
-	cmd := exec.Command("powershell.exe", "-c", fmt.Sprintf("echo '%s' | Set-Clipboard", strings.ReplaceAll(copySubject, "'", "''")))
+	cmd := exec.Command("clip.exe")
+	_ = back.WriteToStdin(cmd, copySubject)
 	if err := cmd.Run(); err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
@@ -23,5 +24,7 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 
 // getClipCommands returns the commands for pasting and clearing the clipboard contents.
 func getClipCommands() (*exec.Cmd, *exec.Cmd, error) {
-	return exec.Command("powershell.exe", "-c", "Get-Clipboard"), exec.Command("powershell.exe", "-c", "Set-Clipboard"), nil
+	clearCMD := exec.Command("clip.exe")
+	_ = back.WriteToStdin(clearCMD, "")
+	return exec.Command("powershell.exe", "-c", "Get-Clipboard"), clearCMD, nil
 }
