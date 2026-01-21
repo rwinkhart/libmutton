@@ -7,19 +7,19 @@ import (
 )
 
 // GetCurrentDeviceID returns the current device ID or
-// FSMisc if there is no device ID (e.g. first run).
-func GetCurrentDeviceID() (string, error) {
+// nil if there is no device ID (e.g. first run).
+func GetCurrentDeviceID() (*string, error) {
 	deviceIDList, err := GenDeviceIDList()
 	if err != nil {
-		return "", errors.New("unable to generate device ID list: " + err.Error())
+		return nil, errors.New("unable to generate device ID list: " + err.Error())
 	}
 	var deviceID string
 	if len(deviceIDList) > 0 {
 		deviceID = (deviceIDList)[0].Name()
 	} else {
-		deviceID = FSMisc // indicates to server that no device ID is being replaced
+		return nil, nil // nil device ID indicates to server that no device ID is being replaced
 	}
-	return deviceID, nil
+	return &deviceID, nil
 }
 
 // GenDeviceIDList returns a slice of all registered device IDs.

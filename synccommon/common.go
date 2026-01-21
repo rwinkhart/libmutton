@@ -42,6 +42,11 @@ type RegisterRespT struct {
 	IsWindows bool    `json:"isWindows"`
 }
 
+type RegisterReqT struct {
+	NewDeviceID string  `json:"newDeviceID"`
+	OldDeviceID *string `json:"oldDeviceID"` // nil if not replacing an existing device ID
+}
+
 // GetAllEntryData returns a map of all vanity paths to
 // their respective containing folders and mod+age timestamps.
 func GetAllEntryData() (EntryMapT, error) {

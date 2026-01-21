@@ -93,17 +93,22 @@ func main() {
 		}
 	case "register":
 		// register a new device ID
-		// stdin[0] is expected to be the device ID
-		// stdin[1] is expected to be the old device ID (for removal)
-		f, err := os.OpenFile(global.CfgDir+global.PathSeparator+"devices"+global.PathSeparator+stdin[0], os.O_CREATE|os.O_WRONLY, 0600)
+		// stdin[0] is expected to be JSON matching type synccommon.RegisterReqT
+		var registerReq synccommon.RegisterReqT
+		err := json.Unmarshal([]byte(stdin[0]), &registerReq)
+		if err != nil {
+			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
+			return
+		}
+		f, err := os.OpenFile(global.CfgDir+global.PathSeparator+"devices"+global.PathSeparator+registerReq.NewDeviceID, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 			return
 		}
 		_ = f.Close()
-		if stdin[1] != global.FSMisc { // FSMisc is used to indicate that no device ID is being replaced
+		if registerReq.OldDeviceID != nil { // nil is used to indicate that no device ID is being replaced
 			// remove the old device ID file
-			if err = os.RemoveAll(global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + stdin[1]); err != nil {
+			if err = os.RemoveAll(global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + *registerReq.OldDeviceID); err != nil {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 				return
 			}
@@ -116,8 +121,8 @@ func main() {
 			}
 			for _, deletion := range deletionsList {
 				affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
-				if affectedIDVanityPath[0] == stdin[1] {
-					if err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+stdin[0]+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2]); err != nil {
+				if affectedIDVanityPath[0] == *registerReq.OldDeviceID {
+					if err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+registerReq.NewDeviceID+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2]); err != nil {
 						fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 						return
 					}
@@ -126,8 +131,7 @@ func main() {
 		}
 
 		// print EntryRoot, AgeDir and bool indicating OS type to stdout for client to store in config
-		registerResp := synccommon.RegisterRespT{EntryRoot: global.EntryRoot, AgeDir: global.AgeDir, IsWindows: global.IsWindows}
-		registerRespBytes, err := json.Marshal(registerResp)
+		registerRespBytes, err := json.Marshal(synccommon.RegisterRespT{EntryRoot: global.EntryRoot, AgeDir: global.AgeDir, IsWindows: global.IsWindows})
 		if err != nil {
 			fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 			return

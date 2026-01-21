@@ -164,7 +164,7 @@ end:
 // Device IDs are guaranteed unique as the current UNIX time is appended to them.
 // Leave prefix empty to use the current hostname as the prefix.
 // Returns: the remote EntryRoot, the remote AgeDir, and OS type indicator.
-func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
+func GenDeviceID(oldDeviceID *string, prefix string) (string, string, bool, error) {
 	// generate new device ID
 	if prefix == "" {
 		prefix, _ = os.Hostname()
@@ -173,7 +173,10 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 
 	// create new device ID file (locally)
 	newDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID
-	oldDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + oldDeviceID
+	var oldDeviceIDPath string
+	if oldDeviceID != nil {
+		oldDeviceIDPath = global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + *oldDeviceID
+	}
 	f, err := os.OpenFile(newDeviceIDPath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return "", "", false, errors.New("unable to create local device ID file: " + err.Error())
@@ -183,7 +186,7 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	cleanupOnFail := func() {
 		// remove new device ID file
 		_ = os.RemoveAll(newDeviceIDPath)
-		if oldDeviceID != global.FSMisc {
+		if oldDeviceID != nil {
 			// restore old device ID file (if it existed and has already been removed due to DirInit)
 			if isAccessible, _ := back.TargetIsFile(oldDeviceIDPath, true); !isAccessible {
 				f, _ := os.OpenFile(oldDeviceIDPath, os.O_CREATE|os.O_WRONLY, 0600)
@@ -200,7 +203,11 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 		cleanupOnFail()
 		return "", "", false, errors.New("unable to connect to SSH client: " + err.Error())
 	}
-	output, err := GetSSHOutput(sshClient, "libmuttonserver register", newDeviceID+"\n"+oldDeviceID)
+	registerReqBytes, err := json.Marshal(synccommon.RegisterReqT{NewDeviceID: newDeviceID, OldDeviceID: oldDeviceID})
+	if err != nil {
+		return "", "", false, errors.New("unable to marshal client register request: " + err.Error())
+	}
+	output, err := GetSSHOutput(sshClient, "libmuttonserver register", string(registerReqBytes))
 	if err != nil {
 		cleanupOnFail()
 		return "", "", false, errors.New("unable to register device ID with server: " + err.Error())
@@ -217,9 +224,11 @@ func GenDeviceID(oldDeviceID, prefix string) (string, string, bool, error) {
 	_ = sshClient.Close() // ignore error; non-critical/unlikely/not much could be done about it
 
 	// remove old device ID file (locally; may not exist)
-	if err = os.RemoveAll(oldDeviceIDPath); err != nil {
-		cleanupOnFail()
-		return "", "", false, errors.New("unable to remove old device ID file (locally): " + err.Error())
+	if oldDeviceID != nil {
+		if err = os.RemoveAll(oldDeviceIDPath); err != nil {
+			cleanupOnFail()
+			return "", "", false, errors.New("unable to remove old device ID file (locally): " + err.Error())
+		}
 	}
 
 	return registerResp.EntryRoot, registerResp.AgeDir, registerResp.IsWindows, nil
