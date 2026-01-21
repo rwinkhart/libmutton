@@ -31,7 +31,8 @@ func Entry(vanityPath string, timestamp int64) error {
 // AllPasswordEntries adds age data for all un-aged entries containing passwords.
 // Each entry is aged with a random timestamp from within the last year to prevent
 // all entries having their passwords expire at the same time.
-func AllPasswordEntries(forceReage bool) error {
+// Leave rcwPassword nil to use RCW demonization.
+func AllPasswordEntries(forceReage bool, rcwPassword []byte) error {
 	allVanityPaths, _, err := synccommon.WalkEntryDir()
 	if err != nil {
 		return errors.New("unable to walk entry directory: " + err.Error())
@@ -48,7 +49,7 @@ func AllPasswordEntries(forceReage bool) error {
 			}
 		}
 
-		decSlice, err := crypt.DecryptFileToSlice(global.EntryRoot + vanityPath)
+		decSlice, err := crypt.DecryptFileToSlice(global.EntryRoot+vanityPath, rcwPassword)
 		if err != nil {
 			return err
 		}

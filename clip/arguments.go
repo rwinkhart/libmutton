@@ -13,7 +13,8 @@ import (
 
 // CopyShortcut (given a path) decrypts an
 // entry and copies a field to the clipboard.
-func CopyShortcut(realPath string, field int) error {
+// Leave rcwPassword nil to use RCW demonization.
+func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 	// ensure realPath exists and is a file
 	_, err := back.TargetIsFile(realPath, true)
 	if err != nil {
@@ -21,7 +22,7 @@ func CopyShortcut(realPath string, field int) error {
 	}
 
 	// decrypt entry
-	decSlice, err := crypt.DecryptFileToSlice(realPath)
+	decSlice, err := crypt.DecryptFileToSlice(realPath, rcwPassword)
 	if err != nil {
 		return errors.New("unable to decrypt entry: " + err.Error())
 	}

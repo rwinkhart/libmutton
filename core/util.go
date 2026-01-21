@@ -19,8 +19,9 @@ import (
 
 // WriteEntry writes entryData to an encrypted file at realPath.
 // If the entry contains an updated password, an age file is also created.
-func WriteEntry(realPath string, decSlice []string, passwordIsNew bool) error {
-	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(decSlice, "\n"))), 0600)
+// Leave rcwPassword nil to use RCW demonization.
+func WriteEntry(realPath string, decSlice []string, passwordIsNew bool, rcwPassword []byte) error {
+	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(decSlice, "\n")), rcwPassword), 0600)
 	if err != nil {
 		return errors.New("unable to write to file: " + err.Error())
 	}

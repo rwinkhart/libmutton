@@ -10,7 +10,8 @@ import (
 // GetOldEntryData decrypts and returns old entry data (with all required lines present).
 // This is a wrapper around the DecryptFileToSlice function that ensures all required lines are present in the returned slice.
 // This makes it ideal for editing entries, as it guarantees at least a baseline slice length.
-func GetOldEntryData(realPath string, field int) ([]string, error) {
+// Leave rcwPassword nil to use RCW demonization.
+func GetOldEntryData(realPath string, field int, rcwPassword []byte) ([]string, error) {
 	// ensure realPath exists and is a file
 	_, err := back.TargetIsFile(realPath, true)
 	if err != nil {
@@ -18,7 +19,7 @@ func GetOldEntryData(realPath string, field int) ([]string, error) {
 	}
 
 	// read old entry data
-	decryptedEntry, err := crypt.DecryptFileToSlice(realPath)
+	decryptedEntry, err := crypt.DecryptFileToSlice(realPath, rcwPassword)
 	if err != nil {
 		return nil, errors.New("unable to decrypt entry: " + err.Error())
 	}

@@ -13,7 +13,6 @@ These are as follows:
 
 ## Required Global Variable Manipulation
 - `global.GetPassword` must be set to allow for different types of clients (CLI, GUI, TUI) to prompt for the password in the most appropriate way.
-- `crypt.Daemonize`, true by default, determines whether to make use of the RCW daemon for password caching. This may be best to disable for interactive clients.
 - `crypt.RetryPassword`, true by default, determines whether the crypt package should verify user-typed passwords and re-prompt if needed. Turn this off to handle this uniquely in the client.
 
 ## Required Arguments
