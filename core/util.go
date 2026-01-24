@@ -161,13 +161,13 @@ func clampTrailingWhitespace(decSlice []string) []string {
 			switch endSpacesCount {
 			case 0:
 				// no trailing spaces
-				decSlice[i] = noteLine
+				decSlice[i+4] = noteLine
 			case 1:
 				// remove the single trailing space
-				decSlice[i] = strings.TrimRight(noteLine, " ")
+				decSlice[i+4] = strings.TrimRight(noteLine, " ")
 			default:
 				// truncate the trailing spaces to two
-				decSlice[i] = noteLine[:len(noteLine)-endSpacesCount+2]
+				decSlice[i+4] = noteLine[:len(noteLine)-endSpacesCount+2]
 			}
 		}
 	}
