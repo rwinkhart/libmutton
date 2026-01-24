@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -17,11 +18,11 @@ import (
 	"github.com/rwinkhart/rcw/wrappers"
 )
 
-// WriteEntry writes entryData to an encrypted file at realPath.
+// WriteEntry writes decSlice to an encrypted file at realPath.
 // If the entry contains an updated password, an age file is also created.
 // Leave rcwPassword nil to use RCW demonization.
 func WriteEntry(realPath string, decSlice []string, passwordIsNew bool, rcwPassword []byte) error {
-	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(decSlice, "\n")), rcwPassword), 0600)
+	err := os.WriteFile(realPath, crypt.EncryptBytes([]byte(strings.Join(clampTrailingWhitespace(decSlice), "\n")), rcwPassword), 0600)
 	if err != nil {
 		return errors.New("unable to write to file: " + err.Error())
 	}
@@ -45,11 +46,6 @@ func WriteEntry(realPath string, decSlice []string, passwordIsNew bool, rcwPassw
 
 // EntryRefresh re-encrypts all libmutton entries with a new password
 // and optimizes each entry to ensure they are as slim as possible.
-// This includes stripping trailing whitespace/newlines/carriage returns
-// from each field and running each note through ClampTrailingWhitespace
-// to ensure each note line is optimized as possible without breaking
-// Markdown formatting.
-// Be sure to verify passwords before using as input for this function!!
 func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) error {
 	// ensure global.EntryRoot+"-new" and global.EntryRoot-"old" do not exist
 	dirEnds := []string{"-new", "-old"}
@@ -78,50 +74,26 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 
 	// decrypt, optimize, and re-encrypt each entry
 	for _, vanityPath := range entries {
+		fmt.Println(vanityPath) // useful for CLI clients to track what entry caused a panic if one is corrupt
 		realPath := global.GetRealPath(vanityPath)
 		encBytes, err := os.ReadFile(realPath)
 		if err != nil {
 			return errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
 		}
 		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassword)
-		decryptedEntry := strings.Split(string(decBytes), "\n")
 		if err != nil {
 			return err
 		}
-		// strip trailing whitespace...
-		fieldsLength := len(decryptedEntry)
-		if fieldsLength < 4 {
-			fieldsMain := back.RemoveTrailingEmptyStrings(decryptedEntry)
-			// ...from each non-note field
-			for i, line := range fieldsMain {
-				fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
-			}
-			decryptedEntry = fieldsMain
-		} else {
-			fieldsMain := decryptedEntry[:4]
-			fieldsNote := back.RemoveTrailingEmptyStrings(decryptedEntry[4:])
-			// ...from each non-note field
-			for i, line := range fieldsMain {
-				fieldsMain[i] = strings.TrimRight(line, " \t\r\n")
-			}
-			// ...and from each note line (preserve Markdown formatting)
-			ClampTrailingWhitespace(fieldsNote)
 
-			// re-combine fields
-			decryptedEntry = append(fieldsMain, fieldsNote...)
-		}
+		// split & optimize entry
+		decSlice := clampTrailingWhitespace(strings.Split(string(decBytes), "\n"))
 
 		// re-encrypt the entry with the new password
-		encBytes = wrappers.Encrypt([]byte(strings.Join(decryptedEntry, "\n")), newRCWPassword)
+		encBytes = wrappers.Encrypt([]byte(strings.Join(decSlice, "\n")), newRCWPassword)
 
 		// write the entry to the new directory
 		if err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(vanityPath, "/", global.PathSeparator), encBytes, 0600); err != nil {
 			return errors.New("unable to write to file: " + err.Error())
-		}
-
-		// generate new sanity check file
-		if err = RCWSanityCheckGen(newRCWPassword); err != nil {
-			return err
 		}
 	}
 
@@ -133,38 +105,49 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		return errors.New("unable to rename new directory: " + err.Error())
 	}
 
+	// generate new sanity check file
+	if err = RCWSanityCheckGen(newRCWPassword); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// ClampTrailingWhitespace strips trailing newlines, carriage returns, and tabs from each line in a note.
-// Additionally, it removes single trailing spaces and truncates multiple trailing spaces to two (for Markdown formatting).
-func ClampTrailingWhitespace(note []string) {
-	for i, line := range note {
-		// remove trailing tabs, carriage returns, and newlines
-		line = strings.TrimRight(line, "\t\r\n")
+// clampTrailingWhitespace ensures the provided decSlice contains no trailing blank lines.
+// If decSlice contains a note, it strips trailing newlines, carriage returns, and tabs from
+// each line in the note. Additionally, it removes single trailing spaces and truncates
+// multiple trailing spaces to two (for Markdown formatting).
+func clampTrailingWhitespace(decSlice []string) []string {
+	decSlice = back.RemoveTrailingEmptyStrings(decSlice)
+	if len(decSlice) >= 4 {
+		for i, noteLine := range decSlice[4:] {
+			// remove trailing tabs, carriage returns, and newlines
+			noteLine = strings.TrimRight(noteLine, "\t\r\n")
 
-		// determine the number of trailing spaces in the trimmed line
-		var endSpacesCount int
-		for j := len(line) - 1; j >= 0; j-- {
-			if line[j] != ' ' {
-				break
+			// determine the number of trailing spaces in the trimmed line
+			var endSpacesCount int
+			for j := len(noteLine) - 1; j >= 0; j-- {
+				if noteLine[j] != ' ' {
+					break
+				}
+				endSpacesCount++
 			}
-			endSpacesCount++
-		}
 
-		// remove single spaces, truncate multiple spaces (leave two for Markdown formatting)
-		switch endSpacesCount {
-		case 0:
-			// no trailing spaces
-			note[i] = line
-		case 1:
-			// remove the single trailing space
-			note[i] = strings.TrimRight(line, " ")
-		default:
-			// truncate the trailing spaces to two
-			note[i] = line[:len(line)-endSpacesCount+2]
+			// remove single spaces, truncate multiple spaces (leave two for Markdown formatting)
+			switch endSpacesCount {
+			case 0:
+				// no trailing spaces
+				decSlice[i] = noteLine
+			case 1:
+				// remove the single trailing space
+				decSlice[i] = strings.TrimRight(noteLine, " ")
+			default:
+				// truncate the trailing spaces to two
+				decSlice[i] = noteLine[:len(noteLine)-endSpacesCount+2]
+			}
 		}
 	}
+	return decSlice
 }
 
 // EntryAddPrecheck ensures the directory meant to contain a new
