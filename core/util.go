@@ -74,7 +74,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 
 	// decrypt, optimize, and re-encrypt each entry
 	for _, vanityPath := range entries {
-		fmt.Println(vanityPath) // useful for CLI clients to track what entry caused a panic if one is corrupt
+		fmt.Println(vanityPath) // TODO handle error in rcw (slice length?) so it can be captured and returned for use by non-CLI clients to track corrupt entries
 		realPath := global.GetRealPath(vanityPath)
 		encBytes, err := os.ReadFile(realPath)
 		if err != nil {
@@ -110,6 +110,30 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		return err
 	}
 
+	return nil
+}
+
+// VerifyEntries decrypts all entries to memory and returns an error if
+// any failures are encountered. Failures likely indicate corrupt entries.
+func VerifyEntries(rcwPassword []byte) error {
+	entries, _, err := synccommon.WalkEntryDir()
+	if err != nil {
+		return errors.New("unable to walk entry directory: " + err.Error())
+	}
+	for _, vanityPath := range entries {
+		realPath := global.GetRealPath(vanityPath)
+		encBytes, err := os.ReadFile(realPath)
+		if err != nil {
+			return errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
+		}
+		decBytes, err := wrappers.Decrypt(encBytes, rcwPassword)
+		if err != nil {
+			return errors.New("unable verify \"" + vanityPath + "\" (decryption failure): " + err.Error())
+		}
+		if len(decBytes) < 1 {
+			return errors.New("unable verify \"" + vanityPath + "\" (contains 0/nil bytes)")
+		}
+	}
 	return nil
 }
 
