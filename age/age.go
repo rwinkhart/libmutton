@@ -15,6 +15,11 @@ import (
 )
 
 // Entry creates/updates the age file for a vanity path.
+// It does not touch the actual entry, meaning it won't be synced;
+// this is because this function is meant to be used on entries that
+// are being created or modified, so they will sync. If using this
+// to age an entry without modifying the entry, the caller must also
+// update the mod time on the entry to trigger a sync.
 func Entry(vanityPath string, timestamp int64) error {
 	ageFilePath := global.AgeDir + global.PathSeparator + strings.ReplaceAll(vanityPath, "/", global.FSPath)
 	f, err := os.OpenFile(ageFilePath, os.O_CREATE|os.O_WRONLY, 0600)
@@ -31,12 +36,14 @@ func Entry(vanityPath string, timestamp int64) error {
 // AllPasswordEntries adds age data for all un-aged entries containing passwords.
 // Each entry is aged with a random timestamp from within the last year to prevent
 // all entries having their passwords expire at the same time.
+// It also updates the mod time on the actual entry to trigger a sync.
 // Leave rcwPassword nil to use RCW demonization.
 func AllPasswordEntries(forceReage bool, rcwPassword []byte) error {
 	allVanityPaths, _, err := synccommon.WalkEntryDir()
 	if err != nil {
 		return errors.New("unable to walk entry directory: " + err.Error())
 	}
+	now := time.Now()
 
 	for _, vanityPath := range allVanityPaths {
 		// ensure entry is not already aged (unless forcing re-age)
@@ -57,8 +64,12 @@ func AllPasswordEntries(forceReage bool, rcwPassword []byte) error {
 			// calculate random UNIX timestamp from within the last 365 days
 			offsetInt, _ := rand.Int(rand.Reader, big.NewInt(31557600))
 			randomOffset := time.Duration(offsetInt.Int64()) * time.Second
-			if err = Entry(vanityPath, time.Now().Add(-randomOffset).Unix()); err != nil {
+			if err = Entry(vanityPath, now.Add(-randomOffset).Unix()); err != nil {
 				return err
+			}
+			// update entry mod time to trigger sync
+			if err = os.Chtimes(global.GetRealPath(vanityPath), now, now); err != nil {
+				return errors.New("unable to update mod time on entry (" + vanityPath + "): " + err.Error())
 			}
 		}
 	}
