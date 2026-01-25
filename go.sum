@@ -18,8 +18,8 @@ github.com/rwinkhart/go-winio v0.1.0 h1:b72agLW+dETGmhR3VbcbwnStfgKfc5AfgJOXBJDk
 github.com/rwinkhart/go-winio v0.1.0/go.mod h1:ZWa7ssZJT30CCDGJ7fk/2SBTq9BIQrrVjrcss0UW2s0=
 github.com/rwinkhart/peercred-mini v0.1.2 h1:4cGWDbv0whvLeVvbUdx84V/9p+2fS+DEXgrA1KxlRFo=
 github.com/rwinkhart/peercred-mini v0.1.2/go.mod h1:LLHG7YshHEpbpJJP+Il9nx2dnGj5O3VGE32rWmflj0c=
-github.com/rwinkhart/rcw v0.2.4 h1:FrRSsl+ui1WLmDwqjLSROtFPKqSeGLEfF2SPENt4qP0=
-github.com/rwinkhart/rcw v0.2.4/go.mod h1:nhW4RAHvEjW2QcOlqEdWqRQOFJLjoOGSPkSRZlMjU3s=
+github.com/rwinkhart/rcw v0.2.5 h1:3GJeii9sDZsZNL+HRkfHrnbgxnaB8a9kejiMIfPXnpE=
+github.com/rwinkhart/rcw v0.2.5/go.mod h1:qVw8Yp/SKtsuVZYOzzluVEVkoRJ1G7UEh2aR1CXso/U=
 github.com/rwinkhart/sys v0.40.0 h1:ZPBbXb+27vLL518sZhhNV89jXK1KbCnFGmYJ2juOQ/c=
 github.com/rwinkhart/sys v0.40.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -74,7 +73,6 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 
 	// decrypt, optimize, and re-encrypt each entry
 	for _, vanityPath := range entries {
-		fmt.Println(vanityPath) // TODO handle error in rcw (slice length?) so it can be captured and returned for use by non-CLI clients to track corrupt entries
 		realPath := global.GetRealPath(vanityPath)
 		encBytes, err := os.ReadFile(realPath)
 		if err != nil {
@@ -128,10 +126,10 @@ func VerifyEntries(rcwPassword []byte) error {
 		}
 		decBytes, err := wrappers.Decrypt(encBytes, rcwPassword)
 		if err != nil {
-			return errors.New("unable verify \"" + vanityPath + "\" (decryption failure): " + err.Error())
+			return errors.New("unable to verify \"" + vanityPath + "\" (decryption failure): " + err.Error())
 		}
 		if len(decBytes) < 1 {
-			return errors.New("unable verify \"" + vanityPath + "\" (contains 0/nil bytes)")
+			return errors.New("unable to verify \"" + vanityPath + "\" (contains 0/nil bytes)")
 		}
 	}
 	return nil

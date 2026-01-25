@@ -6,7 +6,7 @@ require (
 	github.com/pkg/sftp v1.13.10
 	github.com/pquerna/otp v1.5.0
 	github.com/rwinkhart/go-boilerplate v0.2.2
-	github.com/rwinkhart/rcw v0.2.4
+	github.com/rwinkhart/rcw v0.2.5
 	golang.org/x/crypto v0.47.0
 	golang.org/x/sys v0.40.0
 )
