@@ -9,16 +9,16 @@ import (
 )
 
 func init() {
-	// get the app's Library/Application Support directory (private, not backed up by iCloud)
-	back.Home = filepath.Join(back.Home, "Library", "Application Support", "libmutton-ios")
+	back.Home = fruityHome
 }
 
 var (
-	EntryRoot = back.Home + "/entries"        // Path to libmutton entry directory
-	CfgDir    = back.Home + "/config"         // Path to libmutton configuration directory
-	CfgPath   = CfgDir + "/libmuttoncfg.json" // Path to libmutton configuration file
-	AgeDir    = CfgDir + "/age"               // Path to libmutton password age directory
-	SSHDir    = back.Home + "/ssh"            // Path to SSH directory
+	fruityHome = filepath.Join(back.Home, "Library", "Application Support", "libmutton-ios") // private, non-iCloud-backed dir
+	EntryRoot  = fruityHome + "/entries"                                                     // Path to libmutton entry directory
+	CfgDir     = fruityHome + "/config"                                                      // Path to libmutton configuration directory
+	CfgPath    = CfgDir + "/libmuttoncfg.json"                                               // Path to libmutton configuration file
+	AgeDir     = CfgDir + "/age"                                                             // Path to libmutton password age directory
+	SSHDir     = fruityHome + "/ssh"                                                         // Path to SSH directory
 )
 
 const (
