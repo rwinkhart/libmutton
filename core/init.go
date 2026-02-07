@@ -46,7 +46,7 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 		}
 	} else {
 		// ensure ssh key file exists (and is a file)
-		fallbackSSHKey := back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "id_ed25519"
+		fallbackSSHKey := global.SSHDir + global.PathSeparator + "id_ed25519"
 		sshKeyPath := cmp.Or(back.ExpandPathWithHome(inputCB("SSH private identity file path (falls back to \""+fallbackSSHKey+"\"):")), fallbackSSHKey)
 		_, err := back.TargetIsFile(sshKeyPath, true)
 		if err != nil {
@@ -70,7 +70,7 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 			return errors.New("unable to initialize libmutton directories: " + err.Error())
 		}
 		//// write config file
-		//// temporarily leave sshEntryRootPath, sshAgeDirPath, and sshIsWindows as nil to pass initial device ID registration
+		//// temporarily leave sshEntryRootPath, sshAgeDirPath, and sshIsWindows as nil/default to pass initial device ID registration
 		newCfg.Libmutton.OfflineMode = &forceOfflineMode // forceOfflineMode must be false to reach this point, so we can avoid the extra declaration
 		newCfg.Libmutton.SSHUser = &sshUser
 		newCfg.Libmutton.SSHIP = &sshIP

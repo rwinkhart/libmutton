@@ -60,7 +60,7 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 
 	// read known hosts file
 	var hostKeyCallback ssh.HostKeyCallback
-	hostKeyCallback, err = knownhosts.New(back.Home + global.PathSeparator + ".ssh" + global.PathSeparator + "known_hosts")
+	hostKeyCallback, err = knownhosts.New(global.SSHDir + global.PathSeparator + "known_hosts")
 	if err != nil {
 		return nil, false, nil, nil, nil, errors.New("unable to read known hosts file: " + err.Error())
 	}

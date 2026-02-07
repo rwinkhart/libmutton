@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build !windows && !ios && !android
 
 package global
 
@@ -9,6 +9,7 @@ var (
 	CfgDir    = back.Home + "/.config/libmutton"      // Path to libmutton configuration directory
 	CfgPath   = CfgDir + "/libmuttoncfg.json"         // Path to libmutton configuration file
 	AgeDir    = CfgDir + "/age"                       // Path to libmutton password age directory
+	SSHDir    = back.Home + "/.ssh"                   // Path to SSH directory
 )
 
 const (
