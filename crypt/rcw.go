@@ -55,6 +55,7 @@ func DecryptFileToSlice(realPath string, rcwPassword []byte) ([]string, error) {
 
 // EncryptBytes encrypts a byte slice using RCW and returns the encrypted data.
 // Leave rcwPassword nil to use RCW demonization.
+// If providing rcwPassword, it is up to the client to perform the sanity check!
 func EncryptBytes(decBytes, rcwPassword []byte) []byte {
 	// if no rcwPassword was provided, assume daemon mode
 	if rcwPassword == nil {
