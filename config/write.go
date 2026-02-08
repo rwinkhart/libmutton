@@ -24,19 +24,6 @@ type CfgT struct {
 	ClientSpecific *map[string]any `json:"clientSpecific"`
 }
 
-// Load loads libmuttoncfg.json and returns the configuration.
-func Load() (*CfgT, error) {
-	cfgBytes, err := os.ReadFile(global.CfgPath)
-	if err != nil {
-		return nil, errors.New("unable to load libmuttoncfg.json: " + err.Error())
-	}
-	var cfg CfgT
-	if err = json.Unmarshal(cfgBytes, &cfg); err != nil {
-		return nil, errors.New("unable to unmarshal libmuttoncfg.json: " + err.Error())
-	}
-	return &cfg, nil
-}
-
 // Write writes cfg to libmuttoncfg.json.
 // If used in append mode, any nil values in the
 // input cfg will be substituted with the existing values.
