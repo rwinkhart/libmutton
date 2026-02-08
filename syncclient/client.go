@@ -13,6 +13,7 @@ import (
 	"github.com/rwinkhart/libmutton/age"
 	"github.com/rwinkhart/libmutton/config"
 	"github.com/rwinkhart/libmutton/global"
+	"github.com/rwinkhart/libmutton/privkey"
 	"github.com/rwinkhart/libmutton/synccommon"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -41,10 +42,10 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 		return nil, true, nil, nil, nil, nil
 	}
 
-	// read private key
-	key, err := os.ReadFile(*cfg.Libmutton.SSHKeyPath)
+	// get private key
+	key, err := privkey.GetBytes(cfg.Libmutton.SSHKeyPath)
 	if err != nil {
-		return nil, false, nil, nil, nil, errors.New("unable to read private key: " + *cfg.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, err
 	}
 
 	// parse private key
@@ -55,7 +56,7 @@ func GetSSHClient() (*ssh.Client, bool, *bool, *string, *string, error) {
 		parsedKey, err = ssh.ParsePrivateKeyWithPassphrase(key, global.GetPassword("Enter password for your SSH keyfile:"))
 	}
 	if err != nil {
-		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + *cfg.Libmutton.SSHKeyPath)
+		return nil, false, nil, nil, nil, errors.New("unable to parse private key: " + err.Error())
 	}
 
 	// read known hosts file

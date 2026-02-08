@@ -12,8 +12,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/otp v1.5.0 h1:NMMR+WrmaqXU4EzdGJEE1aUUI0AMRzsp96fFFWNPwxs=
 github.com/pquerna/otp v1.5.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
-github.com/rwinkhart/go-boilerplate v0.2.2 h1:SVHTAQU+HWFivtUnDBcfrgClJV5ZmHyFS7/uERh7NKU=
-github.com/rwinkhart/go-boilerplate v0.2.2/go.mod h1:/NVRKGslU20E5xU5YOgXzWxA6aa94BMtv5MtHRTb5Ek=
+github.com/rwinkhart/go-boilerplate v0.2.3-0.20260208035402-e1bb0012a781 h1:kMAM0fkWGPa8WK7A4a9rMX2oD2Lv198zJoD9LCUAzOA=
+github.com/rwinkhart/go-boilerplate v0.2.3-0.20260208035402-e1bb0012a781/go.mod h1:QcUlr4SMgONRMKD965m8oTuCa6ZJVAc17w27Qopyr+s=
 github.com/rwinkhart/go-winio v0.1.0 h1:b72agLW+dETGmhR3VbcbwnStfgKfc5AfgJOXBJDkaHg=
 github.com/rwinkhart/go-winio v0.1.0/go.mod h1:ZWa7ssZJT30CCDGJ7fk/2SBTq9BIQrrVjrcss0UW2s0=
 github.com/rwinkhart/peercred-mini v0.1.2 h1:4cGWDbv0whvLeVvbUdx84V/9p+2fS+DEXgrA1KxlRFo=
