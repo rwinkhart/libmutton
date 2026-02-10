@@ -35,7 +35,7 @@ func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 
 		if field == 2 { // TOTP mode
 			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
-			errorChan := make(chan error)
+			errorChan := make(chan error, 1)
 			go TOTPCopier(decSlice[2], errorChan, nil) // "done" is not needed because the process runs until the program is killed
 			if err = <-errorChan; err != nil {         // handle error from first copy
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
