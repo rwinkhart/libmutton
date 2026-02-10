@@ -364,16 +364,16 @@ func syncLists(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindo
 // deletionSync removes entries from the client that have been deleted on the server (multi-client deletion).
 func deletionSync(deletions []synccommon.Deletion) error {
 	var entryDeleted bool
-	for _, deletion := range deletions {
-		if !deletion.IsAgeFile {
+	for i := range deletions {
+		if !deletions[i].IsAgeFile {
 			entryDeleted = true // set a flag to indicate that at least one entry has been deleted (used to determine whether to print a gap between deletion and other messages)
-			fmt.Println(synccommon.AnsiDelete+deletion.VanityPath+back.AnsiReset, "has been sheared, removing locally (if it exists)")
+			fmt.Println(synccommon.AnsiDelete+deletions[i].VanityPath+back.AnsiReset, "has been sheared, removing locally (if it exists)")
 		}
-		if err := os.RemoveAll(global.GetRealPath(deletion.VanityPath)); err != nil {
-			if !deletion.IsAgeFile {
-				return errors.New("unable to shear " + deletion.VanityPath + " locally: " + err.Error())
+		if err := os.RemoveAll(global.GetRealPath(deletions[i].VanityPath)); err != nil {
+			if !deletions[i].IsAgeFile {
+				return errors.New("unable to shear " + deletions[i].VanityPath + " locally: " + err.Error())
 			}
-			return errors.New("unable to shear age file for " + deletion.VanityPath + " locally: " + err.Error())
+			return errors.New("unable to shear age file for " + deletions[i].VanityPath + " locally: " + err.Error())
 		}
 	}
 	if entryDeleted {
@@ -429,9 +429,9 @@ func RunJob() (*syncListsT, error) {
 	}
 
 	// add deletions info to sync lists
-	for _, deletion := range deletions {
-		if !deletion.IsAgeFile {
-			syncListsV.Delete = append(syncListsV.Delete, deletion.VanityPath)
+	for i := range deletions {
+		if !deletions[i].IsAgeFile {
+			syncListsV.Delete = append(syncListsV.Delete, deletions[i].VanityPath)
 		}
 	}
 

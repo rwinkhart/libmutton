@@ -119,10 +119,10 @@ func main() {
 				fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 				return
 			}
-			for _, deletion := range deletionsList {
-				affectedIDVanityPath := strings.Split(deletion.Name(), global.FSSpace)
+			for i := range deletionsList {
+				affectedIDVanityPath := strings.Split(deletionsList[i].Name(), global.FSSpace)
 				if affectedIDVanityPath[0] == *registerReq.OldDeviceID {
-					if err = os.Rename(deletionsDirRoot+deletion.Name(), deletionsDirRoot+registerReq.NewDeviceID+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2]); err != nil {
+					if err = os.Rename(deletionsDirRoot+deletionsList[i].Name(), deletionsDirRoot+registerReq.NewDeviceID+global.FSSpace+affectedIDVanityPath[1]+global.FSSpace+affectedIDVanityPath[2]); err != nil {
 						fmt.Printf("{\"errMsg\":\"%s\"}", err.Error())
 						return
 					}
