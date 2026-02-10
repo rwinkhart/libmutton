@@ -39,8 +39,7 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 		}
 
 		// write config file
-		offlineMode := true
-		newCfg.Libmutton.OfflineMode = &offlineMode
+		newCfg.Libmutton.OfflineMode = new(true)
 		if err = config.Write(newCfg, false); err != nil {
 			return err
 		}
@@ -59,9 +58,6 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 		if len(r) > 0 && r[0] == 'y' {
 			sshKeyProtected = true
 		}
-		sshUser := inputCB("Remote SSH username:")
-		sshIP := inputCB("Remote SSH IP/domain:")
-		sshPort := inputCB("Remote SSH port:")
 
 		// perform operations based on collected user input
 		//// initialize libmutton directories
@@ -72,9 +68,9 @@ func LibmuttonInit(inputCB func(prompt string) string, rcwPassword []byte, appen
 		//// write config file
 		//// temporarily leave sshEntryRootPath, sshAgeDirPath, and sshIsWindows as nil/default to pass initial device ID registration
 		newCfg.Libmutton.OfflineMode = &forceOfflineMode // forceOfflineMode must be false to reach this point, so we can avoid the extra declaration
-		newCfg.Libmutton.SSHUser = &sshUser
-		newCfg.Libmutton.SSHIP = &sshIP
-		newCfg.Libmutton.SSHPort = &sshPort
+		newCfg.Libmutton.SSHUser = new(inputCB("Remote SSH username:"))
+		newCfg.Libmutton.SSHIP = new(inputCB("Remote SSH IP/domain:"))
+		newCfg.Libmutton.SSHPort = new(inputCB("Remote SSH port:"))
 		newCfg.Libmutton.SSHKeyPath = &sshKeyPath
 		newCfg.Libmutton.SSHKeyProtected = &sshKeyProtected
 		if err = config.Write(newCfg, appendMode); err != nil { // pass appendMode to allow not completely destroying existing (client-specific) config

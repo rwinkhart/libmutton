@@ -67,8 +67,7 @@ func GetAllEntryData() (EntryMapT, error) {
 		ageInfo, err = os.Stat(global.GetRealAgePath(vanityPath))
 		var ageTimestamp *int64
 		if err == nil {
-			ageTime := ageInfo.ModTime().Unix()
-			ageTimestamp = &ageTime
+			ageTimestamp = new(ageInfo.ModTime().Unix())
 		} else if !os.IsNotExist(err) {
 			return nil, errors.New("unable to read age time for " + vanityPath + ": " + err.Error())
 		}
