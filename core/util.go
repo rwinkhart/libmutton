@@ -78,7 +78,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		if err != nil {
 			return errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
 		}
-		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassword)
+		decBytes, err := wrappers.Decrypt(encBytes, oldRCWPassword, false)
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func EntryRefresh(oldRCWPassword, newRCWPassword []byte, removeOldDir bool) erro
 		decSlice := clampTrailingWhitespace(strings.Split(string(decBytes), "\n"))
 
 		// re-encrypt the entry with the new password
-		encBytes = wrappers.Encrypt([]byte(strings.Join(decSlice, "\n")), newRCWPassword)
+		encBytes = wrappers.Encrypt([]byte(strings.Join(decSlice, "\n")), newRCWPassword, true, false)
 
 		// write the entry to the new directory
 		if err = os.WriteFile(global.EntryRoot+"-new"+strings.ReplaceAll(vanityPath, "/", global.PathSeparator), encBytes, 0600); err != nil {
@@ -124,7 +124,7 @@ func VerifyEntries(rcwPassword []byte) error {
 		if err != nil {
 			return errors.New("unable to open \"" + realPath + "\" for decryption: " + err.Error())
 		}
-		decBytes, err := wrappers.Decrypt(encBytes, rcwPassword)
+		decBytes, err := wrappers.Decrypt(encBytes, rcwPassword, false)
 		if err != nil {
 			return errors.New("unable to verify \"" + vanityPath + "\" (decryption failure): " + err.Error())
 		}

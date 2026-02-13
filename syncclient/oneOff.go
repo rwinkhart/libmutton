@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/rwinkhart/go-boilerplate/back"
-	"github.com/rwinkhart/go-boilerplate/stringy"
+	"github.com/rwinkhart/go-boilerplate/security"
 	"github.com/rwinkhart/libmutton/global"
 	"github.com/rwinkhart/libmutton/synccommon"
 )
@@ -169,7 +169,7 @@ func GenDeviceID(oldDeviceID *string, prefix string) (string, string, bool, erro
 	if prefix == "" {
 		prefix, _ = os.Hostname()
 	}
-	newDeviceID := prefix + "-" + stringy.StringGen(rand.Intn(32)+48, 0.2, 1) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+	newDeviceID := prefix + "-" + string(security.BytesGen(rand.Intn(32)+48, 0.2, 1)) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 
 	// create new device ID file (locally)
 	newDeviceIDPath := global.CfgDir + global.PathSeparator + "devices" + global.PathSeparator + newDeviceID

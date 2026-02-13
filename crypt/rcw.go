@@ -18,7 +18,7 @@ var RetryPassword = true
 // RCWDArgument reads the password from stdin and caches it via an RCW daemon.
 func RCWDArgument() {
 	password := back.ReadFromStdin()
-	if password == "" {
+	if password == nil {
 		os.Exit(0) // use os.Exit directly since this function is only intended for non-interactive CLI clients
 	}
 	daemon.Start([]byte(password))
@@ -46,7 +46,7 @@ func DecryptFileToSlice(realPath string, rcwPassword []byte) ([]string, error) {
 
 	// if the daemon is not being used/was not already running,
 	// use wrappers.Decrypt directly to avoid waiting for socket file creation
-	decBytes, err := wrappers.Decrypt(encBytes, rcwPassword)
+	decBytes, err := wrappers.Decrypt(encBytes, rcwPassword, true)
 	if err != nil {
 		return nil, errors.New("unable to decrypt \"" + realPath + "\": " + err.Error())
 	}
@@ -63,13 +63,13 @@ func EncryptBytes(decBytes, rcwPassword []byte) []byte {
 		// if rcwPassword is still nil, the daemon is already running;
 		// use it to encrypt the data
 		if rcwPassword == nil {
-			return daemon.GetEnc(decBytes)
+			return daemon.GetEnc(decBytes, true)
 		}
 	}
 
 	// if the daemon is not being used/was not already running,
 	// use wrappers.Encrypt directly to avoid waiting for socket file creation
-	return wrappers.Encrypt(decBytes, rcwPassword)
+	return wrappers.Encrypt(decBytes, rcwPassword, true, true)
 }
 
 // launchRCWDProcess launches an RCW daemon to cache a password.
@@ -95,7 +95,7 @@ func launchRCWDProcess() []byte {
 
 	cmd := exec.Command(os.Args[0], "startrcwd")
 	cmd.SysProcAttr = global.GetSysProcAttr()
-	_ = back.WriteToStdin(cmd, string(password))
+	_ = back.WriteToStdinAndZeroizeInput(cmd, append([]byte{}, password...))
 	_ = cmd.Start()
 
 	return password

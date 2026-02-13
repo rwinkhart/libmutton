@@ -10,8 +10,8 @@ import (
 	"github.com/rwinkhart/go-boilerplate/back"
 )
 
-// CopyString copies a string to the clipboard.
-func CopyString(clearClipboardAutomatically bool, copySubject string) error {
+// CopyBytes copies a byte slice to the clipboard.
+func CopyBytes(clearClipboardAutomatically bool, copySubject []byte) error {
 	// determine whether to use wl-copy (Wayland) or xclip (X11)
 	sessionIsWayland, err := isWayland()
 	if err != nil {
@@ -24,7 +24,7 @@ func CopyString(clearClipboardAutomatically bool, copySubject string) error {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	}
 
-	_ = back.WriteToStdin(cmdCopy, copySubject)
+	_ = back.WriteToStdinAndZeroizeInput(cmdCopy, copySubject)
 	if err = cmdCopy.Run(); err != nil {
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}

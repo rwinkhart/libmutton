@@ -43,7 +43,7 @@ func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 			select {} // block indefinitely
 		} else { // other
 			// copy field to clipboard; launch clipboard clearing process
-			if err = CopyString(true, decSlice[field]); err != nil {
+			if err = CopyBytes(true, []byte(decSlice[field])); err != nil {
 				return err
 			}
 			return nil
@@ -56,7 +56,7 @@ func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 // ClearArgument reads the assigned clipboard contents from stdin and passes them to clipClearProcess.
 func ClearArgument() error {
 	assignedContents := back.ReadFromStdin()
-	if assignedContents == "" {
+	if assignedContents == nil {
 		os.Exit(0) // use os.Exit directly since this function runs out of a background subprocess that is invisible to the user (will never appear in GUI/TUI environment)
 	}
 	return ClearProcess(assignedContents)

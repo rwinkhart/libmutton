@@ -3,8 +3,8 @@
 package clip
 
 import (
+	"bytes"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/rwinkhart/go-boilerplate/back"
@@ -12,7 +12,7 @@ import (
 
 // ClearProcess clears the clipboard after 30 seconds if the clipboard contents have not changed.
 // assignedContents can be omitted to clear the clipboard immediately and unconditionally.
-func ClearProcess(assignedContents string) error {
+func ClearProcess(assignedContents []byte) error {
 	cmdPaste, cmdClear, err := getClipCommands()
 	if err != nil {
 		return errors.New("unable to determine clipboard platform: " + err.Error())
@@ -27,7 +27,7 @@ func ClearProcess(assignedContents string) error {
 	}
 
 	// if assignedContents is empty, clear the clipboard immediately and unconditionally
-	if assignedContents == "" {
+	if assignedContents == nil {
 		if err := clearClipboard(); err != nil {
 			return err
 		}
@@ -41,8 +41,7 @@ func ClearProcess(assignedContents string) error {
 	if err != nil {
 		return errors.New("unable to read clipboard contents")
 	}
-
-	if assignedContents == strings.TrimRight(string(newContents), "\r\n") {
+	if bytes.Equal(assignedContents, newContents) {
 		if err = clearClipboard(); err != nil {
 			return err
 		}

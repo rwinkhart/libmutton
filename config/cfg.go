@@ -46,8 +46,7 @@ start:
 		// check if any fields are nil
 		var hasNilFields bool
 		cfgValue := reflect.ValueOf(&cfg.Libmutton).Elem()
-		for i := 0; i < cfgValue.NumField(); i++ {
-			field := cfgValue.Field(i)
+		for _, field := range cfgValue.Fields() {
 			if field.IsNil() {
 				hasNilFields = true
 				break
