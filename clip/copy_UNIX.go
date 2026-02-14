@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/rwinkhart/go-boilerplate/back"
+	"github.com/rwinkhart/go-boilerplate/security"
 )
 
 // CopyBytes copies a byte slice to the clipboard.
@@ -24,12 +25,15 @@ func CopyBytes(clearClipboardAutomatically bool, copySubject []byte) error {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	}
 
-	_ = back.WriteToStdinAndZeroizeInput(cmdCopy, copySubject)
+	_ = back.WriteToStdin(cmdCopy, copySubject, false)
 	if err = cmdCopy.Run(); err != nil {
+		security.ZeroizeBytes(copySubject)
 		return errors.New("unable to copy to clipboard: " + err.Error())
 	}
 	if clearClipboardAutomatically {
 		LaunchClearProcess(copySubject)
+	} else {
+		security.ZeroizeBytes(copySubject)
 	}
 	return nil
 }

@@ -95,7 +95,7 @@ func launchRCWDProcess() []byte {
 
 	cmd := exec.Command(os.Args[0], "startrcwd")
 	cmd.SysProcAttr = global.GetSysProcAttr()
-	_ = back.WriteToStdinAndZeroizeInput(cmd, append([]byte{}, password...))
+	_ = back.WriteToStdin(cmd, password, false)
 	_ = cmd.Start()
 
 	return password

@@ -41,7 +41,7 @@ func ClearProcess(assignedContents []byte) error {
 	if err != nil {
 		return errors.New("unable to read clipboard contents")
 	}
-	if bytes.Equal(assignedContents, newContents) {
+	if bytes.Equal(assignedContents, bytes.TrimRight(newContents, "\r\n")) {
 		if err = clearClipboard(); err != nil {
 			return err
 		}

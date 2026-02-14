@@ -15,7 +15,7 @@ import (
 func LaunchClearProcess(copySubject []byte) {
 	cmd := exec.Command(os.Args[0], "clipclear")
 	cmd.SysProcAttr = global.GetSysProcAttr()
-	_ = back.WriteToStdinAndZeroizeInput(cmd, copySubject)
+	_ = back.WriteToStdin(cmd, copySubject, true)
 	_ = cmd.Start()
 	os.Exit(0) // use os.Exit directly since this version of this function is only meant for non-interactive CLI implementations
 }
