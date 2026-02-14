@@ -3,6 +3,9 @@
 
 libmutton was designed to be usable as a library for building other compatible password managers off of. [MUTN](https://github.com/rwinkhart/MUTN) is the official reference CLI password manager, however libmutton can be implemented in many other unique ways.
 
+## Dependency Replacements (IMPORTANT)
+In libmutton's `go.mod`, you'll see dependency replacements for `golang.org/x/sys` and `github.com/Microsoft/go-winio`. Full support for Windows and FreeBSD requires these patched modules, so be sure to maintain these same replacements in your client's `go.mod`!
+
 ## Build Tags
 Custom build tags can (and sometimes must) be used to achieve desired results.
 

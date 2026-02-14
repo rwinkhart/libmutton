@@ -13,8 +13,7 @@ See the [developer guide](https://github.com/rwinkhart/libmutton/blob/main/wiki/
 
 # Roadmap
 #### Release v1.0.0
-- [ ] Stabilize API (reduce need for future breaking changes)
-- [ ] Ensure usability as external C library for use in platform-native languages (e.g. Swift, Kotlin)
+- Stabilize API (reduce need for future breaking changes)
 - [ ] Create packaging scripts (libmuttonserver)
     - [ ] Stable source PKGBUILD
     - [ ] Stable source APKBUILD
