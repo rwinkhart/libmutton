@@ -12,9 +12,8 @@ var keyBytesProvider = func(sshKeyPath *string) ([]byte, error) {
 			return nil, errors.New("unable to read private key: " + *sshKeyPath)
 		}
 		return key, nil
-	} else {
-		return nil, errors.New("unable to identify private key location (nil config)")
 	}
+	return nil, errors.New("unable to identify private key location (nil config)")
 }
 
 // GetBytes returns the SSH private key bytes.

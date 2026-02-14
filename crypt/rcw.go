@@ -21,7 +21,7 @@ func RCWDArgument() {
 	if password == nil {
 		os.Exit(0) // use os.Exit directly since this function is only intended for non-interactive CLI clients
 	}
-	daemon.Start([]byte(password))
+	daemon.Start(password)
 }
 
 // DecryptFileToSlice decrypts an RCW wrapped file

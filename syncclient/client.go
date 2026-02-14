@@ -201,6 +201,7 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindow
 		// download the file
 		_, err = remoteFile.WriteTo(localFile)
 		if err != nil {
+			_ = localFile.Close()
 			return errors.New("unable to download remote file: " + err.Error())
 		}
 
@@ -266,12 +267,15 @@ func sftpSync(sshClient *ssh.Client, sshEntryRoot, sshAgeDir string, sshIsWindow
 		var remoteFile *sftp.File
 		remoteFile, err = sftpClient.OpenFile(remoteFileRealPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY)
 		if err != nil {
+			_ = localFile.Close()
 			return errors.New("unable to create remote file: " + err.Error())
 		}
 
 		// upload the file
 		_, err = localFile.WriteTo(remoteFile)
 		if err != nil {
+			_ = localFile.Close()
+			_ = remoteFile.Close()
 			return errors.New("unable to upload local file: " + err.Error())
 		}
 
