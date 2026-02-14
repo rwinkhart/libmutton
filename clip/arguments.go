@@ -1,4 +1,4 @@
-//go:build (!android && !ios) || termux
+//go:build !android && !ios
 
 package clip
 

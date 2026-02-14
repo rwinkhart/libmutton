@@ -1,4 +1,4 @@
-//go:build !windows && !darwin && !android && !ios && !termux && !wsl
+//go:build !windows && !darwin && !android && !ios && !wsl
 
 package clip
 

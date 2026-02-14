@@ -12,7 +12,6 @@ Custom build tags can (and sometimes must) be used to achieve desired results.
 These are as follows:
 - `interactive`: If making an interactive interface (GUI/TUI/interactive CLI), you probably need to use this build tag. Without it, your entire program will exit after any given operation is completed. This behavior is only desired for non-interactive CLI implementations, such as MUTN.
 - `wsl`: Allows creating a Linux binary that can interact with the Windows clipboard (for WSL)
-- `termux`: Allows creating an Android binary that can interact with the Termux clipboard (for Android)
 
 ## Required Global Variable Manipulation
 - `global.GetPassword` must be set to allow for different types of clients (CLI, GUI, TUI) to prompt for the password in the most appropriate way.
@@ -23,7 +22,7 @@ These are as follows:
 - `startrcwd`: Should be accepted by all libmutton implementations making use of the RCW daemon to cache passwords. Please accept a `startrcwd` argument that calls `crypt.RCWDArgument()`.
 
 ## Mobile Clipboard Management
-In an effort to reduce dependencies not needed in most environments, libmutton no longer provides clipboard management for mobile platforms (except for Termux). This should be handled by your GUI toolkit/framework.
+In an effort to reduce dependencies not needed in most environments, libmutton no longer provides clipboard management for mobile platforms. This should be handled by your GUI toolkit/framework.
 
 ## Configuration
 libmutton-based password manager clients should all share the same JSON configuration file.
