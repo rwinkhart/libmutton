@@ -9,6 +9,7 @@ import (
 
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/go-boilerplate/security"
+	"github.com/rwinkhart/libmutton/global"
 )
 
 // CopyBytes copies a byte slice to the clipboard.
@@ -24,6 +25,7 @@ func CopyBytes(clearClipboardAutomatically bool, copySubject []byte) error {
 	} else {
 		cmdCopy = exec.Command("xclip", "-sel", "c", "-t", "text/plain")
 	}
+	cmdCopy.SysProcAttr = global.GetSysProcAttr()
 
 	_ = back.WriteToStdin(cmdCopy, copySubject, false)
 	if err = cmdCopy.Run(); err != nil {
