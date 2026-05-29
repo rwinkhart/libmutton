@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/rwinkhart/go-boilerplate/back"
 	"github.com/rwinkhart/libmutton/crypt"
@@ -33,7 +34,8 @@ func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 			return errors.New("field is empty")
 		}
 
-		if field == 2 { // TOTP mode
+		switch field {
+		case 2: // TOTP
 			fmt.Println(back.AnsiWarning + "[Starting]" + back.AnsiReset + " TOTP clipboard refresher")
 			errorChan := make(chan error, 1)
 			go TOTPCopier(decSlice[2], errorChan, nil) // "done" is not needed because the process runs until the program is killed
@@ -41,7 +43,10 @@ func CopyShortcut(realPath string, field int, rcwPassword []byte) error {
 				return errors.New("error encountered in TOTP refresh process: " + err.Error())
 			}
 			select {} // block indefinitely
-		} else { // other
+		case 4:
+			decSlice[field] = strings.TrimRight(decSlice[field], " ")
+			fallthrough
+		default:
 			// copy field to clipboard; launch clipboard clearing process
 			if err = CopyBytes(true, []byte(decSlice[field])); err != nil {
 				return err
